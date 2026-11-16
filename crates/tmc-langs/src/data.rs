@@ -327,6 +327,7 @@ mod test {
                     "id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d04",
                     "name": "Getting started",
                     "chapter_number": 1,
+                    "locking_status": "Unlocked",
                 },
             }],
             "progress": {
@@ -338,6 +339,17 @@ mod test {
                     "completed": false,
                     "attempted": true,
                     "standing": "Attempted",
+                    "max_tries": 3,
+                    "tries_left": 2,
+                    "pending_teacher_review": "awaits_teacher",
+                    "exercise_locked": true,
+                }],
+                "closed_chapters": [{
+                    "id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d05",
+                    "name": "Later",
+                    "chapter_number": 2,
+                    "opens_at": "2030-01-01T00:00:00Z",
+                    "exercises": [],
                 }],
             },
         });

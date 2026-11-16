@@ -27,8 +27,7 @@ use std::{
 };
 use tmc_langs::{
     CombinedMoocCourseData, CommandError, Compression, DownloadOrUpdateTmcCourseExercisesResult,
-    LangsError, Language, MoocUpdatedExercise, StyleValidationResult, TmcConfig, TmcDownloadResult,
-    TmcProjectYml, UpdatedExercise,
+    LangsError, Language, StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml,
     file_util::{self, Lock, LockOptions},
     mooc::{self, MoocClient, MoocClientError},
     progress_reporter,
@@ -196,6 +195,7 @@ fn find_http_status(e: &anyhow::Error) -> Option<u16> {
         }
         match as_mooc_client_error(cause) {
             Some(MoocClientError::HttpError { status, .. }) => Some(status.as_u16()),
+            Some(MoocClientError::FileNotFound { .. }) => Some(404),
             _ => None,
         }
     })
@@ -239,16 +239,31 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
             ..
         } => {
             // `message_key` is the backend's stable error identifier; prefer it over the status.
-            if *obsolete_client || message_key.as_deref() == Some("obsolete_client") {
+            let key_kind = match message_key.as_deref() {
+                Some("obsolete_client") => Some(Kind::ObsoleteClient),
+                Some(mooc::NOT_ENROLLED_MESSAGE_KEY) => Some(Kind::NotEnrolled),
+                Some(mooc::DEADLINE_PASSED_MESSAGE_KEY) => Some(Kind::DeadlinePassed),
+                Some(mooc::OUT_OF_TRIES_MESSAGE_KEY) => Some(Kind::OutOfTries),
+                Some(mooc::CHAPTER_NOT_OPEN_YET_MESSAGE_KEY) => Some(Kind::ChapterNotOpenYet),
+                Some(mooc::CHAPTER_NOT_UNLOCKED_YET_MESSAGE_KEY) => {
+                    Some(Kind::ChapterNotUnlockedYet)
+                }
+                Some(mooc::CHAPTER_COMPLETED_AND_LOCKED_MESSAGE_KEY) => {
+                    Some(Kind::ChapterCompletedAndLocked)
+                }
+                Some(mooc::EXERCISE_LOCKED_MESSAGE_KEY) => Some(Kind::ExerciseLocked),
+                Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) => Some(Kind::UploadExpired),
+                Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) => Some(Kind::UnknownUpload),
+                Some(mooc::RATE_LIMITED_MESSAGE_KEY) => Some(Kind::RateLimited),
+                // `duplicate_upload` is left unmapped: only a buggy client triggers it.
+                _ => None,
+            };
+            if *obsolete_client {
                 Some(Kind::ObsoleteClient)
-            } else if message_key.as_deref() == Some("not_enrolled") {
-                Some(Kind::NotEnrolled)
-            } else if message_key.as_deref() == Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) {
-                Some(Kind::UploadExpired)
-            } else if message_key.as_deref() == Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) {
-                Some(Kind::UnknownUpload)
-            // `duplicate_upload` is left unmapped: only a buggy client triggers it, and a
-            // new `Kind` would have to be mirrored in bindings.schema.json and langsSchema.ts.
+            } else if key_kind.is_some() {
+                key_kind
+            } else if status.as_u16() == 429 {
+                Some(Kind::RateLimited)
             } else if status.as_u16() == 403 {
                 Some(Kind::InsufficientScope)
             } else if status.as_u16() == 401 {
@@ -258,6 +273,7 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
             }
         }
         MoocClientError::NotAuthenticated => Some(Kind::NotLoggedIn),
+        MoocClientError::FileNotFound { .. } => Some(Kind::NotFound),
         MoocClientError::DeviceAccessDenied => Some(Kind::DeviceLoginDenied),
         MoocClientError::DeviceCodeExpired => Some(Kind::DeviceLoginExpired),
         // Stored credentials are gone; the user must log in again.
@@ -737,16 +753,9 @@ fn run_tmc_inner(
     let output = match tmc.command {
         TestMyCodeCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let updated_exercises = tmc_langs::check_tmc_exercise_updates(client, &projects_dir)
-                .context("Failed to check exercise updates")?
-                .into_iter()
-                .map(|id| UpdatedExercise { id })
-                .collect::<Vec<_>>();
-
-            CliOutput::finished_with_data(
-                "updated exercises",
-                DataKind::UpdatedExercises(updated_exercises),
-            )
+            let updates = tmc_langs::check_tmc_exercise_updates(client, &projects_dir)
+                .context("Failed to check exercise updates")?;
+            CliOutput::finished_with_data("updated exercises", DataKind::ExerciseUpdates(updates))
         }
 
         TestMyCodeCommand::DownloadModelSolution {
@@ -1157,7 +1166,7 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
     // token yet, so the auth-failure handling below must not apply to them.
     match &mooc.command {
         MoocCommand::Login => return run_mooc_login(&client_name, &root_url, &client_id),
-        MoocCommand::LoggedIn => return mooc_logged_in(&client_name),
+        MoocCommand::LoggedIn => return mooc_logged_in(&client_name, &root_url, &client_id),
         MoocCommand::Logout => return mooc_logout(&client_name),
         _ => {}
     }
@@ -1268,24 +1277,45 @@ fn poll_mooc_device_login(
     }
 }
 
-/// Reports whether mooc credentials are stored, like the tmc `logged-in`. The
-/// token itself is kept out of the output so it never reaches client logs.
-fn mooc_logged_in(client_name: &str) -> Result<CliOutput> {
-    if tmc_langs::MoocCredentials::load(client_name)?.is_some() {
-        Ok(CliOutput::OutputData(Box::new(OutputData {
-            status: Status::Finished,
-            message: "currently logged in".to_string(),
-            result: OutputResult::LoggedIn,
-            data: None,
-        })))
-    } else {
-        Ok(CliOutput::OutputData(Box::new(OutputData {
+/// Reports whether mooc credentials are stored and, when the host answers, the account they
+/// belong to. Credentials the host rejects for good are deleted and reported as logged out.
+/// The token itself is kept out of the output so it never reaches client logs.
+fn mooc_logged_in(client_name: &str, root_url: &url::Url, client_id: &str) -> Result<CliOutput> {
+    let not_logged_in = || {
+        CliOutput::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "currently not logged in".to_string(),
             result: OutputResult::NotLoggedIn,
             data: None,
-        })))
-    }
+        }))
+    };
+    let Some(credentials) = tmc_langs::MoocCredentials::load(client_name)? else {
+        return Ok(not_logged_in());
+    };
+
+    let mut client = tmc_langs::mooc::MoocClient::new(root_url.clone())?;
+    client.set_token(credentials.token());
+    let auth = tmc_langs::MoocAuth::new(
+        client_name.to_string(),
+        root_url.clone(),
+        client_id.to_string(),
+    );
+    // An unreachable or older host must not read as logged out: the credentials are still
+    // good, only the account id is unknown.
+    let current_user = match auth.call(&client, |c| c.current_user()) {
+        Ok(user) => Some(user),
+        Err(failure) if failure.is_permanent() => return Ok(not_logged_in()),
+        Err(failure) => {
+            log::warn!("could not fetch the logged-in account: {failure}");
+            None
+        }
+    };
+    Ok(CliOutput::OutputData(Box::new(OutputData {
+        status: Status::Finished,
+        message: "currently logged in".to_string(),
+        result: OutputResult::LoggedIn,
+        data: current_user.map(DataKind::MoocCurrentUser),
+    })))
 }
 
 /// Removes the stored mooc credentials — mirrors the tmc `logout` command.
@@ -1314,14 +1344,10 @@ fn run_mooc_inner(
         }
         MoocCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let updated_exercises =
-                tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?
-                    .into_iter()
-                    .map(|id| MoocUpdatedExercise { id })
-                    .collect::<Vec<_>>();
+            let updates = tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?;
             CliOutput::finished_with_data(
                 "checked exercise updates",
-                DataKind::MoocUpdatedExercises(updated_exercises),
+                DataKind::MoocExerciseUpdates(updates),
             )
         }
         MoocCommand::Course { course_id } => {
@@ -1456,11 +1482,12 @@ fn run_mooc_inner(
                 false,
             )?;
 
-            // Sharing needs the slide-submission id from the submit response. Each call
-            // retries on 401 independently, so a 401 on the idempotent share never
-            // re-runs the non-idempotent submit.
-            let result = auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
-            let paste = auth.call(client, |c| c.share_submission(result.slide_submission_id))?;
+            // Separate calls so that a 401 on the idempotent share never stores the
+            // snapshot twice.
+            let snapshot_id = auth.call(client, |c| {
+                c.store_snapshot(exercise_id, temp.path(), mooc::api::SnapshotPurpose::Paste)
+            })?;
+            let paste = auth.call(client, |c| c.share_submission(snapshot_id))?;
             CliOutput::finished_with_data("pasted exercise", DataKind::MoocPaste(paste))
         }
         MoocCommand::GetExerciseSubmissions { exercise_id } => {

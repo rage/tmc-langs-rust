@@ -187,6 +187,9 @@ fn adopt_shared_credentials(shared: &Path, per_host: &Path) -> bool {
 /// The credentials file can't be the lock: it is replaced by rename, so a lock on
 /// it would cover an unlinked inode, and on Windows the locking handle would
 /// block both the rename and reads.
+///
+/// Never deleted, logout included: a locker that opened it just before the unlink
+/// would hold the orphaned inode while the next opener locks a fresh one.
 fn lock_file_path(path: &Path) -> PathBuf {
     let mut name = path.file_name().unwrap_or_default().to_os_string();
     name.push(".lock");
@@ -276,7 +279,7 @@ impl MoocCredentials {
             lock_file_path(&self.path),
             LockOptions::WriteCreate,
             LOCK_TIMEOUT,
-            |_guard| file_util::remove_file(&self.path),
+            |_guard| remove_if_exists(&self.path),
         )??;
         Ok(())
     }
@@ -302,8 +305,9 @@ impl MoocCredentials {
 
     /// Loads the credentials without refreshing.
     ///
-    /// Returns `Ok(None)` if no file exists. On a corrupt file the file is
-    /// deleted and an error returned, mirroring the tmc `Credentials::load`.
+    /// Returns `Ok(None)` if no file exists, including one deleted by a concurrent
+    /// logout while this reads it. On a corrupt file the file is deleted and an
+    /// error returned, mirroring the tmc `Credentials::load`.
     pub fn load(client_name: &str) -> Result<Option<Self>, LangsError> {
         let path = Self::get_credentials_path(client_name)?;
         if !path.exists() {
@@ -311,10 +315,11 @@ impl MoocCredentials {
         }
         log::debug!("Loading mooc credentials from {}", path.display());
         match read_stored_shared(&path)? {
-            Ok(stored) => Ok(Some(Self { path, stored })),
-            Err(e) => {
+            None => Ok(None),
+            Some(Ok(stored)) => Ok(Some(Self { path, stored })),
+            Some(Err(e)) => {
                 log::error!("Failed to deserialize {}: {e}, deleting", path.display());
-                file_util::remove_file(&path)?;
+                remove_if_exists(&path)?;
                 Err(LangsError::DeserializeCredentials(path, e))
             }
         }
@@ -343,14 +348,15 @@ impl MoocCredentials {
         }
 
         match read_stored_shared(&path)? {
-            Ok(stored) => {
+            None => return Ok(None),
+            Some(Ok(stored)) => {
                 if stored.is_valid_with_margin(EXPIRY_MARGIN_SECS) {
                     return Ok(Some(Self { path, stored }));
                 }
             }
-            Err(e) => {
+            Some(Err(e)) => {
                 log::error!("Failed to deserialize {}: {e}, deleting", path.display());
-                file_util::remove_file(&path)?;
+                remove_if_exists(&path)?;
                 return Err(LangsError::DeserializeCredentials(path, e));
             }
         }
@@ -419,14 +425,12 @@ impl MoocCredentials {
         }
 
         // Double-checked re-read under the lock.
-        if !path.exists() {
-            return Ok(None);
-        }
         let stored = match read_stored(path) {
-            Ok(stored) => stored,
+            Ok(Some(stored)) => stored,
+            Ok(None) => return Ok(None),
             Err(e) => {
                 log::error!("Failed to deserialize {}: {e}, deleting", path.display());
-                file_util::remove_file(path)?;
+                remove_if_exists(path)?;
                 return Ok(None);
             }
         };
@@ -454,7 +458,7 @@ impl MoocCredentials {
 
         let Some(refresh_secret) = stored.refresh_token_secret() else {
             log::warn!("mooc credentials have no refresh token; deleting");
-            file_util::remove_file(path)?;
+            remove_if_exists(path)?;
             return Ok(None);
         };
 
@@ -473,7 +477,7 @@ impl MoocCredentials {
             // Permanent: revoked or expired; send the user through login again.
             Err(e) if matches!(*e, mooc::MoocClientError::RefreshTokenRejected { .. }) => {
                 log::warn!("mooc refresh token rejected ({e}); deleting credentials");
-                file_util::remove_file(path)?;
+                remove_if_exists(path)?;
                 Ok(None)
             }
             // Transient (connection error, timeout, 5xx, unparseable response):
@@ -622,11 +626,11 @@ impl From<MoocAuthFailure> for LangsError {
 }
 
 /// Reads and parses the credentials file under a shared read lock. The outer
-/// `Result` is I/O/locking failure; the inner is a parse failure the caller
-/// handles by deleting the file.
+/// `Result` is I/O/locking failure; `None` means the file is gone; the inner
+/// `Result` is a parse failure the caller handles by deleting the file.
 fn read_stored_shared(
     path: &Path,
-) -> Result<Result<StoredCredentials, tmc_langs_util::JsonError>, LangsError> {
+) -> Result<Option<Result<StoredCredentials, tmc_langs_util::JsonError>>, LangsError> {
     // Bounded: a holder wedged mid-refresh must not stall the whole CLI invocation.
     let lock_path = lock_file_path(path);
     // `ReadCreate` can't stand in for this: on unix it opens without write
@@ -641,18 +645,39 @@ fn read_stored_shared(
         &lock_path,
         LockOptions::Read,
         LOCK_TIMEOUT,
-        |_guard| file_util::read_file(path),
+        |_guard| read_file_if_exists(path),
     )??;
-    Ok(deserialize::json_from_slice(&bytes))
+    Ok(bytes.map(|bytes| deserialize::json_from_slice(&bytes)))
 }
 
-/// Reads and parses the credentials file. Used only while the caller holds the
-/// exclusive lock on [`lock_file_path`].
-fn read_stored(path: &Path) -> Result<StoredCredentials, LangsError> {
-    let bytes = file_util::read_file(path)?;
+/// Reads and parses the credentials file, `None` if it is gone. Used only while
+/// the caller holds the exclusive lock on [`lock_file_path`].
+fn read_stored(path: &Path) -> Result<Option<StoredCredentials>, LangsError> {
+    let Some(bytes) = read_file_if_exists(path)? else {
+        return Ok(None);
+    };
     let stored = deserialize::json_from_slice(&bytes)
         .map_err(|e| LangsError::DeserializeCredentials(path.to_path_buf(), e))?;
-    Ok(stored)
+    Ok(Some(stored))
+}
+
+/// Reads the file, `None` if it does not exist. A logout can delete the
+/// credentials between any existence check and the open, and on NFS without a
+/// lock daemon the locks don't prevent that.
+fn read_file_if_exists(path: &Path) -> Result<Option<Vec<u8>>, FileError> {
+    match file_util::read_file(path) {
+        Ok(bytes) => Ok(Some(bytes)),
+        Err(FileError::FileOpen(_, e)) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e),
+    }
+}
+
+/// Deletes the file, succeeding if something else already deleted it.
+fn remove_if_exists(path: &Path) -> Result<(), FileError> {
+    match file_util::remove_file(path) {
+        Err(FileError::FileRemove(_, e)) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        result => result,
+    }
 }
 
 /// Atomic write of the wrapper JSON, creating the config directory if needed.
@@ -920,6 +945,67 @@ mod test {
         let config_dir = tempfile::tempdir().unwrap();
         set_config_dir(config_dir.path());
         assert!(MoocCredentials::load("test").unwrap().is_none());
+    }
+
+    #[test]
+    fn a_file_deleted_after_the_existence_check_reads_as_absent() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("credentials_mooc_gone.json");
+
+        assert!(read_stored_shared(&path).unwrap().is_none());
+        assert!(read_stored(&path).unwrap().is_none());
+        let root_url: Url = "http://127.0.0.1:1".parse().unwrap();
+        assert!(
+            MoocCredentials::refresh_locked(&path, &root_url, "test-client", None)
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn remove_succeeds_when_the_file_is_already_gone() {
+        let _guard = env_lock();
+        let config_dir = tempfile::tempdir().unwrap();
+        set_config_dir(config_dir.path());
+        MoocCredentials::save(
+            "test",
+            make_token("access-1", Some("refresh-1"), Some(3600)),
+        )
+        .unwrap();
+        let credentials = MoocCredentials::load("test").unwrap().unwrap();
+        std::fs::remove_file(MoocCredentials::get_credentials_path("test").unwrap()).unwrap();
+
+        credentials.remove().unwrap();
+    }
+
+    #[test]
+    fn reads_racing_a_logout_never_fail() {
+        let _guard = env_lock();
+        let config_dir = tempfile::tempdir().unwrap();
+        set_config_dir(config_dir.path());
+        let root_url: Url = "http://127.0.0.1:1".parse().unwrap();
+        let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+        let churn = {
+            let stop = stop.clone();
+            std::thread::spawn(move || {
+                let path = MoocCredentials::get_credentials_path("test").unwrap();
+                while !stop.load(std::sync::atomic::Ordering::Relaxed) {
+                    MoocCredentials::save(
+                        "test",
+                        make_token("access-1", Some("refresh-1"), Some(3600)),
+                    )
+                    .unwrap();
+                    let _ = std::fs::remove_file(&path);
+                }
+            })
+        };
+        for _ in 0..500 {
+            MoocCredentials::load("test").unwrap();
+            MoocCredentials::load_valid("test", &root_url, "test-client").unwrap();
+        }
+        stop.store(true, std::sync::atomic::Ordering::Relaxed);
+        churn.join().unwrap();
     }
 
     #[test]

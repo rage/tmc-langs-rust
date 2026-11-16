@@ -16,6 +16,8 @@ pub struct TmcExerciseSlide {
     pub course_id: Uuid,
     pub exercise_name: String,
     pub exercise_order_number: i32,
+    /// The effective deadline: the exercise's own, else its chapter's. Submissions are refused
+    /// from this moment on.
     pub deadline: Option<DateTime<Utc>>,
     pub tasks: Vec<TmcExerciseTask>,
     /// The course material page the exercise is on, which also shows the student's latest
@@ -34,6 +36,10 @@ pub struct ExerciseChapter {
     pub name: String,
     /// The chapter's position in the course, from 1.
     pub chapter_number: i32,
+    /// The user's status in the course's chapter locking; submissions are refused unless it is
+    /// `Unlocked`. `None` when the course does not lock chapters, or the host does not report it.
+    #[serde(default)]
+    pub locking_status: Option<ChapterLockingStatus>,
 }
 
 impl From<api::ExerciseChapter> for ExerciseChapter {
@@ -42,6 +48,34 @@ impl From<api::ExerciseChapter> for ExerciseChapter {
             id: value.id,
             name: value.name,
             chapter_number: value.chapter_number,
+            locking_status: value
+                .locking_status
+                .and_then(ChapterLockingStatus::from_api),
+        }
+    }
+}
+
+/// Where the user is in a course's chapter locking, which opens chapters one at a time as the
+/// previous ones are completed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum ChapterLockingStatus {
+    /// The chapter's exercises can be submitted to.
+    Unlocked,
+    /// The user has completed the chapter and locked it; its exercises take no more submissions.
+    CompletedAndLocked,
+    /// The previous chapters must be completed first.
+    NotUnlockedYet,
+}
+
+impl ChapterLockingStatus {
+    /// `None` for a status newer than this client.
+    fn from_api(value: api::ChapterLockingStatus) -> Option<Self> {
+        match value {
+            api::ChapterLockingStatus::Unlocked => Some(Self::Unlocked),
+            api::ChapterLockingStatus::CompletedAndLocked => Some(Self::CompletedAndLocked),
+            api::ChapterLockingStatus::NotUnlockedYet => Some(Self::NotUnlockedYet),
+            api::ChapterLockingStatus::Unrecognized => None,
         }
     }
 }

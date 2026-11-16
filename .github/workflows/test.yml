@@ -19,34 +19,47 @@ jobs:
         include:
           - os: ubuntu-latest
             rust-target: x86_64-unknown-linux-gnu
-            java-arch: x64
           - os: windows-latest
             rust-target: x86_64-pc-windows-msvc
             java-arch: x64
           - os: macos-latest
             rust-target: aarch64-apple-darwin
-            java-arch: arm64
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Nix environment
+        if: runner.os != 'Windows'
+        uses: ./.github/actions/setup-nix-env
+      - name: Check the flake's Rust matches rust-version
+        if: runner.os != 'Windows'
+        run: |
+          expected=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml)
+          actual=$(rustc --version | cut -d' ' -f2)
+          if [ "$expected" != "$actual" ]; then
+            echo "::error::Cargo.toml declares rust-version $expected but flake.nix provides $actual"
+            exit 1
+          fi
+
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        if: runner.os == 'Windows'
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
         with:
+          toolchain: "1.99.0"
+          targets: ${{ matrix.rust-target }}
           components: clippy, rustfmt
       - name: Cache
-        uses: Swatinem/rust-cache@v2
-      - name: Add rustup target
-        run: rustup target add ${{ matrix.rust-target }}
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Diagnostics on Windows
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: "gci env:"
 
       - name: Enable long paths for git
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: git config --system core.longpaths true # allow long paths from git deps
 
       - name: Rustfmt
@@ -58,15 +71,9 @@ jobs:
       - name: Build test binary
         run: cargo test --no-run --target ${{ matrix.rust-target }}
 
-      - name: Install dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt update -y
-          sudo apt install -y check valgrind  # required for make plugin
-          sudo apt install -y libcurl4-gnutls-dev libgit2-dev # required for R
-
       - name: Install Java
-        uses: actions/setup-java@v4
+        if: runner.os == 'Windows'
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
         with:
           distribution: "temurin"
           java-version: "11"
@@ -74,24 +81,17 @@ jobs:
 
       # the windows image doesn't ship ant, which the ant plugin shells out to
       - name: Install Ant
-        if: matrix.os == 'windows-latest'
-        run: choco install ant --no-progress -y
+        if: runner.os == 'Windows'
+        run: choco install ant --version 1.10.18 --no-progress -y
 
       - name: Install C#
-        uses: actions/setup-dotnet@v4
+        if: runner.os == 'Windows'
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        env:
+          # The image's own install carries newer SDKs, which the C# runner would pick over 8.0.
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
         with:
           dotnet-version: "8.0.x"
-
-      - name: Install R
-        if: matrix.os == 'ubuntu-latest'
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "4.2.2"
-      - name: Install tmc-r-tester
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          Rscript -e 'install.packages(c("testthat", "jsonlite", "R.utils"))'
-          Rscript -e 'install.packages("crates/plugins/r/tests/tmcRtestrunner", repos=NULL, type="source")'
 
       - name: Run tests
         run: cargo test --no-fail-fast --target ${{ matrix.rust-target }}

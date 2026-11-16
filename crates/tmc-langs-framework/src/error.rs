@@ -80,14 +80,21 @@ pub enum CommandError {
     NotFound { cmd: String, source: io::Error },
     #[error("Failed to run command {0}")]
     FailedToRun(String, #[source] io::Error),
-    #[error("Command {command} exited with status {status:?}")]
+    #[error(
+        "Command {command} exited with status {status:?}{}",
+        describe_output(stdout, stderr)
+    )]
     Failed {
         command: String,
         status: ExitStatus,
         stdout: String,
         stderr: String,
     },
-    #[error("Command {command} timed out after {} seconds.", .timeout.as_secs())]
+    #[error(
+        "Command {command} timed out after {} seconds.{}",
+        .timeout.as_secs(),
+        describe_output(stdout, stderr)
+    )]
     TimeOut {
         command: String,
         timeout: Duration,
@@ -96,4 +103,55 @@ pub enum CommandError {
     },
     #[error("Failed to terminate command {0}")]
     Terminate(String, #[source] std::io::Error),
+}
+
+/// Most characters of each output stream [`describe_output`] keeps, from the end, where a
+/// failing program says what went wrong.
+const MAX_OUTPUT_CHARS: usize = 4000;
+
+/// A command's output for an error message: each non-empty stream on its own lines, its tail
+/// when long, or nothing when both are empty. Plugins' error messages are the only place a
+/// client sees why a tool failed.
+pub fn describe_output(stdout: &str, stderr: &str) -> String {
+    let mut description = String::new();
+    for (name, output) in [("stdout", stdout), ("stderr", stderr)] {
+        let output = output.trim();
+        if output.is_empty() {
+            continue;
+        }
+        let char_count = output.chars().count();
+        description.push_str(&format!("\n{name}:\n"));
+        if char_count > MAX_OUTPUT_CHARS {
+            description.push('…');
+            description.extend(output.chars().skip(char_count - MAX_OUTPUT_CHARS));
+        } else {
+            description.push_str(output);
+        }
+    }
+    description
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn describe_output_leaves_out_empty_streams() {
+        assert_eq!(describe_output(" \n", ""), "");
+        assert_eq!(
+            describe_output("", "Error occurred during initialization of VM\n"),
+            "\nstderr:\nError occurred during initialization of VM"
+        );
+    }
+
+    #[test]
+    fn describe_output_keeps_the_tail_of_a_long_stream() {
+        let stdout = format!("{}the cause", "x".repeat(MAX_OUTPUT_CHARS * 2));
+        let description = describe_output(&stdout, "");
+        assert!(description.ends_with("the cause"));
+        assert_eq!(
+            description.chars().count(),
+            "\nstdout:\n…".chars().count() + MAX_OUTPUT_CHARS
+        );
+    }
 }

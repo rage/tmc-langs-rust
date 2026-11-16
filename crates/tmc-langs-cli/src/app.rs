@@ -7,8 +7,9 @@ use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
     CombinedCourseData, CombinedMoocCourseData, Compression,
     DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-    ExerciseDesc, ExercisePackagingConfiguration, Language, LocalExercise, LocalMoocExercise,
-    LocalTmcExercise, MoocUpdatedExercise, RunResult, StyleValidationResult, UpdatedExercise, mooc,
+    ExerciseDesc, ExercisePackagingConfiguration, ExerciseUpdates, Language, LocalExercise,
+    LocalMoocExercise, LocalTmcExercise, MoocExerciseUpdates, RunResult, StyleValidationResult,
+    mooc,
     tmc::{
         self, UpdateResult,
         response::{
@@ -231,7 +232,9 @@ pub enum Command {
         source_url: String,
     },
 
-    /// Run the tests for the exercise using the appropriate language plugin
+    /// Run the tests for the exercise using the appropriate language plugin. Tests running longer
+    /// than the exercise's `tests_timeout_ms`, else 60 seconds, are stopped and reported as a
+    /// failed run with `timedOutAfterMs` set.
     #[clap(long_about = schema_leaked::<RunResult>())]
     RunTests {
         /// Runs checkstyle if given. Path to the file where the style results will be written.
@@ -289,7 +292,7 @@ pub struct TestMyCode {
 #[derive(Parser)]
 pub enum TestMyCodeCommand {
     /// Checks for updates to any exercises that exist locally.
-    #[clap(long_about = schema_leaked::<Vec<UpdatedExercise>>())]
+    #[clap(long_about = schema_leaked::<ExerciseUpdates>())]
     CheckExerciseUpdates,
 
     /// Downloads an exercise's model solution
@@ -547,14 +550,15 @@ pub enum MoocCommand {
     /// verification URL and user code, then polls until approved or killed.
     #[clap(long_about = SCHEMA_NULL)]
     Login,
-    /// Checks whether the CLI holds mooc credentials.
-    #[clap(long_about = SCHEMA_NULL)]
+    /// Checks whether the CLI holds mooc credentials and, when the backend answers,
+    /// which account they belong to.
+    #[clap(long_about = schema_leaked::<Option<mooc::CurrentUser>>())]
     LoggedIn,
     /// Logs out of the Courses MOOC backend, removing the stored credentials.
     #[clap(long_about = SCHEMA_NULL)]
     Logout,
     /// Checks for updates to any exercises that exist locally.
-    #[clap(long_about = schema_leaked::<Vec<MoocUpdatedExercise>>())]
+    #[clap(long_about = schema_leaked::<MoocExerciseUpdates>())]
     CheckExerciseUpdates,
     /// Fetches information about a course.
     #[clap(long_about = schema_leaked::<mooc::Course>())]
@@ -632,9 +636,9 @@ pub enum MoocCommand {
         #[clap(long)]
         submission_id: Uuid,
     },
-    /// Submits an exercise (non-blocking) and shares the resulting submission,
-    /// returning a public paste URL — the "share a submission" equivalent of TMC
-    /// paste.
+    /// Stores the exercise as an ungraded paste snapshot and shares it, returning a
+    /// public paste URL. Uses no try. Fails with the `rate-limited` error kind after
+    /// too many pastes of the exercise.
     #[clap(long_about = schema_leaked::<mooc::PasteResult>())]
     Paste {
         #[clap(long)]
@@ -642,7 +646,7 @@ pub enum MoocCommand {
         #[clap(long)]
         submission_path: PathBuf,
     },
-    /// Fetches the current user's past submissions to an exercise, newest first.
+    /// Fetches the current user's past submissions and snapshots of an exercise, newest first.
     #[clap(long_about = schema_leaked::<Vec<mooc::ExerciseSlideSubmissionListItem>>())]
     GetExerciseSubmissions {
         #[clap(long)]
@@ -651,8 +655,8 @@ pub enum MoocCommand {
     /// Downloads a past submission of an exercise, restoring its student files on
     /// top of a fresh exercise stub at `output_path`.
     DownloadOldSubmission {
-        /// The id of the submission to download (an exercise-slide-submission id
-        /// from `get-exercise-submissions`).
+        /// The id of the submission or snapshot to download, from
+        /// `get-exercise-submissions`.
         #[clap(long)]
         submission_id: Uuid,
         /// The id of the exercise the submission belongs to.
@@ -661,7 +665,8 @@ pub enum MoocCommand {
         /// Path to the directory where the project resides / should be restored.
         #[clap(long)]
         output_path: PathBuf,
-        /// Submit the current state of `output_path` before overwriting it.
+        /// Store the current state of `output_path` as an ungraded backup snapshot
+        /// before overwriting it.
         #[clap(long)]
         save_old_state: bool,
     },
@@ -669,7 +674,7 @@ pub enum MoocCommand {
     /// re-downloads and re-extracts the exercise's stub archive from the server.
     #[clap(long_about = SCHEMA_NULL)]
     ResetExercise {
-        /// If set, the exercise's current state is submitted to the server before resetting it.
+        /// Store the exercise's current state as an ungraded backup snapshot before resetting it.
         #[clap(long)]
         save_old_state: bool,
         /// The id of the exercise.
@@ -1553,8 +1558,8 @@ mod test {
             tmc_langs::ExerciseDesc,
             tmc_langs::TestDesc,
             // checkExerciseUpdates
-            tmc_langs::UpdatedExercise,
-            tmc_langs::MoocUpdatedExercise,
+            tmc_langs::ExerciseUpdates,
+            tmc_langs::MoocExerciseUpdates,
             // downloadOrUpdateCourseExercises
             tmc_langs::DownloadOrUpdateTmcCourseExercisesResult,
             tmc_langs::DownloadOrUpdateMoocCourseExercisesResult,
@@ -1604,10 +1609,12 @@ mod test {
             // settings list
             tmc_langs::TmcConfig,
             // mooc
+            tmc_langs::mooc::CurrentUser,
             tmc_langs::mooc::Course,
             tmc_langs::mooc::CourseAiPolicy,
             tmc_langs::mooc::TmcExerciseSlide,
             tmc_langs::mooc::ExerciseChapter,
+            tmc_langs::mooc::ChapterLockingStatus,
             tmc_langs::mooc::TmcExerciseTask,
             tmc_langs::mooc::PublicSpec,
             tmc_langs::mooc::ExerciseType,
@@ -1618,11 +1625,17 @@ mod test {
             tmc_langs::mooc::ExerciseTaskSubmissionStatus,
             tmc_langs::mooc::Grading,
             tmc_langs::mooc::GradingProgress,
+            tmc_langs::mooc::GradingTestRun,
+            tmc_langs::mooc::GradingTestRunStatus,
+            tmc_langs::mooc::GradingTestResult,
             tmc_langs::mooc::ExerciseSlideSubmissionListItem,
+            tmc_langs::mooc::SubmissionKind,
             tmc_langs::mooc::PasteResult,
             tmc_langs::mooc::CourseProgress,
+            tmc_langs::mooc::ClosedChapter,
             tmc_langs::mooc::ExerciseProgress,
             tmc_langs::mooc::ExerciseStanding,
+            tmc_langs::mooc::PendingTeacherReview,
             tmc_langs::mooc::MoocClientUpdateData,
             tmc_langs::MoocOldSubmissionRestore,
             tmc_langs::CombinedMoocCourseData,

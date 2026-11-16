@@ -81,6 +81,7 @@ impl LanguagePlugin for MockPlugin {
             status: RunStatus::Passed,
             test_results: vec![],
             logs: std::collections::HashMap::new(),
+            timed_out_after_ms: None,
         })
     }
 
@@ -187,6 +188,7 @@ impl LanguagePlugin for SimpleMockPlugin {
             status: RunStatus::Passed,
             test_results: vec![],
             logs: std::collections::HashMap::new(),
+            timed_out_after_ms: None,
         })
     }
 

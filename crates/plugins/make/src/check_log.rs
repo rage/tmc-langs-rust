@@ -48,6 +48,7 @@ impl CheckLog {
             status,
             test_results,
             logs,
+            timed_out_after_ms: None,
         }
     }
 }

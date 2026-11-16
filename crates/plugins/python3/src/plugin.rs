@@ -327,34 +327,14 @@ impl LanguagePlugin for Python3Plugin {
                 let mut logs = HashMap::new();
                 logs.insert("stdout".to_string(), stdout.into_owned());
                 logs.insert("stderr".to_string(), stderr.into_owned());
-                Ok(RunResult {
-                    status,
-                    test_results,
-                    logs,
-                })
+                Ok(RunResult::new(status, test_results, logs))
             }
             Err(PythonError::Tmc(TmcError::Command(CommandError::TimeOut {
+                timeout,
                 stdout,
                 stderr,
                 ..
-            }))) => {
-                let mut logs = HashMap::new();
-                logs.insert("stdout".to_string(), stdout);
-                logs.insert("stderr".to_string(), stderr);
-                Ok(RunResult {
-                    status: RunStatus::TestsFailed,
-                    test_results: vec![TestResult {
-                        name: "Timeout test".to_string(),
-                        successful: false,
-                        points: vec![],
-                        message:
-                            "Tests timed out.\nMake sure you don't have an infinite loop in your code."
-                                .to_string(),
-                        exception: vec![],
-                    }],
-                    logs,
-                })
-            }
+            }))) => Ok(RunResult::timed_out(timeout, stdout, stderr)),
             Err(error) => Err(error.into()),
         }
     }
@@ -754,11 +734,7 @@ class TestErroring(unittest.TestCase):
             .unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "Timeout test");
-        assert!(
-            run_result.test_results[0]
-                .message
-                .starts_with("Tests timed out.")
-        );
+        assert!(run_result.timed_out_after_ms.is_some());
     }
 
     #[test]

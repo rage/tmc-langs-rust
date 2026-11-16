@@ -8,9 +8,9 @@ use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, CombinedMoocCourseData, ConfigValue,
     DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-    ExerciseDesc, ExercisePackagingConfiguration, LocalExercise, LocalMoocExercise,
-    LocalTmcExercise, MoocOldSubmissionRestore, MoocUpdatedExercise, RunResult,
-    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
+    ExerciseDesc, ExercisePackagingConfiguration, ExerciseUpdates, LocalExercise,
+    LocalMoocExercise, LocalTmcExercise, MoocExerciseUpdates, MoocOldSubmissionRestore, RunResult,
+    StyleValidationResult, TmcConfig, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -87,7 +87,7 @@ pub enum DataKind {
     RefreshResult(tmc_langs::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
-    UpdatedExercises(Vec<UpdatedExercise>),
+    ExerciseUpdates(ExerciseUpdates),
     MoocExerciseDownload(DownloadOrUpdateMoocCourseExercisesResult),
     CombinedCourseData(Box<CombinedCourseData>),
     CourseDetails(CourseDetails),
@@ -119,8 +119,9 @@ pub enum DataKind {
     TmcConfig(TmcConfig),
 
     // mooc
-    MoocUpdatedExercises(Vec<MoocUpdatedExercise>),
+    MoocExerciseUpdates(MoocExerciseUpdates),
     LocalMoocExercises(Vec<LocalMoocExercise>),
+    MoocCurrentUser(mooc::CurrentUser),
     MoocCourse(mooc::Course),
     MoocCourses(Vec<mooc::Course>),
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
@@ -215,7 +216,9 @@ pub enum Kind {
     DeviceLoginDenied,
     /// A device login was not approved before its code expired.
     DeviceLoginExpired,
-    /// The server answered 404: what was asked for does not exist, or not for this user.
+    /// The server answered 404: what was asked for does not exist, or not for this user. Also
+    /// a file courses.mooc.fi handed out a download URL for (an exercise's or submission's
+    /// files) that is missing from its file store.
     /// A 404 for a request addressing one exercise is `ExerciseNotFound` instead.
     NotFound,
     /// The server answered with a 5xx status. Transient, so stored credentials are kept.
@@ -226,6 +229,27 @@ pub enum Kind {
     /// The server answered 404 to a request addressing one exercise: the exercise does not
     /// exist, or not for this user.
     ExerciseNotFound,
+    /// courses.mooc.fi answered 429 (backend `message_key: "rate_limited"`): the user made too
+    /// many pastes of the exercise recently and should try again later.
+    RateLimited,
+    /// A submission came after the exercise's deadline (its own, else its chapter's)
+    /// (backend `message_key: "deadline_passed"`, HTTP 422).
+    DeadlinePassed,
+    /// A submission came when the exercise had no tries left
+    /// (backend `message_key: "out_of_tries"`, HTTP 422).
+    OutOfTries,
+    /// The exercise's chapter has not opened yet
+    /// (backend `message_key: "chapter_not_open_yet"`, HTTP 403).
+    ChapterNotOpenYet,
+    /// Chapter locking keeps the exercise's chapter closed until the previous chapters are
+    /// completed (backend `message_key: "chapter_not_unlocked_yet"`, HTTP 403).
+    ChapterNotUnlockedYet,
+    /// The user completed and locked the exercise's chapter, which takes no more submissions
+    /// (backend `message_key: "chapter_completed_and_locked"`, HTTP 403).
+    ChapterCompletedAndLocked,
+    /// The exercise takes no more submissions from the user, whatever its chapter's locking
+    /// status says (backend `message_key: "exercise_locked"`, HTTP 403).
+    ExerciseLocked,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
@@ -360,22 +384,29 @@ mod test {
 
     /// Clients share one parser for both backends' update checks; only the id type differs.
     #[test]
-    fn both_backends_report_updated_exercises_as_id_objects() {
-        let tmc = serde_json::to_value(DataKind::UpdatedExercises(vec![
-            tmc_langs::UpdatedExercise { id: 1234 },
-        ]))
+    fn both_backends_report_exercise_updates_in_one_shape() {
+        let tmc = serde_json::to_value(DataKind::ExerciseUpdates(ExerciseUpdates {
+            updated: vec![1],
+            removed: vec![2],
+        }))
         .unwrap();
-        let id = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
-        let mooc =
-            serde_json::to_value(DataKind::MoocUpdatedExercises(vec![MoocUpdatedExercise {
-                id,
-            }]))
-            .unwrap();
+        let updated = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
+        let removed = Uuid::parse_str("0b9e2d5c-3f4a-4b8e-9c1d-2e3f4a5b6c7d").unwrap();
+        let mooc = serde_json::to_value(DataKind::MoocExerciseUpdates(MoocExerciseUpdates {
+            updated: vec![updated],
+            removed: vec![removed],
+        }))
+        .unwrap();
 
-        assert_eq!(tmc["output-data"][0], serde_json::json!({ "id": 1234 }));
+        assert_eq!(tmc["output-data-kind"], "exercise-updates");
         assert_eq!(
-            mooc["output-data"][0],
-            serde_json::json!({ "id": id.to_string() })
+            tmc["output-data"],
+            serde_json::json!({ "updated": [1], "removed": [2] })
+        );
+        assert_eq!(mooc["output-data-kind"], "mooc-exercise-updates");
+        assert_eq!(
+            mooc["output-data"],
+            serde_json::json!({ "updated": [updated.to_string()], "removed": [removed.to_string()] })
         );
     }
 

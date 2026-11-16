@@ -70,6 +70,7 @@ impl LanguagePlugin for NoTestsPlugin {
                 exception: vec![],
             }],
             logs: HashMap::new(),
+            timed_out_after_ms: None,
         })
     }
 

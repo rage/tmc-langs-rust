@@ -5,6 +5,7 @@
 pub mod deserialize;
 pub mod error;
 pub mod file_util;
+pub mod http_error;
 pub mod notification_reporter;
 pub mod parse_util;
 pub mod path_util;

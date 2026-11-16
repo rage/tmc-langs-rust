@@ -62,11 +62,11 @@ impl MakePlugin {
 
     /// Runs tests with or without valgrind according to the argument.
     /// Returns an error if the command finishes unsuccessfully.
-    /// TODO: no option for timeout
     fn run_tests_with_valgrind(
         &self,
         path: &Path,
         run_valgrind: bool,
+        timeout: Option<Duration>,
     ) -> Result<Output, MakeError> {
         let arg = if run_valgrind {
             "run-test-with-valgrind"
@@ -75,9 +75,11 @@ impl MakePlugin {
         };
         log::info!("Running make {arg}");
 
-        let output = TmcCommand::piped("make")
-            .with(|e| e.cwd(path).arg(arg))
-            .output()?;
+        let command = TmcCommand::piped("make").with(|e| e.cwd(path).arg(arg));
+        let output = match timeout {
+            Some(timeout) => command.output_with_timeout(timeout)?,
+            None => command.output()?,
+        };
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -126,7 +128,7 @@ impl LanguagePlugin for MakePlugin {
             return MakeError::NoExerciseFound(path.to_path_buf()).into();
         }
 
-        self.run_tests_with_valgrind(path, false)?;
+        self.run_tests_with_valgrind(path, false, None)?;
 
         let available_points_path = path.join("test/tmc_available_points.txt");
 
@@ -144,7 +146,7 @@ impl LanguagePlugin for MakePlugin {
     fn run_tests_with_timeout(
         &self,
         path: &Path,
-        _timeout: Option<Duration>,
+        timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
         let output = self.build(path)?;
         if !output.status.success() {
@@ -161,6 +163,7 @@ impl LanguagePlugin for MakePlugin {
                 status: RunStatus::CompileFailed,
                 test_results: vec![],
                 logs,
+                timed_out_after_ms: None,
             });
         }
 
@@ -171,7 +174,7 @@ impl LanguagePlugin for MakePlugin {
 
         // try to run valgrind
         let mut ran_valgrind = true;
-        let valgrind_run = self.run_tests_with_valgrind(path, true);
+        let valgrind_run = self.run_tests_with_valgrind(path, true, timeout);
         let output = match valgrind_run {
             Ok(output) => output,
             Err(error) => {
@@ -181,13 +184,17 @@ impl LanguagePlugin for MakePlugin {
                 match error {
                     MakeError::Tmc(TmcError::Command(command_error)) => {
                         match command_error {
+                            // Without valgrind the tests would only time out again.
+                            timed_out @ CommandError::TimeOut { .. } => {
+                                return Err(TmcError::Command(timed_out));
+                            }
                             CommandError::Popen(_, io_error)
                             | CommandError::FailedToRun(_, io_error)
                                 if io_error.kind() == io::ErrorKind::PermissionDenied =>
                             {
                                 // failed due to lacking permissions, try to clean and rerun
                                 self.clean(path)?;
-                                match self.run_tests_with_valgrind(path, false) {
+                                match self.run_tests_with_valgrind(path, false, timeout) {
                                     Ok(output) => output,
                                     Err(err) => {
                                         log::error!(
@@ -195,21 +202,21 @@ impl LanguagePlugin for MakePlugin {
                                         );
                                         ran_valgrind = false;
                                         log::info!("Running without valgrind");
-                                        self.run_tests_with_valgrind(path, false)?
+                                        self.run_tests_with_valgrind(path, false, timeout)?
                                     }
                                 }
                             }
                             _ => {
                                 ran_valgrind = false;
                                 log::info!("Running without valgrind");
-                                self.run_tests_with_valgrind(path, false)?
+                                self.run_tests_with_valgrind(path, false, timeout)?
                             }
                         }
                     }
                     MakeError::RunningTestsWithValgrind(..) => {
                         ran_valgrind = false;
                         log::info!("Running without valgrind");
-                        self.run_tests_with_valgrind(path, false)?
+                        self.run_tests_with_valgrind(path, false, timeout)?
                     }
                     err => {
                         log::warn!("unexpected error {err:?}");

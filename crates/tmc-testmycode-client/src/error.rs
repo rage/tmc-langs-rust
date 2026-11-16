@@ -2,7 +2,10 @@
 
 use reqwest::{Method, StatusCode};
 use thiserror::Error;
-use tmc_langs_util::{FileError, JsonError};
+use tmc_langs_util::{
+    FileError, JsonError,
+    http_error::{describe_http_error, quotable_body},
+};
 use url::Url;
 
 pub type TestMyCodeClientResult<T> = Result<T, Box<TestMyCodeClientError>>;
@@ -10,10 +13,14 @@ pub type TestMyCodeClientResult<T> = Result<T, Box<TestMyCodeClientError>>;
 /// The main error type for tmc-testmycode-client.
 #[derive(Debug, Error)]
 pub enum TestMyCodeClientError {
-    #[error("HTTP error {status} for {url}: {error}. Obsolete client: {obsolete_client}")]
+    #[error(
+        "{}",
+        describe_http_error(status, url.as_str(), quotable_body(error).as_deref(), *obsolete_client)
+    )]
     HttpError {
         url: Url,
         status: StatusCode,
+        /// The server's error message, empty when it gave none.
         error: String,
         obsolete_client: bool,
     },

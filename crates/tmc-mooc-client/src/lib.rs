@@ -5,6 +5,7 @@
 mod auth;
 mod error;
 mod exercise;
+mod grading;
 
 use self::error::redact_query;
 pub use self::{
@@ -15,9 +16,10 @@ pub use self::{
     },
     error::{MoocClientError, MoocClientResult},
     exercise::{
-        BrowserTestRuntime, BrowserTestSpec, ExerciseChapter, ExerciseType, ModelSolutionSpec,
-        PublicSpec, TmcExerciseSlide, TmcExerciseTask,
+        BrowserTestRuntime, BrowserTestSpec, ChapterLockingStatus, ExerciseChapter, ExerciseType,
+        ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask,
     },
+    grading::{GradingTestResult, GradingTestRun, GradingTestRunStatus},
 };
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
@@ -76,6 +78,20 @@ pub const UPLOAD_EXPIRED_MESSAGE_KEY: &str = "upload_expired";
 /// Backend `message_key` for a submit naming an upload that was never made for
 /// this exercise by this user. Never a race, so it is never retried.
 pub const UNKNOWN_UPLOAD_MESSAGE_KEY: &str = "unknown_upload";
+
+/// Backend `message_key` of a 429: the user stored too many pastes of the exercise recently.
+pub const RATE_LIMITED_MESSAGE_KEY: &str = "rate_limited";
+
+/// Backend `message_key`s of a refused submission (422 except where noted).
+pub const DEADLINE_PASSED_MESSAGE_KEY: &str = "deadline_passed";
+pub const OUT_OF_TRIES_MESSAGE_KEY: &str = "out_of_tries";
+pub const NOT_ENROLLED_MESSAGE_KEY: &str = "not_enrolled";
+/// 403s from a closed chapter, unlike a plain 403 for a missing scope.
+pub const CHAPTER_NOT_OPEN_YET_MESSAGE_KEY: &str = "chapter_not_open_yet";
+pub const CHAPTER_NOT_UNLOCKED_YET_MESSAGE_KEY: &str = "chapter_not_unlocked_yet";
+pub const CHAPTER_COMPLETED_AND_LOCKED_MESSAGE_KEY: &str = "chapter_completed_and_locked";
+/// 403 refusing a submit while `ExerciseProgress::exercise_locked` is set.
+pub const EXERCISE_LOCKED_MESSAGE_KEY: &str = "exercise_locked";
 
 /// File name sent for the submitted project archive. The host stores it as the
 /// upload's `name`; nothing depends on the extension.
@@ -204,6 +220,15 @@ impl MoocClient {
 
 /// API methods.
 impl MoocClient {
+    /// Fetches the account the stored token acts for.
+    pub fn current_user(&self) -> MoocClientResult<CurrentUser> {
+        let url = make_client_api_url(self, "me")?;
+        let res = self
+            .request(Method::GET, url)
+            .send_expect_json::<api::CurrentUser>()?;
+        Ok(res.into())
+    }
+
     pub fn course(&self, course_id: Uuid) -> MoocClientResult<Course> {
         let url = make_client_api_url(self, format!("courses/{course_id}"))?;
         let res = self
@@ -259,12 +284,20 @@ impl MoocClient {
         Ok(res)
     }
 
+    /// Downloads a file the backend handed out a URL for (an exercise stub or a submission's
+    /// file). A 404 is [`MoocClientError::FileNotFound`].
     pub fn download(&self, url: Url) -> MoocClientResult<Bytes> {
-        let res = self
-            .request(Method::GET, url)
+        self.request(Method::GET, url)
             .transfer_timeout()
-            .send_expect_bytes()?;
-        Ok(res)
+            .send_expect_bytes()
+            .map_err(|err| match *err {
+                MoocClientError::HttpError { url, status, .. }
+                    if status == StatusCode::NOT_FOUND =>
+                {
+                    Box::new(MoocClientError::FileNotFound { url })
+                }
+                _ => err,
+            })
     }
 
     /// Downloads the stub archive for an exercise.
@@ -320,6 +353,15 @@ impl MoocClient {
         exercise_id: Uuid,
         files: &[(&str, &Path)],
     ) -> MoocClientResult<Vec<api::AnswerFile>> {
+        self.upload_files_for(exercise_id, files, UploadFor::Submission)
+    }
+
+    fn upload_files_for(
+        &self,
+        exercise_id: Uuid,
+        files: &[(&str, &Path)],
+        upload_for: UploadFor,
+    ) -> MoocClientResult<Vec<api::AnswerFile>> {
         if files.is_empty() {
             // The host rejects an empty multipart body, and there is nothing to record.
             return Ok(Vec::new());
@@ -336,7 +378,10 @@ impl MoocClient {
             form = form.part(Uuid::new_v4().to_string(), part);
         }
 
-        let url = make_client_api_url(self, format!("exercises/{exercise_id}/files"))?;
+        let mut url = make_client_api_url(self, format!("exercises/{exercise_id}/files"))?;
+        if upload_for == UploadFor::Snapshot {
+            url.set_query(Some("for=snapshot"));
+        }
         let res = self
             .request(Method::POST, url)
             .multipart(form)
@@ -372,6 +417,68 @@ impl MoocClient {
             }
             other => other,
         }
+    }
+
+    /// Stores an ungraded snapshot of an archive as the answer to an exercise's editor task and
+    /// returns its id, which [`Self::download_submission_files`] and [`Self::share_submission`]
+    /// take.
+    ///
+    /// Unlike a submit, it uses no try and is accepted after the deadline and when out of tries.
+    /// A [`api::SnapshotPurpose::Paste`] is rate limited ([`RATE_LIMITED_MESSAGE_KEY`]). Returns
+    /// [`MoocClientError::NoSubmittableExerciseTask`] for a browser-only exercise.
+    pub fn store_snapshot(
+        &self,
+        exercise_id: Uuid,
+        archive: &Path,
+        purpose: api::SnapshotPurpose,
+    ) -> MoocClientResult<Uuid> {
+        let slide = self.exercise(exercise_id)?;
+        let task_id = slide
+            .editor_task_id()
+            .ok_or_else(|| Box::new(MoocClientError::NoSubmittableExerciseTask { exercise_id }))?;
+        let files = [(SUBMISSION_ARCHIVE_FILE_NAME, archive)];
+        let store = |uploaded: &[api::AnswerFile]| {
+            self.store_uploaded_snapshot(exercise_id, slide.slide_id, task_id, uploaded, purpose)
+        };
+        let uploaded = self.upload_files_for(exercise_id, &files, UploadFor::Snapshot)?;
+        match store(&uploaded) {
+            Err(error) if is_upload_expired(&error) => {
+                log::warn!(
+                    "an upload for exercise {exercise_id} expired before its snapshot was \
+                     stored; uploading again"
+                );
+                let uploaded = self.upload_files_for(exercise_id, &files, UploadFor::Snapshot)?;
+                store(&uploaded)
+            }
+            other => other,
+        }
+    }
+
+    fn store_uploaded_snapshot(
+        &self,
+        exercise_id: Uuid,
+        slide_id: Uuid,
+        task_id: Uuid,
+        uploaded: &[api::AnswerFile],
+        purpose: api::SnapshotPurpose,
+    ) -> MoocClientResult<Uuid> {
+        let snapshot = api::NewAnswerSnapshot {
+            purpose,
+            exercise_slide_id: slide_id,
+            exercise_task_id: task_id,
+            data_json: None,
+            data_files: uploaded.iter().map(|file| file.id).collect(),
+        };
+        let snapshot = serialize::to_json_vec(&snapshot)
+            .map_err(Into::into)
+            .map_err(Box::new)?;
+
+        let url = make_client_api_url(self, format!("exercises/{exercise_id}/snapshots"))?;
+        let res = self
+            .request(Method::POST, url)
+            .json_body(snapshot)
+            .send_expect_json::<api::AnswerSnapshotResult>()?;
+        Ok(res.snapshot_id)
     }
 
     /// Submits a body naming already-stored files. Split out of [`Self::submit`]
@@ -426,9 +533,8 @@ impl MoocClient {
         Ok(slides)
     }
 
-    /// Returns the current user's past submissions to an exercise, newest first.
-    /// Each item's `id` is an exercise-slide-submission id, the value passed to
-    /// [`MoocClient::download_submission_files`] and
+    /// Returns the current user's past submissions and snapshots of an exercise, newest first.
+    /// Each item's `id` is the value passed to [`MoocClient::download_submission_files`] and
     /// [`MoocClient::share_submission`].
     pub fn get_exercise_submissions(
         &self,
@@ -441,7 +547,7 @@ impl MoocClient {
         Ok(res.into_iter().map(Into::into).collect())
     }
 
-    /// Returns the files an exercise-slide submission's answer is made of (the id
+    /// Returns the files a submission's or snapshot's answer is made of (the id
     /// comes from [`MoocClient::get_exercise_submissions`]), in the order the host
     /// grades and displays them.
     ///
@@ -460,7 +566,7 @@ impl MoocClient {
         Ok(res.data_files)
     }
 
-    /// Mints a shareable link to an existing submission of the current user and
+    /// Mints a shareable link to an existing submission or snapshot of the current user and
     /// returns the paste URL.
     pub fn share_submission(&self, submission_id: Uuid) -> MoocClientResult<PasteResult> {
         let url = make_client_api_url(self, format!("submissions/{submission_id}/share"))?;
@@ -469,6 +575,13 @@ impl MoocClient {
             .send_expect_json::<api::PasteResult>()?;
         Ok(res.into())
     }
+}
+
+/// Which request will name an upload; a snapshot's upload skips the deadline and try checks.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum UploadFor {
+    Submission,
+    Snapshot,
 }
 
 /// Helper for creating and sending requests.
@@ -603,6 +716,22 @@ fn make_client_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClient
         .map_err(Box::new)
 }
 
+/// The courses.mooc.fi account a token acts for; a changed `id` after login means the
+/// student switched accounts.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+#[cfg_attr(feature = "ts-rs", ts(rename = "MoocCurrentUser"))]
+#[schemars(rename = "MoocCurrentUser")]
+pub struct CurrentUser {
+    pub id: Uuid,
+}
+
+impl From<api::CurrentUser> for CurrentUser {
+    fn from(value: api::CurrentUser) -> Self {
+        Self { id: value.id }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 // Renamed to avoid colliding with the TMC `Course` type: a duplicate
@@ -695,12 +824,41 @@ impl From<api::CourseAiPolicy> for CourseAiPolicy {
 pub struct CourseProgress {
     pub course_id: Uuid,
     pub exercises: Vec<ExerciseProgress>,
+    /// Chapters that have not opened yet. Their exercises are missing from `exercises` and
+    /// from the course's exercise list until then; they are closed, not removed.
+    #[serde(default)]
+    pub closed_chapters: Vec<ClosedChapter>,
 }
 
 impl From<api::CourseProgress> for CourseProgress {
     fn from(value: api::CourseProgress) -> Self {
         Self {
             course_id: value.course_id,
+            exercises: value.exercises.into_iter().map(Into::into).collect(),
+            closed_chapters: value.closed_chapters.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+/// A chapter of the course that opens later, with the user's progress on its exercises.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct ClosedChapter {
+    pub id: Uuid,
+    pub name: String,
+    /// The chapter's position in the course, from 1.
+    pub chapter_number: i32,
+    pub opens_at: DateTime<Utc>,
+    pub exercises: Vec<ExerciseProgress>,
+}
+
+impl From<api::ClosedChapter> for ClosedChapter {
+    fn from(value: api::ClosedChapter) -> Self {
+        Self {
+            id: value.id,
+            name: value.name,
+            chapter_number: value.chapter_number,
+            opens_at: value.opens_at,
             exercises: value.exercises.into_iter().map(Into::into).collect(),
         }
     }
@@ -723,6 +881,57 @@ pub struct ExerciseProgress {
     pub attempted: bool,
     /// `None` from a host that predates the field.
     pub standing: Option<ExerciseStanding>,
+    /// How many graded submissions the exercise accepts per slide; `None` when unlimited.
+    #[serde(default)]
+    pub max_tries: Option<i32>,
+    /// How many of `max_tries` are left on the slide the user answers; `None` when unlimited.
+    #[serde(default)]
+    pub tries_left: Option<i32>,
+    /// What the user's points wait for when a teacher must review their answer first. While set,
+    /// `score_given` is `0.0` and `standing` is `Attempted`, even after a fully passing grading.
+    #[serde(default)]
+    pub pending_teacher_review: Option<PendingTeacherReview>,
+    /// `true` once the exercise takes no more submissions from the user, whatever its chapter's
+    /// locking status says. A submit fails with the `chapter-completed-and-locked` error kind
+    /// while the chapter is locked for the user, and with `exercise-locked` otherwise.
+    #[serde(default)]
+    pub exercise_locked: bool,
+}
+
+/// What a user's points on an exercise wait for when a teacher reviews answers before awarding
+/// points.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+#[serde(rename_all = "snake_case")]
+pub enum PendingTeacherReview {
+    /// The answer is graded, but its points come only after the user completes and locks the
+    /// exercise's chapter and a teacher reviews the answer. Submitting stays possible until then.
+    AwaitsChapterLock,
+    /// The answer waits for a teacher's review, and the exercise is locked.
+    AwaitsTeacher,
+    /// A value newer than this client.
+    Unrecognized,
+}
+
+// Hand-written rather than `#[serde(other)]`, which ts-rs cannot parse.
+impl<'de> Deserialize<'de> for PendingTeacherReview {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(match String::deserialize(deserializer)?.as_str() {
+            "awaits_chapter_lock" => Self::AwaitsChapterLock,
+            "awaits_teacher" => Self::AwaitsTeacher,
+            _ => Self::Unrecognized,
+        })
+    }
+}
+
+impl From<api::PendingTeacherReview> for PendingTeacherReview {
+    fn from(value: api::PendingTeacherReview) -> Self {
+        match value {
+            api::PendingTeacherReview::AwaitsChapterLock => Self::AwaitsChapterLock,
+            api::PendingTeacherReview::AwaitsTeacher => Self::AwaitsTeacher,
+            api::PendingTeacherReview::Unrecognized => Self::Unrecognized,
+        }
+    }
 }
 
 /// Where the user stands on an exercise, as the host decides it.
@@ -731,11 +940,13 @@ pub struct ExerciseProgress {
 pub enum ExerciseStanding {
     /// No graded submission and no try used.
     NotAttempted,
-    /// Below full points with tries left, or still being graded.
+    /// Below full points with tries left, still being graded, in peer or self review, or waiting
+    /// for a teacher's review (`pending_teacher_review`).
     Attempted,
     /// A grading awarded full points.
     Passed,
-    /// Below full points (0 included) with the try limit used up, so the score is final.
+    /// Below full points (0 included), the try limit used up and no review pending, so the score
+    /// is final.
     OutOfTries,
 }
 
@@ -759,6 +970,10 @@ impl From<api::ExerciseProgress> for ExerciseProgress {
             completed: value.completed,
             attempted: value.attempted,
             standing: value.standing.map(Into::into),
+            max_tries: value.max_tries,
+            tries_left: value.tries_left,
+            pending_teacher_review: value.pending_teacher_review.map(Into::into),
+            exercise_locked: value.exercise_locked,
         }
     }
 }
@@ -823,6 +1038,9 @@ pub struct Grading {
     /// authoritative "passed" signal. `None` for an exam exercise or from a host that does not
     /// report it.
     pub exercise_progress: Option<ExerciseProgress>,
+    /// The test run the grading was based on. `None` until grading has produced one, or when the
+    /// exercise service reported something else.
+    pub test_results: Option<GradingTestRun>,
 }
 
 impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
@@ -834,9 +1052,7 @@ impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
                 score_given,
                 grading_started_at,
                 grading_completed_at,
-                // The exercise service that produced it is the only thing that
-                // can interpret its shape, so a native client has no use for it.
-                feedback_json: _,
+                feedback_json,
                 feedback_text,
                 exercise_progress,
             } => Self::Grading {
@@ -847,6 +1063,7 @@ impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
                     grading_completed_at,
                     feedback_text,
                     exercise_progress: exercise_progress.map(Into::into),
+                    test_results: feedback_json.and_then(GradingTestRun::from_feedback_json),
                 },
             },
         }
@@ -880,16 +1097,46 @@ impl From<api::GradingProgress> for GradingProgress {
     }
 }
 
-/// A single past submission of the current user to an exercise. `id` is the
-/// exercise-slide-submission id used to download or share the submission.
+/// A past submission or snapshot of the current user to an exercise. `id` is what
+/// [`MoocClient::download_submission_files`] and [`MoocClient::share_submission`] take.
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct ExerciseSlideSubmissionListItem {
     pub id: Uuid,
     pub exercise_id: Uuid,
     pub created_at: DateTime<Utc>,
+    /// Always `None` for a snapshot.
     pub score_given: Option<f32>,
+    /// Always `None` for a snapshot.
     pub grading_progress: Option<GradingProgress>,
+    /// `submission` from a host that predates the field, which lists only submissions.
+    pub kind: SubmissionKind,
+    /// Whether the entry has a live share link, whatever its kind. `false` from a host that
+    /// predates the field.
+    pub is_shared: bool,
+}
+
+/// What an entry in a submissions list is.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum SubmissionKind {
+    /// A graded submission.
+    Submission,
+    /// An ungraded snapshot stored to be shared, by `mooc paste`.
+    Paste,
+    /// An ungraded snapshot stored before local changes were discarded, by `--save-old-state`.
+    Backup,
+}
+
+impl From<api::SubmissionKind> for SubmissionKind {
+    fn from(value: api::SubmissionKind) -> Self {
+        match value {
+            api::SubmissionKind::Submission => Self::Submission,
+            api::SubmissionKind::Paste => Self::Paste,
+            api::SubmissionKind::Backup => Self::Backup,
+        }
+    }
 }
 
 impl From<api::ExerciseSlideSubmissionListItem> for ExerciseSlideSubmissionListItem {
@@ -900,11 +1147,13 @@ impl From<api::ExerciseSlideSubmissionListItem> for ExerciseSlideSubmissionListI
             created_at: value.created_at,
             score_given: value.score_given,
             grading_progress: value.grading_progress.map(Into::into),
+            kind: value.kind.into(),
+            is_shared: value.is_shared,
         }
     }
 }
 
-/// A shareable URL for a submission.
+/// A shareable URL for a submission or snapshot.
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct PasteResult {
@@ -972,6 +1221,10 @@ mod test {
                     completed: true,
                     attempted: true,
                     standing: Some(api::ExerciseStanding::Passed),
+                    max_tries: Some(3),
+                    tries_left: Some(2),
+                    pending_teacher_review: Some(api::PendingTeacherReview::AwaitsChapterLock),
+                    exercise_locked: false,
                 }),
             });
         let grading = serde_json::to_value(&grading).unwrap();
@@ -985,9 +1238,60 @@ mod test {
             grading["grading"]["exercise_progress"]["standing"],
             "Passed"
         );
+        assert_eq!(grading["grading"]["exercise_progress"]["max_tries"], 3);
+        assert_eq!(grading["grading"]["exercise_progress"]["tries_left"], 2);
+        assert_eq!(
+            grading["grading"]["exercise_progress"]["pending_teacher_review"],
+            "awaits_chapter_lock"
+        );
+        assert_eq!(
+            grading["grading"]["exercise_progress"]["exercise_locked"],
+            false
+        );
         assert!(
             !grading.to_string().contains("sentinel"),
             "plugin-private feedback must not be relayed: {grading}"
+        );
+        assert_eq!(grading["grading"]["test_results"], serde_json::Value::Null);
+    }
+
+    #[test]
+    fn grading_relays_the_test_run_in_feedback_json() {
+        let grading =
+            ExerciseTaskSubmissionStatus::from(api::ExerciseTaskSubmissionStatus::Grading {
+                grading_progress: api::GradingProgress::FullyGraded,
+                score_given: Some(0.0),
+                grading_started_at: None,
+                grading_completed_at: None,
+                feedback_json: Some(serde_json::json!({
+                    "status": "TESTS_FAILED",
+                    "testResults": [{
+                        "name": "Test fails",
+                        "successful": false,
+                        "points": ["1.1"],
+                        "message": "expected 1",
+                        "exception": ["at Test"]
+                    }],
+                    "logs": { "stdout": "program output" }
+                })),
+                feedback_text: Some("Tests failed".to_string()),
+                exercise_progress: None,
+            });
+        let grading = serde_json::to_value(&grading).unwrap();
+
+        assert_eq!(
+            grading["grading"]["test_results"],
+            serde_json::json!({
+                "status": "TESTS_FAILED",
+                "test_results": [{
+                    "name": "Test fails",
+                    "successful": false,
+                    "points": ["1.1"],
+                    "message": "expected 1",
+                    "exception": ["at Test"]
+                }],
+                "logs": {}
+            })
         );
     }
 
@@ -1343,6 +1647,74 @@ mod test {
         assert_eq!(String::from_utf8(bytes.into()).unwrap(), "hello!");
     }
 
+    #[test]
+    fn download_reports_a_missing_file() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock("GET", "/files/archive.tar.zst")
+            .match_query(Matcher::Any)
+            .with_status(404)
+            .create();
+        let url = format!("{}/files/archive.tar.zst?claim=secret", server.url())
+            .parse()
+            .unwrap();
+        let err = client.download(url).unwrap_err();
+        assert!(matches!(*err, MoocClientError::FileNotFound { .. }));
+        let message = err.to_string();
+        assert!(message.starts_with("The exercise's files are missing on courses.mooc.fi"));
+        assert!(!message.contains("secret"), "{message}");
+    }
+
+    #[test]
+    fn http_error_carries_the_backend_message() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = Uuid::new_v4();
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_status(422)
+            .with_body(
+                serde_json::json!({
+                    "type": "validation_error",
+                    "message_key": "deadline_passed",
+                    "message": "Exercise deadline passed."
+                })
+                .to_string(),
+            )
+            .create();
+        let message = client.exercise(exercise_id).unwrap_err().to_string();
+        assert!(
+            message.starts_with("422 Unprocessable Entity from http"),
+            "{message}"
+        );
+        assert!(
+            message.ends_with(": Exercise deadline passed."),
+            "{message}"
+        );
+        assert!(!message.contains("Obsolete"), "{message}");
+    }
+
+    #[test]
+    fn http_error_with_an_empty_body_ends_at_the_url() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = Uuid::new_v4();
+        let path = format!("/api/v0/exercise-services/client/exercises/{exercise_id}");
+        server.mock("GET", path.as_str()).with_status(404).create();
+        let message = client.exercise(exercise_id).unwrap_err().to_string();
+        assert_eq!(
+            message,
+            format!("404 Not Found from {}{path}", server.url())
+        );
+    }
+
     /// Fetches a course whose body is the base course plus `extra_fields`.
     fn course_with(extra_fields: serde_json::Value) -> Course {
         init();
@@ -1406,6 +1778,42 @@ mod test {
                 policy
             );
         }
+    }
+
+    #[test]
+    fn pending_teacher_review_wire_strings() {
+        for (review, wire) in [
+            (
+                PendingTeacherReview::AwaitsChapterLock,
+                "awaits_chapter_lock",
+            ),
+            (PendingTeacherReview::AwaitsTeacher, "awaits_teacher"),
+            (PendingTeacherReview::Unrecognized, "unrecognized"),
+        ] {
+            assert_eq!(serde_json::to_value(review).unwrap(), wire);
+            assert_eq!(
+                serde_json::from_value::<PendingTeacherReview>(serde_json::json!(wire)).unwrap(),
+                review
+            );
+        }
+    }
+
+    /// The host's own type cannot serialize a value newer than its crate; ours must, since the
+    /// CLI writes it out again.
+    #[test]
+    fn unknown_pending_teacher_review_from_the_host_serializes_as_unrecognized() {
+        let progress: api::ExerciseProgress = serde_json::from_value(serde_json::json!({
+            "exercise_id": "a1b2c3d4-0000-4000-8000-000000000001",
+            "score_given": 0.0,
+            "score_maximum": 1,
+            "completed": true,
+            "attempted": true,
+            "pending_teacher_review": "some_future_review",
+        }))
+        .unwrap();
+        let progress = serde_json::to_value(ExerciseProgress::from(progress)).unwrap();
+        assert_eq!(progress["pending_teacher_review"], "unrecognized");
+        assert_eq!(progress["exercise_locked"], false);
     }
 
     #[test]
@@ -2000,6 +2408,7 @@ mod test {
         let client = make_client(&server);
         let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
         let submission_id = Uuid::new_v4();
+        let snapshot_id = Uuid::new_v4();
         server
             .mock(
                 "GET",
@@ -2007,26 +2416,168 @@ mod test {
                     .as_str(),
             )
             .with_body(
-                serde_json::json!([{
-                    "id": submission_id,
-                    "exercise_id": exercise_id,
-                    "created_at": "2026-07-21T00:00:00Z",
-                    "score_given": 1.0,
-                    "grading_progress": "FullyGraded"
-                }])
+                serde_json::json!([
+                    {
+                        "id": snapshot_id,
+                        "exercise_id": exercise_id,
+                        "created_at": "2026-07-22T00:00:00Z",
+                        "score_given": null,
+                        "grading_progress": null,
+                        "kind": "paste",
+                        "is_shared": true
+                    },
+                    {
+                        "id": submission_id,
+                        "exercise_id": exercise_id,
+                        "created_at": "2026-07-21T00:00:00Z",
+                        "score_given": 1.0,
+                        "grading_progress": "FullyGraded"
+                    }
+                ])
                 .to_string(),
             )
             .create();
         let submissions = client
             .get_exercise_submissions(Uuid::parse_str(exercise_id).unwrap())
             .unwrap();
-        assert_eq!(submissions.len(), 1);
-        assert_eq!(submissions[0].id, submission_id);
-        assert_eq!(submissions[0].score_given, Some(1.0));
+        assert_eq!(submissions.len(), 2);
+        assert_eq!(submissions[0].id, snapshot_id);
+        assert_eq!(submissions[0].kind, SubmissionKind::Paste);
+        assert!(submissions[0].is_shared);
+        assert_eq!(submissions[1].id, submission_id);
+        assert_eq!(submissions[1].score_given, Some(1.0));
         assert!(matches!(
-            submissions[0].grading_progress,
+            submissions[1].grading_progress,
             Some(GradingProgress::FullyGraded)
         ));
+        // A host that predates `kind` and `is_shared` lists only unshared submissions.
+        assert_eq!(submissions[1].kind, SubmissionKind::Submission);
+        assert!(!submissions[1].is_shared);
+        let json = serde_json::to_value(&submissions).unwrap();
+        assert_eq!(json[0]["kind"], "paste");
+        assert_eq!(json[1]["kind"], "submission");
+    }
+
+    /// Mocks `GET exercises/{id}` for [`EXERCISE_ID`] with one editor task [`TASK_ID`].
+    fn mock_editor_exercise(server: &mut Server) -> mockito::Mock {
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": SLIDE_ID,
+                    "exercise_id": EXERCISE_ID,
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": TASK_ID,
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "editor",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": "http://example.com/stub.tar.zst",
+                            "student_file_paths": ["src/main.py"],
+                            "checksum": "abcd1234"
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                })
+                .to_string(),
+            )
+            .create()
+    }
+
+    fn snapshots_path() -> String {
+        format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/snapshots")
+    }
+
+    /// Mocks the `?for=snapshot` upload, returning one stored file with [`FILE_UPLOAD_ID`].
+    fn mock_snapshot_upload(server: &mut Server) -> mockito::Mock {
+        server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/files").as_str(),
+            )
+            .match_query(Matcher::UrlEncoded("for".into(), "snapshot".into()))
+            .with_body(
+                serde_json::json!({
+                    "data_files": [{
+                        "id": FILE_UPLOAD_ID,
+                        "name": "submission.tar.zst",
+                        "mime": ANSWER_ARCHIVE_MIME,
+                        "url": "http://example.com/archive.tar.zst",
+                    }]
+                })
+                .to_string(),
+            )
+            .create()
+    }
+
+    #[test]
+    fn stores_a_snapshot_from_a_snapshot_upload() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let snapshot_id = Uuid::new_v4();
+        mock_editor_exercise(&mut server);
+        let upload = mock_snapshot_upload(&mut server);
+        let snapshot = server
+            .mock("POST", snapshots_path().as_str())
+            .match_header("content-type", "application/json")
+            .match_body(Matcher::Json(serde_json::json!({
+                "purpose": "backup",
+                "exercise_slide_id": SLIDE_ID,
+                "exercise_task_id": TASK_ID,
+                "data_files": [FILE_UPLOAD_ID],
+            })))
+            .with_body(serde_json::json!({ "snapshot_id": snapshot_id }).to_string())
+            .create();
+
+        let stored = client
+            .store_snapshot(
+                Uuid::parse_str(EXERCISE_ID).unwrap(),
+                Path::new("./tests/data/file"),
+                api::SnapshotPurpose::Backup,
+            )
+            .unwrap();
+
+        assert_eq!(stored, snapshot_id);
+        upload.assert();
+        snapshot.assert();
+    }
+
+    #[test]
+    fn store_snapshot_retries_the_upload_once_on_upload_expired() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        mock_editor_exercise(&mut server);
+        let upload = mock_snapshot_upload(&mut server).expect(2);
+        server
+            .mock("POST", snapshots_path().as_str())
+            .with_status(422)
+            .with_body(upload_expired_body())
+            .expect(1)
+            .create();
+        server
+            .mock("POST", snapshots_path().as_str())
+            .with_body(serde_json::json!({ "snapshot_id": Uuid::new_v4() }).to_string())
+            .expect(1)
+            .create();
+
+        client
+            .store_snapshot(
+                Uuid::parse_str(EXERCISE_ID).unwrap(),
+                Path::new("./tests/data/file"),
+                api::SnapshotPurpose::Paste,
+            )
+            .unwrap();
+        upload.assert();
     }
 
     /// Mocks `GET submissions/{id}/download` with the given file list.

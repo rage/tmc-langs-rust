@@ -9,7 +9,7 @@ use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
 use tmc_langs::{
     MoocCredentials,
-    mooc::{CourseAiPolicy, ExerciseStanding},
+    mooc::{CourseAiPolicy, ExerciseStanding, PendingTeacherReview},
     progress_reporter,
 };
 use tmc_langs_cli::{
@@ -446,15 +446,10 @@ fn a_connection_failure_carries_no_http_status() {
     let config_dir = tempfile::tempdir().unwrap();
     let projects_dir = tempfile::tempdir().unwrap();
     write_test_credentials(config_dir.path());
-    // mockito pools its servers, so a dropped one keeps listening; a released port does not.
-    let port = std::net::TcpListener::bind("127.0.0.1:0")
-        .unwrap()
-        .local_addr()
-        .unwrap()
-        .port();
-    let unreachable = format!("http://127.0.0.1:{port}");
+    // Privileged, so no test server can be listening there: a released ephemeral port can be
+    // taken by a concurrent test's mockito server before the request is made.
     let error = run_mooc_at_expect_error(
-        &unreachable,
+        "http://127.0.0.1:1",
         &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
         config_dir.path(),
         projects_dir.path(),
@@ -618,6 +613,55 @@ fn mooc_422_not_enrolled_maps_to_not_enrolled_kind() {
         projects_dir.path(),
     );
     assert_error_kind(error, "not-enrolled");
+}
+
+#[test]
+fn mooc_refusals_map_to_their_own_kinds() {
+    let cases = [
+        (422_u16, "deadline_passed", "deadline-passed"),
+        (422, "out_of_tries", "out-of-tries"),
+        (422, "not_enrolled", "not-enrolled"),
+        (403, "chapter_not_open_yet", "chapter-not-open-yet"),
+        (403, "chapter_not_unlocked_yet", "chapter-not-unlocked-yet"),
+        (
+            403,
+            "chapter_completed_and_locked",
+            "chapter-completed-and-locked",
+        ),
+        (403, "exercise_locked", "exercise-locked"),
+        (403, "forbidden", "insufficient-scope"),
+    ];
+    for (status, message_key, kind) in cases {
+        let mut server = mockito::Server::new();
+        let _refused = server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}").as_str(),
+            )
+            .with_status(status.into())
+            .with_body(
+                serde_json::json!({
+                    "type": "validation_error",
+                    "message_key": message_key,
+                    "message": "refused",
+                })
+                .to_string(),
+            )
+            .expect_at_least(1)
+            .create();
+
+        let config_dir = tempfile::tempdir().unwrap();
+        let projects_dir = tempfile::tempdir().unwrap();
+        write_test_credentials(config_dir.path());
+        let error = run_mooc_in_expect_error(
+            &server,
+            &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
+            config_dir.path(),
+            projects_dir.path(),
+        );
+        assert_http_status(&error, Some(status));
+        assert_error_kind(error, kind);
+    }
 }
 
 #[test]
@@ -998,7 +1042,9 @@ fn dispatches_course_progress() {
                         "score_maximum": 2,
                         "completed": true,
                         "attempted": true,
-                        "standing": "OutOfTries"
+                        "standing": "OutOfTries",
+                        "max_tries": 3,
+                        "tries_left": 0
                     },
                     {
                         "exercise_id": "a1b2c3d4-0000-4000-8000-000000000003",
@@ -1006,8 +1052,32 @@ fn dispatches_course_progress() {
                         "score_maximum": 3,
                         "completed": false,
                         "attempted": false
+                    },
+                    {
+                        "exercise_id": "a1b2c3d4-0000-4000-8000-000000000005",
+                        "score_given": 0.0,
+                        "score_maximum": 1,
+                        "completed": true,
+                        "attempted": true,
+                        "standing": "Attempted",
+                        "pending_teacher_review": "awaits_teacher",
+                        "exercise_locked": true
                     }
-                ]
+                ],
+                "closed_chapters": [{
+                    "id": "c1b2c3d4-0000-4000-8000-000000000009",
+                    "name": "Later",
+                    "chapter_number": 2,
+                    "opens_at": "2030-01-01T00:00:00Z",
+                    "exercises": [{
+                        "exercise_id": "a1b2c3d4-0000-4000-8000-000000000004",
+                        "score_given": 1.0,
+                        "score_maximum": 1,
+                        "completed": true,
+                        "attempted": true,
+                        "standing": "Passed"
+                    }]
+                }]
             })
             .to_string(),
         )
@@ -1016,7 +1086,7 @@ fn dispatches_course_progress() {
     match data_of(output) {
         DataKind::MoocCourseProgress(progress) => {
             assert_eq!(progress.course_id, Uuid::parse_str(course_id).unwrap());
-            assert_eq!(progress.exercises.len(), 3);
+            assert_eq!(progress.exercises.len(), 4);
             assert_eq!(progress.exercises[0].score_given, 1.0);
             assert!(progress.exercises[0].completed);
             assert_eq!(
@@ -1028,9 +1098,23 @@ fn dispatches_course_progress() {
                 progress.exercises[1].standing,
                 Some(ExerciseStanding::OutOfTries)
             );
+            assert_eq!(progress.exercises[1].max_tries, Some(3));
+            assert_eq!(progress.exercises[1].tries_left, Some(0));
+            assert_eq!(progress.exercises[0].max_tries, None);
             assert!(!progress.exercises[2].attempted);
             // This entry is from a host that predates `standing`.
             assert_eq!(progress.exercises[2].standing, None);
+            assert_eq!(progress.exercises[2].pending_teacher_review, None);
+            assert!(!progress.exercises[2].exercise_locked);
+            assert_eq!(
+                progress.exercises[3].pending_teacher_review,
+                Some(PendingTeacherReview::AwaitsTeacher)
+            );
+            assert!(progress.exercises[3].exercise_locked);
+            assert_eq!(progress.closed_chapters.len(), 1);
+            let closed = &progress.closed_chapters[0];
+            assert_eq!(closed.name, "Later");
+            assert_eq!(closed.exercises[0].score_given, 1.0);
         }
         other => panic!("expected MoocCourseProgress, got {other:?}"),
     }
@@ -1047,6 +1131,10 @@ fn exercise_carries_its_page_and_chapter() {
             let chapter = slide.chapter.expect("the mock exercise is in a chapter");
             assert_eq!(chapter.name, "Getting started");
             assert_eq!(chapter.chapter_number, 1);
+            assert_eq!(
+                chapter.locking_status,
+                Some(tmc_langs::mooc::ChapterLockingStatus::NotUnlockedYet)
+            );
         }
         other => panic!("expected MoocExerciseSlide, got {other:?}"),
     }
@@ -1085,10 +1173,8 @@ fn dispatches_exercise() {
     }
 }
 
-#[test]
-fn dispatches_download_exercise() {
-    let mut server = mockito::Server::new();
-    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+/// Serves exercise `exercise_id` as an editor exercise whose stub is at `/files/stub.tar.zst`.
+fn mock_editor_exercise(server: &mut mockito::Server, exercise_id: &str) -> mockito::Mock {
     let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
     server
         .mock(
@@ -1119,7 +1205,14 @@ fn dispatches_download_exercise() {
             })
             .to_string(),
         )
-        .create();
+        .create()
+}
+
+#[test]
+fn dispatches_download_exercise() {
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let _exercise = mock_editor_exercise(&mut server, exercise_id);
     server
         .mock("GET", "/files/stub.tar.zst")
         .with_body(make_tar_zst(&[("src/main.py", b"print('downloaded')")]))
@@ -1145,14 +1238,51 @@ fn dispatches_download_exercise() {
 }
 
 #[test]
+fn a_missing_exercise_archive_reports_not_found() {
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let _exercise = mock_editor_exercise(&mut server, exercise_id);
+    server
+        .mock("GET", "/files/stub.tar.zst")
+        .with_status(404)
+        .create();
+
+    let target = tempfile::tempdir().unwrap();
+    let error = run_mooc(
+        &server,
+        &[
+            "download-exercise",
+            "--exercise-id",
+            exercise_id,
+            "--target",
+            target.path().to_str().unwrap(),
+        ],
+    )
+    .unwrap_err();
+    match &*error.output {
+        CliOutput::OutputData(data) => assert!(
+            data.message
+                .starts_with("The exercise's files are missing on courses.mooc.fi"),
+            "{}",
+            data.message
+        ),
+        other => panic!("expected OutputData, got {other:?}"),
+    }
+    assert_http_status(&error, Some(404));
+    assert_error_kind(error, "not-found");
+}
+
+#[test]
 fn dispatches_check_exercise_updates_empty() {
     // Empty projects dir: no local exercises, so no server request; returns an
-    // empty `MoocUpdatedExercises`.
+    // empty `MoocExerciseUpdates`.
     let server = mockito::Server::new();
     let output = run_mooc(&server, &["check-exercise-updates"]).unwrap();
     match data_of(output) {
-        DataKind::MoocUpdatedExercises(ids) => assert!(ids.is_empty()),
-        other => panic!("expected MoocUpdatedExercises, got {other:?}"),
+        DataKind::MoocExerciseUpdates(updates) => {
+            assert!(updates.updated.is_empty() && updates.removed.is_empty())
+        }
+        other => panic!("expected MoocExerciseUpdates, got {other:?}"),
     }
 }
 
@@ -1878,6 +2008,7 @@ fn mock_exercise_for_submit(server: &mut mockito::Server) -> mockito::Mock {
                     "id": "4c0b3a2e-0000-4000-8000-000000000001",
                     "name": "Getting started",
                     "chapter_number": 1,
+                    "locking_status": "not_unlocked_yet",
                 },
             })
             .to_string(),
@@ -1971,6 +2102,64 @@ fn mock_submit(
     task_submission_id: &str,
 ) -> (mockito::Mock, mockito::Mock) {
     mock_submit_steps(server, task_submission_id, &Uuid::new_v4().to_string())
+}
+
+/// Mounts the `?for=snapshot` upload a snapshot posts its archive to before naming it.
+fn mock_snapshot_upload_for(server: &mut mockito::Server, exercise_id: &str) -> mockito::Mock {
+    server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/files").as_str(),
+        )
+        .match_query(mockito::Matcher::UrlEncoded(
+            "for".into(),
+            "snapshot".into(),
+        ))
+        .with_body(
+            serde_json::json!({
+                "data_files": [{
+                    "id": SUBMIT_FILE_UPLOAD_ID,
+                    "name": "submission.tar.zst",
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": "http://example.com/archive.tar.zst",
+                }]
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create()
+}
+
+/// Mounts the snapshot upload and the snapshot endpoint, the latter expecting exactly one call
+/// for `purpose` and returning `snapshot_id`, plus a submit endpoint expecting none: a snapshot
+/// must never be a graded submission. All three are returned to keep them mounted.
+fn mock_snapshot_steps_for(
+    server: &mut mockito::Server,
+    exercise_id: &str,
+    purpose: &str,
+    snapshot_id: &str,
+) -> (mockito::Mock, mockito::Mock, mockito::Mock) {
+    let upload = mock_snapshot_upload_for(server, exercise_id);
+    let snapshot = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/snapshots").as_str(),
+        )
+        .match_body(mockito::Matcher::PartialJson(serde_json::json!({
+            "purpose": purpose,
+            "data_files": [SUBMIT_FILE_UPLOAD_ID],
+        })))
+        .with_body(serde_json::json!({ "snapshot_id": snapshot_id }).to_string())
+        .expect(1)
+        .create();
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
+        )
+        .expect(0)
+        .create();
+    (upload, snapshot, submit)
 }
 
 fn grading_path(submission_id: &str) -> String {
@@ -2392,7 +2581,11 @@ fn dispatches_wait_for_grading() {
                     "score_given": 0.0,
                     "grading_started_at": null,
                     "grading_completed_at": null,
-                    "feedback_json": null,
+                    "feedback_json": {
+                        "status": "COMPILE_FAILED",
+                        "testResults": [],
+                        "logs": { "stdout": "Main.java:3: error: ';' expected" }
+                    },
                     "feedback_text": "Compilation error",
                     "exercise_progress": {
                         "exercise_id": SUBMIT_EXERCISE_ID,
@@ -2418,6 +2611,14 @@ fn dispatches_wait_for_grading() {
     assert_eq!(json["grading"]["grading_progress"], "Failed");
     assert_eq!(json["grading"]["feedback_text"], "Compilation error");
     assert_eq!(json["grading"]["exercise_progress"]["completed"], true);
+    assert_eq!(
+        json["grading"]["test_results"],
+        serde_json::json!({
+            "status": "COMPILE_FAILED",
+            "test_results": [],
+            "logs": { "stdout": "Main.java:3: error: ';' expected" }
+        })
+    );
 }
 
 #[test]
@@ -2514,7 +2715,8 @@ fn dispatches_get_exercise_submissions() {
                 {
                     "id": newest, "exercise_id": exercise_id,
                     "created_at": "2026-07-21T12:00:00Z",
-                    "score_given": 1.0, "grading_progress": "FullyGraded"
+                    "score_given": null, "grading_progress": null,
+                    "kind": "backup", "is_shared": false
                 },
                 {
                     "id": oldest, "exercise_id": exercise_id,
@@ -2537,9 +2739,14 @@ fn dispatches_get_exercise_submissions() {
             assert_eq!(subs.len(), 2);
             // preserved server order (newest first)
             assert_eq!(subs[0].id, newest);
-            assert_eq!(subs[0].score_given, Some(1.0));
+            assert_eq!(subs[0].score_given, None);
             assert_eq!(subs[1].id, oldest);
             assert_eq!(subs[1].score_given, Some(0.0));
+            let json = serde_json::to_value(&subs).unwrap();
+            assert_eq!(json[0]["kind"], "backup");
+            // A server that predates `kind` and `is_shared` omits them.
+            assert_eq!(json[1]["kind"], "submission");
+            assert_eq!(json[1]["is_shared"], false);
         }
         other => panic!("expected MoocSubmissions, got {other:?}"),
     }
@@ -2682,9 +2889,9 @@ fn download_old_submission_restores_student_files_over_fresh_stub() {
 }
 
 #[test]
-fn download_old_submission_save_old_state_submits_first() {
-    // `--save-old-state` submits the current state before overwriting, so nothing
-    // the student wrote is lost; then the old submission is restored.
+fn download_old_submission_save_old_state_backs_up_first() {
+    // `--save-old-state` stores the current state as a backup snapshot before
+    // overwriting, so nothing the student wrote is lost; then the old submission is restored.
     let mut server = mockito::Server::new();
     let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
     let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
@@ -2706,10 +2913,10 @@ fn download_old_submission_save_old_state_submits_first() {
         ))
         .expect_at_least(1)
         .create();
-    let (_upload, submit) = mock_submit_steps_for(
+    let (_upload, snapshot, submit) = mock_snapshot_steps_for(
         &mut server,
         exercise_id,
-        &Uuid::new_v4().to_string(),
+        "backup",
         &Uuid::new_v4().to_string(),
     );
     server
@@ -2746,7 +2953,7 @@ fn download_old_submission_save_old_state_submits_first() {
         .create();
 
     // The output path must be a valid, compressible project (python3 marker) so
-    // the save-old-state submit can package it.
+    // the backup can package it.
     let output_dir = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(output_dir.path().join("src")).unwrap();
     std::fs::write(output_dir.path().join("requirements.txt"), b"").unwrap();
@@ -2775,7 +2982,7 @@ fn download_old_submission_save_old_state_submits_first() {
         OutputResult::ExecutedCommand
     ));
 
-    // the current state was submitted before overwriting
+    snapshot.assert();
     submit.assert();
     assert_eq!(
         std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
@@ -3046,11 +3253,10 @@ fn download_old_submission_reports_a_submission_with_no_files() {
 }
 
 #[test]
-fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubmit() {
-    // `--save-old-state` submits the current state, then downloads a fresh
-    // stub to reset with. A 401 on the download step (after the submit
-    // already succeeded) must be refreshed and retried in place: the submit
-    // must never be repeated.
+fn reset_exercise_401_between_backup_and_download_does_not_back_up_twice() {
+    // `--save-old-state` stores a backup snapshot, then downloads a fresh stub to
+    // reset with. A 401 on the download step (after the backup already succeeded)
+    // must be refreshed and retried in place: the backup must never be repeated.
     let mut server = mockito::Server::new();
     let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
     let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
@@ -3070,14 +3276,13 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
         ))
         .expect_at_least(1)
         .create();
-    // The save-old-state submit: must happen exactly once.
-    let (_upload, submit) = mock_submit_steps_for(
+    let (_upload, snapshot, submit) = mock_snapshot_steps_for(
         &mut server,
         exercise_id,
-        &Uuid::new_v4().to_string(),
+        "backup",
         &Uuid::new_v4().to_string(),
     );
-    // The first download attempt (after the submit) is rejected...
+    // The first download attempt (after the backup) is rejected...
     let _rejected = server
         .mock("GET", "/files/stub.tar.zst")
         .with_status(401)
@@ -3096,8 +3301,7 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
     let projects_dir = tempfile::tempdir().unwrap();
     let credentials_path = write_valid_refreshable_credentials(config_dir.path());
 
-    // A valid, compressible project (python3 marker) so the save-old-state
-    // submit can package it.
+    // A valid, compressible project (python3 marker) so the backup can package it.
     let exercise_dir = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(exercise_dir.path().join("src")).unwrap();
     std::fs::write(exercise_dir.path().join("requirements.txt"), b"").unwrap();
@@ -3126,7 +3330,8 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
         output_data(output).result,
         OutputResult::ExecutedCommand
     ));
-    // Exactly one submit call, despite the retried download.
+    // Exactly one backup, despite the retried download.
+    snapshot.assert();
     submit.assert();
     refresh.assert();
     assert_eq!(
@@ -3140,19 +3345,16 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
 }
 
 #[test]
-fn paste_submits_then_shares_the_slide_submission() {
-    // `mooc paste` submits (non-blocking) then shares the submission. Share takes a
-    // SLIDE-submission id, which the submit response carries directly, so paste must
-    // not consult the submissions list: that lookup was racy by construction. The
-    // list endpoint is mounted expecting zero calls, and the share endpoint is
-    // mounted ONLY at the slide id, so sharing the task id would fail.
+fn paste_stores_a_paste_snapshot_and_shares_it() {
+    // `mooc paste` stores an ungraded paste snapshot, never a graded submission, then
+    // shares the snapshot id the store returned. The share endpoint is mounted only at
+    // that id, and the submissions list expects no call.
     let mut server = mockito::Server::new();
-    let task_submission_id = "aaaaaaaa-0000-0000-0000-000000000000";
-    let slide_submission_id = "bbbbbbbb-1111-1111-1111-111111111111";
+    let snapshot_id = "bbbbbbbb-1111-1111-1111-111111111111";
 
     let _exercise = mock_exercise_for_submit(&mut server);
-    let (_upload, _submit) =
-        mock_submit_steps(&mut server, task_submission_id, slide_submission_id);
+    let (_upload, snapshot, submit) =
+        mock_snapshot_steps_for(&mut server, SUBMIT_EXERCISE_ID, "paste", snapshot_id);
     let submissions = server
         .mock(
             "GET",
@@ -3164,8 +3366,7 @@ fn paste_submits_then_shares_the_slide_submission() {
     let share = server
         .mock(
             "POST",
-            format!("/api/v0/exercise-services/client/submissions/{slide_submission_id}/share")
-                .as_str(),
+            format!("/api/v0/exercise-services/client/submissions/{snapshot_id}/share").as_str(),
         )
         .with_body(
             serde_json::json!({ "paste_url": "http://example.com/shared-submissions/tok123" })
@@ -3187,6 +3388,8 @@ fn paste_submits_then_shares_the_slide_submission() {
     )
     .unwrap();
 
+    snapshot.assert();
+    submit.assert();
     share.assert();
     submissions.assert();
     match data_of(output) {
@@ -3198,6 +3401,56 @@ fn paste_submits_then_shares_the_slide_submission() {
         }
         other => panic!("expected MoocPaste, got {other:?}"),
     }
+}
+
+#[test]
+fn paste_rate_limit_maps_to_rate_limited_kind() {
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let _upload = mock_snapshot_upload_for(&mut server, SUBMIT_EXERCISE_ID);
+    let _limited = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/snapshots")
+                .as_str(),
+        )
+        .with_status(429)
+        .with_body(
+            serde_json::json!({
+                "errors": [],
+                "message": "Too many pastes of this exercise; try again later.",
+                "message_key": "rate_limited",
+                "metadata": null,
+                "type": "rate_limit",
+            })
+            .to_string(),
+        )
+        .create();
+    let share = server
+        .mock("POST", mockito::Matcher::Regex(r"/share$".to_string()))
+        .expect(0)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let project = submittable_project();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "paste",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    share.assert();
+    assert_error_kind(error, "rate-limited");
 }
 
 /// Runs a `mooc login`-family command in-process, returning the raw result so
@@ -3220,6 +3473,33 @@ fn run_mooc_auth(
     full.extend_from_slice(args);
     let cli = Cli::parse_from(full);
     tmc_langs_cli::run(cli)
+}
+
+/// Runs `mooc logged-in` with localhost trusted, so the mock sees the bearer `me` is fetched with.
+fn run_mooc_logged_in(
+    server: &mockito::Server,
+    config_dir: &std::path::Path,
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
+    let _guard = env_lock();
+    // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+    unsafe {
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
+        std::env::set_var("TMC_LANGS_MOOC_TRUST_LOCALHOST", "1");
+    }
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "mooc",
+        "--client-name",
+        "test",
+        "logged-in",
+    ]);
+    let result = tmc_langs_cli::run(cli);
+    // SAFETY: still holding ENV_LOCK.
+    unsafe {
+        std::env::remove_var("TMC_LANGS_MOOC_TRUST_LOCALHOST");
+    }
+    result
 }
 
 /// Mounts the device-authorization endpoint returning a fixed device/user code.
@@ -3339,16 +3619,68 @@ fn mooc_login_expired_has_its_own_kind() {
     assert_error_kind(error, "device-login-expired");
 }
 
-#[test]
-fn mooc_logged_in_reports_stored_credentials() {
-    let server = mockito::Server::new();
-    let config_dir = tempfile::tempdir().unwrap();
-    write_test_credentials(config_dir.path());
+const CURRENT_USER_ID: &str = "4a1f3c1e-8f0e-4c55-9d1b-6f7b1c2d3e4f";
 
-    let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
+fn mock_current_user(server: &mut mockito::Server, access_token: &str) -> mockito::Mock {
+    server
+        .mock("GET", "/api/v0/exercise-services/client/me")
+        .match_header("authorization", format!("Bearer {access_token}").as_str())
+        .with_body(serde_json::json!({ "id": CURRENT_USER_ID }).to_string())
+        .create()
+}
+
+#[test]
+fn mooc_logged_in_reports_the_account_id() {
+    let mut server = mockito::Server::new();
+    let me = mock_current_user(&mut server, "sentinel-access");
+    let config_dir = tempfile::tempdir().unwrap();
+    write_credentials_with_refresh_token(config_dir.path());
+
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
+    me.assert();
+    let data = output_data(output);
+    assert!(matches!(data.result, OutputResult::LoggedIn));
+    match data.data {
+        Some(DataKind::MoocCurrentUser(user)) => {
+            assert_eq!(user.id.to_string(), CURRENT_USER_ID);
+        }
+        other => panic!("expected the current user, got {other:?}"),
+    }
+}
+
+/// Offline, or against a host without `me`, the stored credentials still count.
+#[test]
+fn mooc_logged_in_without_an_answering_host_still_reports_logged_in() {
+    let mut server = mockito::Server::new();
+    let _me = server
+        .mock("GET", "/api/v0/exercise-services/client/me")
+        .with_status(503)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    write_credentials_with_refresh_token(config_dir.path());
+
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
     let data = output_data(output);
     assert!(matches!(data.result, OutputResult::LoggedIn));
     assert!(data.data.is_none());
+}
+
+#[test]
+fn mooc_logged_in_with_rejected_credentials_reports_not_logged_in() {
+    let mut server = mockito::Server::new();
+    let _me = server
+        .mock("GET", "/api/v0/exercise-services/client/me")
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let credentials = write_test_credentials(config_dir.path());
+
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
+    let data = output_data(output);
+    assert!(matches!(data.result, OutputResult::NotLoggedIn));
+    assert!(data.data.is_none());
+    assert!(!credentials.exists(), "rejected credentials were kept");
 }
 
 /// `logged-in` answers a boolean question, so the credential must not ride
@@ -3356,11 +3688,12 @@ fn mooc_logged_in_reports_stored_credentials() {
 /// refresh token there is the long-lived one.
 #[test]
 fn mooc_logged_in_never_emits_the_token() {
-    let server = mockito::Server::new();
+    let mut server = mockito::Server::new();
+    let _me = mock_current_user(&mut server, "sentinel-access");
     let config_dir = tempfile::tempdir().unwrap();
     write_credentials_with_refresh_token(config_dir.path());
 
-    let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
     let serialized = serde_json::to_string(&output).unwrap();
     assert!(matches!(output_data(output).result, OutputResult::LoggedIn));
     assert!(
