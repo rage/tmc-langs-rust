@@ -11,7 +11,10 @@ mod submission_processing;
 #[cfg(test)]
 mod test_util;
 
-use crate::data::{DownloadTarget, DownloadTargetKind};
+use crate::{
+    config::MoocCourseConfig,
+    data::{DownloadTarget, DownloadTargetKind},
+};
 pub use crate::{
     config::{
         Credentials, MoocAuth, MoocAuthFailure, MoocCredentials, ProjectsConfig,
@@ -89,6 +92,53 @@ pub struct MoocExerciseUpdates {
     /// Exercises their course no longer has. Their local copies are left in place and are never updated.
     /// Exercises of a chapter that has not opened yet are absent from the course but not removed.
     pub removed: Vec<Uuid>,
+    /// Courses on disk that courses.mooc.fi refused to serve. `updated` and `removed` say nothing
+    /// about their exercises.
+    pub unchecked_courses: Vec<UncheckedMoocCourse>,
+}
+
+/// A course [`check_mooc_exercise_updates`] could not check.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct UncheckedMoocCourse {
+    pub course_id: Uuid,
+    pub kind: CourseRefusalKind,
+}
+
+/// How courses.mooc.fi refused one course. The values are the CLI error kinds the same response
+/// fails a single-course command with.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum CourseRefusalKind {
+    /// A 403: the course is hidden or closed to the user, or the session lacks the
+    /// `exercise-services` scope, which courses.mooc.fi answers the same way.
+    InsufficientScope,
+    /// A 404: the course does not exist, or not for this user.
+    NotFound,
+}
+
+impl CourseRefusalKind {
+    /// The refusal `err` is, if it concerns only the course asked for. A permanent auth failure,
+    /// an obsolete client and every other status concern the whole session.
+    fn of(err: &MoocAuthFailure) -> Option<Self> {
+        let MoocAuthFailure::Other(err) = err else {
+            return None;
+        };
+        let mooc::MoocClientError::HttpError {
+            status,
+            obsolete_client: false,
+            ..
+        } = err.as_ref()
+        else {
+            return None;
+        };
+        match status.as_u16() {
+            403 => Some(Self::InsufficientScope),
+            404 => Some(Self::NotFound),
+            _ => None,
+        }
+    }
 }
 
 /// Signs the given serializable value with the given secret using JWT.
@@ -163,6 +213,9 @@ pub fn check_tmc_exercise_updates(
 }
 
 /// Checks the server for updates to the mooc exercises in the given projects directory.
+///
+/// A course courses.mooc.fi refuses lands in `unchecked_courses` and the others are still
+/// checked; any other failure fails the whole check.
 pub fn check_mooc_exercise_updates(
     client: &mooc::MoocClient,
     auth: &MoocAuth,
@@ -178,32 +231,61 @@ pub fn check_mooc_exercise_updates(
         if course_config.exercises.is_empty() {
             continue;
         }
-        // Keyed by exercise id: the stored `task_id` is the editor task's id, not an exercise key.
-        let server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = auth
-            .call(client, |c| c.course_exercises(course_config.course_id))?
-            .into_iter()
-            .map(|slide| (slide.exercise_id, slide))
-            .collect();
-        let mut missing = Vec::new();
-        for (exercise_id, local_exercise) in &course_config.exercises {
-            let Some(server_exercise) = server_exercises.get(exercise_id) else {
-                missing.push(*exercise_id);
-                continue;
-            };
-            if server_exercise
-                .editor_checksum()
-                .map(|cs| cs != local_exercise.checksum)
-                .unwrap_or_default()
-            {
-                updates.updated.push(*exercise_id);
+        match check_mooc_course_updates(client, auth, course_config) {
+            Ok(course_updates) => {
+                updates.updated.extend(course_updates.updated);
+                updates.removed.extend(course_updates.removed);
+            }
+            Err(err) => {
+                let Some(kind) = CourseRefusalKind::of(&err) else {
+                    return Err(err.into());
+                };
+                log::warn!(
+                    "skipping the update check of course {}: {err}",
+                    course_config.course_id
+                );
+                updates.unchecked_courses.push(UncheckedMoocCourse {
+                    course_id: course_config.course_id,
+                    kind,
+                });
             }
         }
-        if !missing.is_empty() {
-            let closed = closed_chapter_exercise_ids(client, auth, course_config.course_id)?;
-            updates
-                .removed
-                .extend(missing.into_iter().filter(|id| !closed.contains(id)));
+    }
+    Ok(updates)
+}
+
+/// [`check_mooc_exercise_updates`] for one course; `unchecked_courses` stays empty.
+fn check_mooc_course_updates(
+    client: &mooc::MoocClient,
+    auth: &MoocAuth,
+    course_config: &MoocCourseConfig,
+) -> Result<MoocExerciseUpdates, MoocAuthFailure> {
+    let mut updates = MoocExerciseUpdates::default();
+    // Keyed by exercise id: the stored `task_id` is the editor task's id, not an exercise key.
+    let server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = auth
+        .call(client, |c| c.course_exercises(course_config.course_id))?
+        .into_iter()
+        .map(|slide| (slide.exercise_id, slide))
+        .collect();
+    let mut missing = Vec::new();
+    for (exercise_id, local_exercise) in &course_config.exercises {
+        let Some(server_exercise) = server_exercises.get(exercise_id) else {
+            missing.push(*exercise_id);
+            continue;
+        };
+        if server_exercise
+            .editor_checksum()
+            .map(|cs| cs != local_exercise.checksum)
+            .unwrap_or_default()
+        {
+            updates.updated.push(*exercise_id);
         }
+    }
+    if !missing.is_empty() {
+        let closed = closed_chapter_exercise_ids(client, auth, course_config.course_id)?;
+        updates
+            .removed
+            .extend(missing.into_iter().filter(|id| !closed.contains(id)));
     }
     Ok(updates)
 }
@@ -214,7 +296,7 @@ fn closed_chapter_exercise_ids(
     client: &MoocClient,
     auth: &MoocAuth,
     course_id: Uuid,
-) -> Result<HashSet<Uuid>, LangsError> {
+) -> Result<HashSet<Uuid>, MoocAuthFailure> {
     let progress = auth.call(client, |c| c.course_progress(course_id))?;
     Ok(progress
         .closed_chapters
@@ -2905,6 +2987,99 @@ checksum = 'new checksum'
         assert!(updates.removed.is_empty());
     }
 
+    fn mooc_http_error(status: u16, obsolete_client: bool) -> Box<mooc::MoocClientError> {
+        Box::new(mooc::MoocClientError::HttpError {
+            url: "https://courses.mooc.fi/api/v0/exercise-services/client/courses/1/exercises"
+                .parse()
+                .unwrap(),
+            status: oauth2::http::StatusCode::from_u16(status).unwrap(),
+            error: String::new(),
+            obsolete_client,
+            message_key: None,
+        })
+    }
+
+    #[test]
+    fn course_refusal_kind_names_403_and_404() {
+        assert_eq!(
+            CourseRefusalKind::of(&MoocAuthFailure::Other(mooc_http_error(403, false))),
+            Some(CourseRefusalKind::InsufficientScope)
+        );
+        assert_eq!(
+            CourseRefusalKind::of(&MoocAuthFailure::Other(mooc_http_error(404, false))),
+            Some(CourseRefusalKind::NotFound)
+        );
+    }
+
+    #[test]
+    fn course_refusal_kind_leaves_session_failures_unnamed() {
+        for failure in [
+            MoocAuthFailure::Other(mooc_http_error(401, false)),
+            MoocAuthFailure::Other(mooc_http_error(426, false)),
+            MoocAuthFailure::Other(mooc_http_error(429, false)),
+            MoocAuthFailure::Other(mooc_http_error(500, false)),
+            MoocAuthFailure::Other(mooc_http_error(503, false)),
+            MoocAuthFailure::Other(mooc_http_error(403, true)),
+            MoocAuthFailure::Permanent(mooc_http_error(403, false)),
+            MoocAuthFailure::Permanent(mooc_http_error(404, false)),
+            MoocAuthFailure::Other(Box::new(mooc::MoocClientError::NotAuthenticated)),
+        ] {
+            assert_eq!(CourseRefusalKind::of(&failure), None, "{failure:?}");
+        }
+    }
+
+    #[test]
+    fn check_mooc_exercise_updates_reports_a_course_whose_progress_is_refused() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        write_mooc_course_config(projects_dir.path(), "old checksum");
+        add_second_mooc_exercise(projects_dir.path());
+        let course_id = ProjectsConfig::load(projects_dir.path())
+            .unwrap()
+            .mooc_courses
+            .values()
+            .next()
+            .unwrap()
+            .course_id;
+
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_body("[]")
+            .create();
+        let _progress = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/progress".to_string(),
+                ),
+            )
+            .with_status(404)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let updates = check_mooc_exercise_updates(&client, &auth, projects_dir.path()).unwrap();
+
+        assert_eq!(
+            updates,
+            MoocExerciseUpdates {
+                updated: vec![],
+                removed: vec![],
+                unchecked_courses: vec![UncheckedMoocCourse {
+                    course_id,
+                    kind: CourseRefusalKind::NotFound,
+                }],
+            }
+        );
+    }
+
     #[test]
     fn check_mooc_exercise_updates_reports_exercises_removed_from_course() {
         init();
@@ -2950,7 +3125,8 @@ checksum = 'new checksum'
             updates,
             MoocExerciseUpdates {
                 updated: vec![exercise_id],
-                removed: vec![removed_id]
+                removed: vec![removed_id],
+                unchecked_courses: vec![],
             }
         );
     }

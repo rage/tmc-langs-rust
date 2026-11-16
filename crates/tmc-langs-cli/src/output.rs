@@ -283,6 +283,7 @@ pub fn cli_output_json_schema() -> String {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
+    use tmc_langs::{CourseRefusalKind, UncheckedMoocCourse};
     use uuid::Uuid;
 
     fn read_api_file(filename: &str) -> String {
@@ -382,7 +383,8 @@ mod test {
         assert_eq!(actual, expected);
     }
 
-    /// Clients share one parser for both backends' update checks; only the id type differs.
+    /// Clients share one parser for both backends' update checks; only the id type differs, and
+    /// mooc also names the courses it could not check.
     #[test]
     fn both_backends_report_exercise_updates_in_one_shape() {
         let tmc = serde_json::to_value(DataKind::ExerciseUpdates(ExerciseUpdates {
@@ -392,9 +394,14 @@ mod test {
         .unwrap();
         let updated = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
         let removed = Uuid::parse_str("0b9e2d5c-3f4a-4b8e-9c1d-2e3f4a5b6c7d").unwrap();
+        let unchecked = Uuid::parse_str("7c1f0e4a-2b3d-4e5f-8a9b-0c1d2e3f4a5b").unwrap();
         let mooc = serde_json::to_value(DataKind::MoocExerciseUpdates(MoocExerciseUpdates {
             updated: vec![updated],
             removed: vec![removed],
+            unchecked_courses: vec![UncheckedMoocCourse {
+                course_id: unchecked,
+                kind: CourseRefusalKind::NotFound,
+            }],
         }))
         .unwrap();
 
@@ -406,7 +413,11 @@ mod test {
         assert_eq!(mooc["output-data-kind"], "mooc-exercise-updates");
         assert_eq!(
             mooc["output-data"],
-            serde_json::json!({ "updated": [updated.to_string()], "removed": [removed.to_string()] })
+            serde_json::json!({
+                "updated": [updated.to_string()],
+                "removed": [removed.to_string()],
+                "unchecked_courses": [{ "course_id": unchecked.to_string(), "kind": "not-found" }],
+            })
         );
     }
 

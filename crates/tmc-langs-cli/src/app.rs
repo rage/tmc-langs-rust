@@ -1560,6 +1560,8 @@ mod test {
             // checkExerciseUpdates
             tmc_langs::ExerciseUpdates,
             tmc_langs::MoocExerciseUpdates,
+            tmc_langs::UncheckedMoocCourse,
+            tmc_langs::CourseRefusalKind,
             // downloadOrUpdateCourseExercises
             tmc_langs::DownloadOrUpdateTmcCourseExercisesResult,
             tmc_langs::DownloadOrUpdateMoocCourseExercisesResult,

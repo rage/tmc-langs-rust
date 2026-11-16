@@ -206,7 +206,16 @@ updated: Array<string>,
  * Exercises their course no longer has. Their local copies are left in place and are never updated.
  * Exercises of a chapter that has not opened yet are absent from the course but not removed.
  */
-removed: Array<string>, }
+removed: Array<string>,
+/**
+ * Courses on disk that courses.mooc.fi refused to serve. `updated` and `removed` say nothing
+ * about their exercises.
+ */
+unchecked_courses: Array<UncheckedMoocCourse>, }
+
+export type UncheckedMoocCourse = { course_id: string, kind: CourseRefusalKind, }
+
+export type CourseRefusalKind = "insufficient-scope" | "not-found";
 
 export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
 
