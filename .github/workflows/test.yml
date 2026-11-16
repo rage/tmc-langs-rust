@@ -93,6 +93,19 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      # On macOS the image's .NET in ~/.dotnet reaches the C# runner despite the flake's PATH and
+      # DOTNET_ROOT, and its newer SDKs break the runner, so only the flake's .NET may remain.
+      - name: Remove the image's .NET
+        if: runner.os == 'macOS'
+        run: |
+          rm -rf ~/.dotnet
+          sudo rm -f /usr/local/bin/dotnet
+          if type -ap dotnet | grep -v '^/nix/store/'; then
+            echo "::error::a .NET outside the flake is still on PATH"
+            exit 1
+          fi
+          dotnet --list-sdks
+
       - name: Run tests
         run: cargo test --no-fail-fast --target ${{ matrix.rust-target }}
 
