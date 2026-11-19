@@ -67,7 +67,7 @@ pub fn list_local_exercises(client_name: &str) -> Result<Vec<LocalExercise>, Lan
                 course_id: course_config.course_id,
                 exercise_slug: exercise_slug.clone(),
                 exercise_id: exercise.id,
-                exercise_path: ProjectsConfig::get_tmc_exercise_download_target(
+                exercise_path: ProjectsConfig::resolve_tmc_exercise_path(
                     &projects_dir,
                     course_slug,
                     exercise_slug,
@@ -163,8 +163,13 @@ pub fn migrate_exercise(
         course_slug,
         exercise_slug,
     );
-    if target_dir.exists() {
-        return Err(LangsError::DirectoryExists(target_dir));
+    let existing_dir = ProjectsConfig::resolve_tmc_exercise_path(
+        &tmc_config.projects_dir,
+        course_slug,
+        exercise_slug,
+    );
+    if existing_dir.exists() {
+        return Err(LangsError::DirectoryExists(existing_dir));
     }
 
     course_config.exercises.insert(
@@ -258,7 +263,7 @@ mod test {
     /// the config loader requires to consider it present.
     fn tmc_course_to(projects_dir: &Path, course_slug: &str, exercise_slug: &str, id: u32) {
         file_to(
-            projects_dir.join("tmc").join(course_slug),
+            projects_dir.join(course_slug),
             "course_config.toml",
             format!(
                 "course = '{course_slug}'\n\
@@ -268,10 +273,7 @@ mod test {
             ),
         );
         file_to(
-            projects_dir
-                .join("tmc")
-                .join(course_slug)
-                .join(exercise_slug),
+            projects_dir.join(course_slug).join(exercise_slug),
             "src/main.py",
             "",
         );
@@ -332,7 +334,7 @@ mod test {
         assert_eq!(exercises[0].exercise_id, 1234);
         assert_eq!(
             exercises[0].exercise_path,
-            projects_dir.path().join("tmc/some-course/some-exercise")
+            projects_dir.path().join("some-course/some-exercise")
         );
     }
 
@@ -416,6 +418,69 @@ mod test {
     }
 
     #[test]
+    fn lists_tmc_exercises_from_the_legacy_and_split_layouts() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let _guard = env_lock();
+
+        let config_dir = tempfile::tempdir().unwrap();
+        let projects_dir = tempfile::tempdir().unwrap();
+        set_up_projects_dir(config_dir.path(), projects_dir.path());
+        file_to(
+            projects_dir.path(),
+            "course/course_config.toml",
+            "course = 'course'\n\
+             [exercises.legacy]\nid = 1\nchecksum = 'a'\n\
+             [exercises.split]\nid = 2\nchecksum = 'b'\n",
+        );
+        file_to(projects_dir.path(), "course/legacy/src/main.py", "");
+        file_to(projects_dir.path(), "tmc/course/split/src/main.py", "");
+
+        let exercises = list_local_tmc_course_exercises("test", "course").unwrap();
+
+        let paths = exercises
+            .iter()
+            .map(|e| (e.exercise_slug.as_str(), e.exercise_path.clone()))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            paths,
+            [
+                ("legacy", projects_dir.path().join("course/legacy")),
+                ("split", projects_dir.path().join("tmc/course/split")),
+            ]
+        );
+    }
+
+    #[test]
+    fn migrate_refuses_an_exercise_already_in_the_split_layout() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let exercise_path = tempfile::tempdir().unwrap();
+        file_to(&exercise_path, "some_file", "");
+        file_to(projects_dir.path(), "tmc/course/exercise/existing", "");
+        let tmc_config = TmcConfig {
+            location: PathBuf::new(),
+            projects_dir: projects_dir.path().to_path_buf(),
+            table: Table::new(),
+        };
+
+        let err = migrate_exercise(
+            tmc_config,
+            "course",
+            "exercise",
+            0,
+            "checksum",
+            exercise_path.path(),
+        )
+        .unwrap_err();
+
+        assert!(matches!(err, LangsError::DirectoryExists(_)), "{err:?}");
+        assert!(exercise_path.path().join("some_file").exists());
+    }
+
+    #[test]
     fn migrates() {
         init();
         crate::test_util::ensure_isolated_locks_dir();
@@ -434,7 +499,7 @@ mod test {
         assert!(
             !projects_dir
                 .path()
-                .join("tmc/course/exercise/some_file")
+                .join("course/exercise/some_file")
                 .exists()
         );
 
@@ -451,7 +516,7 @@ mod test {
         assert!(
             projects_dir
                 .path()
-                .join("tmc/course/exercise/some_file")
+                .join("course/exercise/some_file")
                 .exists()
         );
 
