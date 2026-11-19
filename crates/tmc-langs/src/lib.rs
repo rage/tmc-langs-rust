@@ -358,7 +358,7 @@ pub fn submit_exercise(
         .ok_or(LangsError::NoProjectExercise)?;
 
     let exercise_path =
-        ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
+        ProjectsConfig::resolve_tmc_exercise_path(projects_dir, course_slug, exercise_slug);
 
     let tmc_project_yml = TmcProjectYml::load_or_default(&exercise_path)?;
     client
@@ -386,7 +386,7 @@ pub fn paste_exercise(
         .ok_or(LangsError::NoProjectExercise)?;
 
     let exercise_path =
-        ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
+        ProjectsConfig::resolve_tmc_exercise_path(projects_dir, course_slug, exercise_slug);
 
     let tmc_project_yml = TmcProjectYml::load_or_default(&exercise_path)?;
     client
@@ -428,7 +428,7 @@ pub fn download_or_update_course_exercises(
 
     log::debug!("checking the checksum of each exercise on the server");
     for exercise_detail in exercises_details {
-        let target = ProjectsConfig::get_tmc_exercise_download_target(
+        let target = ProjectsConfig::resolve_tmc_exercise_path(
             projects_dir,
             &exercise_detail.course_name,
             &exercise_detail.exercise_name,
@@ -930,7 +930,7 @@ pub fn update_tmc_exercises(
                 };
                 if server_exercise.checksum != local_exercise.checksum {
                     // server has an updated exercise
-                    let target = ProjectsConfig::get_tmc_exercise_download_target(
+                    let target = ProjectsConfig::resolve_tmc_exercise_path(
                         projects_dir,
                         &server_exercise.course_name,
                         &server_exercise.exercise_name,
@@ -2477,6 +2477,59 @@ checksum = 'old checksum'
     }
 
     #[test]
+    fn update_tmc_exercises_updates_a_legacy_layout_in_place() {
+        init();
+        let mut server = Server::new();
+        let _details = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exercises/details".to_string()),
+            )
+            .with_body(tmc_details_response(vec![ExercisesDetails {
+                id: 1,
+                course_name: "course1".to_string(),
+                exercise_name: "ex1".to_string(),
+                checksum: "new checksum".to_string(),
+                hide_submission_results: false,
+            }]))
+            .create();
+        let _download = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exercises/1/download".to_string()),
+            )
+            .with_body(make_zip(&[
+                ("src/main.py", "print('new')"),
+                ("test/__init__.py", ""),
+            ]))
+            .create();
+        let projects_dir = tempfile::tempdir().unwrap();
+        file_to(
+            projects_dir.path(),
+            "course1/course_config.toml",
+            "course = 'course1'\n[exercises.ex1]\nid = 1\nchecksum = 'old checksum'\n",
+        );
+        let exercise_dir = projects_dir.path().join("course1/ex1");
+        file_to(&exercise_dir, "src/main.py", "student work");
+
+        let client = mock_testmycode_client(&server);
+        let result = update_tmc_exercises(&client, projects_dir.path()).unwrap();
+
+        assert_eq!(result.downloaded[0].path, exercise_dir);
+        assert!(exercise_dir.join("test/__init__.py").is_file());
+        assert_eq!(
+            std::fs::read_to_string(exercise_dir.join("src/main.py")).unwrap(),
+            "student work"
+        );
+        assert!(!projects_dir.path().join("tmc").exists());
+        let config = ProjectsConfig::load(projects_dir.path()).unwrap();
+        assert_eq!(
+            config.tmc_courses["course1"].exercises["ex1"].checksum,
+            "new checksum"
+        );
+    }
+
+    #[test]
     fn downloads_old_submission() {
         init();
         let mut server = Server::new();
@@ -2835,6 +2888,26 @@ checksum = 'new checksum'
         let e3 = downloaded.iter().find(|e| e.id == 3).unwrap();
         let e4 = downloaded.iter().find(|e| e.id == 4).unwrap();
         let e5 = downloaded.iter().find(|e| e.id == 5).unwrap();
+
+        // exercises from a 0.40–0.42 download stay put; new ones use the legacy layout
+        assert_eq!(
+            e1.path,
+            projects_dir
+                .path()
+                .join("tmc/some course/on disk exercise with update and submission")
+        );
+        assert_eq!(
+            e3.path,
+            projects_dir
+                .path()
+                .join("another course/not on disk exercise with submission")
+        );
+        assert!(
+            projects_dir
+                .path()
+                .join("another course/course_config.toml")
+                .is_file()
+        );
 
         // did not download submission even though it was available because it was on disk
         let f = file_util::read_file_to_string(e1.path.join("src/student_file.py")).unwrap();
