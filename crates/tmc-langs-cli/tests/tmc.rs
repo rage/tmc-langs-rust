@@ -199,3 +199,65 @@ fn tmc_without_any_credential_reports_not_logged_in() {
 
     assert_error_kind(error, "not-logged-in");
 }
+
+/// A projects dir as tmc-langs 0.39 left it must stay listed, and its config intact.
+#[test]
+fn list_local_tmc_course_exercises_reads_the_legacy_layout() {
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(config_dir.path().join("tmc-test")).unwrap();
+    std::fs::write(
+        config_dir.path().join("tmc-test/config.toml"),
+        format!(
+            "projects-dir = '{}'\n",
+            projects_dir
+                .path()
+                .display()
+                .to_string()
+                .replace('\\', "\\\\")
+        ),
+    )
+    .unwrap();
+    let course_config = projects_dir.path().join("course1/course_config.toml");
+    std::fs::create_dir_all(projects_dir.path().join("course1/ex1")).unwrap();
+    std::fs::write(
+        &course_config,
+        "course = 'course1'\n[exercises.ex1]\nid = 1\nchecksum = 'abc'\n",
+    )
+    .unwrap();
+
+    let output = {
+        let _guard = env_lock();
+        // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+        unsafe {
+            std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir.path());
+        }
+        let cli = Cli::parse_from([
+            "tmc-langs-cli",
+            "list-local-tmc-course-exercises",
+            "--client-name",
+            "test",
+            "--course-slug",
+            "course1",
+        ]);
+        tmc_langs_cli::run(cli).unwrap()
+    };
+
+    let CliOutput::OutputData(data) = output else {
+        panic!("expected OutputData, got {output:?}");
+    };
+    let Some(DataKind::LocalTmcExercises(exercises)) = data.data else {
+        panic!("expected LocalTmcExercises, got {:?}", data.data);
+    };
+    assert_eq!(exercises.len(), 1);
+    assert_eq!(exercises[0].exercise_slug, "ex1");
+    assert_eq!(
+        exercises[0].exercise_path,
+        projects_dir.path().join("course1/ex1")
+    );
+    assert!(
+        std::fs::read_to_string(course_config)
+            .unwrap()
+            .contains("ex1")
+    );
+}

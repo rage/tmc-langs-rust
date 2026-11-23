@@ -3,7 +3,7 @@
 use crate::LangsError;
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, HashMap, btree_map, hash_map::Entry},
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{
@@ -13,9 +13,14 @@ use tmc_langs_util::{
 use uuid::Uuid;
 use walkdir::WalkDir;
 
-/// A project directory is a directory which contains directories of backends
-/// which contain directories of courses (which contain a `course_config.toml`).
+/// A projects directory holds a directory per TMC course, as tmc-langs 0.39 laid
+/// it out and older clients still read it, plus a `mooc` directory of mooc
+/// courses. Each course directory contains a `course_config.toml`.
 const COURSE_CONFIG_FILE_NAME: &str = "course_config.toml";
+const MOOC_DIR_NAME: &str = "mooc";
+/// tmc-langs 0.40–0.42 downloaded TMC exercises into `tmc/<course>/`; those are
+/// still found there, but nothing new goes there except reserved-name courses.
+const TMC_SPLIT_LAYOUT_DIR_NAME: &str = "tmc";
 
 #[derive(Debug)]
 pub struct ProjectsConfig {
@@ -32,35 +37,24 @@ impl ProjectsConfig {
         let _guard = lock.lock()?;
 
         let mut tmc_course_configs = HashMap::<String, TmcCourseConfig>::new();
+        let mut split_layout_tmc_course_configs = HashMap::<String, TmcCourseConfig>::new();
         let mut mooc_course_configs = HashMap::<Uuid, MoocCourseConfig>::new();
 
-        // the projects dir has a separate directory for each TMC course, which are all expected to contain a `course_config.toml` file for TMC courses
-        // MOOC courses are in a `mooc` subdirectory to prevent the course slugs (which are used as the directory names) from conflicting
-
-        // process tmc courses first
-        let mut unexpected_entries = Vec::new();
-        let tmc_projects_dir = projects_dir.join("tmc");
+        let tmc_projects_dir = projects_dir.join(TMC_SPLIT_LAYOUT_DIR_NAME);
         if tmc_projects_dir.exists() {
             for entry in WalkDir::new(tmc_projects_dir).min_depth(1).max_depth(1) {
                 let entry = entry?;
-                let file_name = entry.file_name();
-
-                let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
-                if course_config_path.exists() {
-                    let course_dir_name = file_name.to_str().ok_or_else(|| {
-                        LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
-                    })?;
-                    let file = file_util::read_file_to_string(&course_config_path)?;
-                    let course_config = deserialize::toml_from_str(&file)?;
-                    tmc_course_configs.insert(course_dir_name.to_string(), course_config);
-                } else {
-                    unexpected_entries.push(entry);
+                // 0.40–0.42 course dirs here have no config; theirs is one level up
+                if let Some((course_dir_name, course_config)) =
+                    Self::read_tmc_course_config(&entry)?
+                {
+                    split_layout_tmc_course_configs.insert(course_dir_name, course_config);
                 }
             }
         }
 
-        // then mooc
-        let mooc_projects_dir = projects_dir.join("mooc");
+        let mut unexpected_entries = Vec::new();
+        let mooc_projects_dir = projects_dir.join(MOOC_DIR_NAME);
         if mooc_projects_dir.exists() {
             for entry in WalkDir::new(mooc_projects_dir).min_depth(1).max_depth(1) {
                 let entry = entry?;
@@ -74,64 +68,65 @@ impl ProjectsConfig {
                     unexpected_entries.push(entry);
                 }
             }
+        }
 
-            // no need to warn if the directory has no valid course directories at all
-            if !(tmc_course_configs.is_empty() && mooc_course_configs.is_empty()) {
-                log::warn!(
-                    "Files or directories with no config files found \
-                while loading projects from {}: [{}]",
-                    projects_dir.display(),
-                    unexpected_entries
-                        .iter()
-                        .filter_map(|ue| ue.path().as_os_str().to_str())
-                        .collect::<Vec<_>>()
-                        .join(", "),
-                );
+        if projects_dir.exists() {
+            for entry in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
+                let entry = entry?;
+                if Self::is_reserved_dir_name(&entry.file_name().to_string_lossy()) {
+                    continue;
+                }
+                if let Some((course_dir_name, course_config)) =
+                    Self::read_tmc_course_config(&entry)?
+                {
+                    tmc_course_configs.insert(course_dir_name, course_config);
+                }
             }
         }
 
-        // Legacy layout: course directories directly in the projects dir (before
-        // the tmc/mooc split). Process them in place rather than moving them.
-        let mut unexpected_entries = Vec::new();
-        let legacy_projects_dir = projects_dir;
-        if legacy_projects_dir.exists() {
-            for entry in WalkDir::new(legacy_projects_dir).min_depth(1).max_depth(1) {
-                let entry = entry?;
-                let file_name = entry.file_name();
-
-                if file_name == "tmc" || file_name == "mooc" {
-                    continue;
+        for (course_dir_name, split_layout_config) in split_layout_tmc_course_configs {
+            match tmc_course_configs.entry(course_dir_name) {
+                Entry::Vacant(vacant) => {
+                    vacant.insert(split_layout_config);
                 }
-
-                // only tmc courses were ever stored this way
-                let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
-                if course_config_path.exists() {
-                    let course_dir_name = file_name.to_str().ok_or_else(|| {
-                        LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
-                    })?;
-                    let file = file_util::read_file_to_string(&course_config_path)?;
-                    let course_config = deserialize::toml_from_str(&file)?;
-                    tmc_course_configs.insert(course_dir_name.to_string(), course_config);
-                } else {
-                    unexpected_entries.push(entry);
+                Entry::Occupied(mut occupied) => {
+                    occupied
+                        .get_mut()
+                        .merge_split_layout_config(projects_dir, split_layout_config);
                 }
             }
+        }
+
+        // no need to warn if the directory has no valid course directories at all
+        if !unexpected_entries.is_empty()
+            && !(tmc_course_configs.is_empty() && mooc_course_configs.is_empty())
+        {
+            log::warn!(
+                "Files or directories with no config files found \
+                while loading projects from {}: [{}]",
+                projects_dir.display(),
+                unexpected_entries
+                    .iter()
+                    .filter_map(|ue| ue.path().as_os_str().to_str())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            );
         }
 
         // maintenance: check that the exercises in the config actually exist on disk
         // if any are found that do not, update the course config file accordingly
-        for (_, course_config) in tmc_course_configs.iter_mut() {
+        for course_config in tmc_course_configs.values_mut() {
             let mut deleted_exercises = vec![];
             for exercise_name in course_config.exercises.keys() {
-                let expected_dir = Self::get_tmc_exercise_download_target(
-                    projects_dir,
-                    &course_config.course,
-                    exercise_name,
-                );
-                if !expected_dir.exists() {
+                if !Self::tmc_exercise_exists(projects_dir, &course_config.course, exercise_name) {
                     log::debug!(
                         "local exercise {} not found, deleting from config",
-                        expected_dir.display()
+                        Self::get_tmc_exercise_download_target(
+                            projects_dir,
+                            &course_config.course,
+                            exercise_name
+                        )
+                        .display()
                     );
                     deleted_exercises.push(exercise_name.clone());
                 }
@@ -146,7 +141,7 @@ impl ProjectsConfig {
                 course_config.save_to_projects_dir(projects_dir)?;
             }
         }
-        for (_, course_config) in mooc_course_configs.iter_mut() {
+        for course_config in mooc_course_configs.values_mut() {
             let mut deleted_exercises = vec![];
             for (exercise_id, exercise) in course_config.exercises.iter() {
                 let expected_dir = Self::get_mooc_exercise_download_target(
@@ -179,15 +174,77 @@ impl ProjectsConfig {
         })
     }
 
+    /// Reads the TMC course config in a course directory, keyed by the directory's name.
+    /// `None` if the entry has no config.
+    fn read_tmc_course_config(
+        entry: &walkdir::DirEntry,
+    ) -> Result<Option<(String, TmcCourseConfig)>, LangsError> {
+        let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
+        if !course_config_path.exists() {
+            return Ok(None);
+        }
+        let course_dir_name = entry.file_name().to_str().ok_or_else(|| {
+            LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
+        })?;
+        let file = file_util::read_file_to_string(&course_config_path)?;
+        let course_config = deserialize::toml_from_str(&file)?;
+        Ok(Some((course_dir_name.to_string(), course_config)))
+    }
+
+    fn is_reserved_dir_name(name: &str) -> bool {
+        name == TMC_SPLIT_LAYOUT_DIR_NAME || name == MOOC_DIR_NAME
+    }
+
+    /// The directory that holds a TMC course's config and its new downloads.
+    fn tmc_course_dir(projects_dir: &Path, course_name: &str) -> PathBuf {
+        // A course named after a backend directory would be read as that
+        // directory, so it lives under `tmc/`, which every 0.40+ build reads.
+        if Self::is_reserved_dir_name(course_name) {
+            Self::split_layout_tmc_course_dir(projects_dir, course_name)
+        } else {
+            projects_dir.join(course_name)
+        }
+    }
+
+    fn split_layout_tmc_course_dir(projects_dir: &Path, course_name: &str) -> PathBuf {
+        projects_dir
+            .join(TMC_SPLIT_LAYOUT_DIR_NAME)
+            .join(course_name)
+    }
+
+    /// Where a TMC exercise that is not on disk yet is downloaded to.
+    /// For one that may already be on disk, use [`Self::resolve_tmc_exercise_path`].
     pub fn get_tmc_exercise_download_target(
         projects_dir: &Path,
         course_name: &str,
         exercise_name: &str,
     ) -> PathBuf {
-        projects_dir
-            .join("tmc")
-            .join(course_name)
-            .join(exercise_name)
+        Self::tmc_course_dir(projects_dir, course_name).join(exercise_name)
+    }
+
+    /// Where a TMC exercise is on disk: its download target, or the `tmc/`
+    /// directory 0.40–0.42 downloaded it to. The download target if it is in neither.
+    pub fn resolve_tmc_exercise_path(
+        projects_dir: &Path,
+        course_name: &str,
+        exercise_name: &str,
+    ) -> PathBuf {
+        let target =
+            Self::get_tmc_exercise_download_target(projects_dir, course_name, exercise_name);
+        if target.exists() {
+            return target;
+        }
+        let split_layout_path =
+            Self::split_layout_tmc_course_dir(projects_dir, course_name).join(exercise_name);
+        if split_layout_path.exists() {
+            split_layout_path
+        } else {
+            target
+        }
+    }
+
+    fn tmc_exercise_exists(projects_dir: &Path, course_name: &str, exercise_name: &str) -> bool {
+        Self::resolve_tmc_exercise_path(projects_dir, course_name, exercise_name).exists()
     }
 
     pub fn get_mooc_exercise_download_target(
@@ -196,7 +253,7 @@ impl ProjectsConfig {
         exercise_directory: &str,
     ) -> PathBuf {
         projects_dir
-            .join("mooc")
+            .join(MOOC_DIR_NAME)
             .join(instance_directory)
             .join(exercise_directory)
     }
@@ -302,14 +359,52 @@ impl TmcCourseConfig {
     }
 
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
-        let course_dir = projects_dir.join(&self.course);
+        let course_dir = ProjectsConfig::tmc_course_dir(projects_dir, &self.course);
         if !course_dir.exists() {
             file_util::create_dir_all(&course_dir)?;
         }
         let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
         let s = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(s.as_bytes(), target)?;
+        file_util::write_to_file(s.as_bytes(), &target)?;
+
+        // `load` merges a `tmc/` copy back in, so a stale one would revert this save.
+        let split_layout_target =
+            ProjectsConfig::split_layout_tmc_course_dir(projects_dir, &self.course)
+                .join(COURSE_CONFIG_FILE_NAME);
+        if split_layout_target != target && split_layout_target.exists() {
+            file_util::write_to_file(s.as_bytes(), split_layout_target)?;
+        }
         Ok(())
+    }
+
+    /// Adds the entries of a config found under `tmc/` for the same course.
+    /// Where both list an exercise, the entry whose own directory holds it wins,
+    /// this config's on a tie.
+    fn merge_split_layout_config(
+        &mut self,
+        projects_dir: &Path,
+        split_layout_config: TmcCourseConfig,
+    ) {
+        if self.course_id.is_none() {
+            self.course_id = split_layout_config.course_id;
+        }
+        let own_dir = ProjectsConfig::tmc_course_dir(projects_dir, &self.course);
+        let split_layout_dir =
+            ProjectsConfig::split_layout_tmc_course_dir(projects_dir, &self.course);
+        for (exercise_name, split_layout_exercise) in split_layout_config.exercises {
+            match self.exercises.entry(exercise_name) {
+                btree_map::Entry::Vacant(vacant) => {
+                    vacant.insert(split_layout_exercise);
+                }
+                btree_map::Entry::Occupied(mut occupied) => {
+                    if !own_dir.join(occupied.key()).exists()
+                        && split_layout_dir.join(occupied.key()).exists()
+                    {
+                        occupied.insert(split_layout_exercise);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -357,7 +452,7 @@ impl MoocCourseConfig {
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
         // The loader and `get_mooc_exercise_download_target` key off the sanitized
         // `directory`, not the raw course name; other paths orphan the config.
-        let course_dir = projects_dir.join("mooc").join(&self.directory);
+        let course_dir = projects_dir.join(MOOC_DIR_NAME).join(&self.directory);
         if !course_dir.exists() {
             file_util::create_dir_all(&course_dir)?;
         }
@@ -546,6 +641,224 @@ checksum = "defg4567"
         let ex = cc.exercises.remove("ex 4").unwrap();
         assert_eq!(ex.id, 7654);
         assert_eq!(ex.checksum, "defg4567");
+    }
+
+    fn tmc_config(course: &str, exercises: &[(&str, u32, &str)]) -> String {
+        let mut s = format!("course = '{course}'\n");
+        for (name, id, checksum) in exercises {
+            s.push_str(&format!(
+                "[exercises.'{name}']\nid = {id}\nchecksum = '{checksum}'\n"
+            ));
+        }
+        s
+    }
+
+    fn read_config(path: impl AsRef<Path>) -> TmcCourseConfig {
+        deserialize::toml_from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn a_legacy_layout_survives_loading() {
+        init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        file_to(
+            &temp,
+            "course1/course_config.toml",
+            tmc_config("course1", &[("ex1", 1, "a")]),
+        );
+        dir_to(&temp, "course1/ex1");
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+
+        assert_eq!(pc.tmc_courses["course1"].exercises["ex1"].id, 1);
+        assert_eq!(
+            read_config(temp.path().join("course1/course_config.toml"))
+                .exercises
+                .len(),
+            1
+        );
+        assert_eq!(
+            ProjectsConfig::resolve_tmc_exercise_path(temp.path(), "course1", "ex1"),
+            temp.path().join("course1/ex1")
+        );
+    }
+
+    #[test]
+    fn new_tmc_downloads_target_the_legacy_layout() {
+        let projects_dir = Path::new("projects");
+        assert_eq!(
+            ProjectsConfig::get_tmc_exercise_download_target(projects_dir, "course", "ex"),
+            projects_dir.join("course").join("ex")
+        );
+        assert_eq!(
+            ProjectsConfig::resolve_tmc_exercise_path(projects_dir, "course", "ex"),
+            projects_dir.join("course").join("ex")
+        );
+    }
+
+    #[test]
+    fn reserved_course_names_are_kept_under_tmc() {
+        init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        for course in ["tmc", "mooc"] {
+            assert_eq!(
+                ProjectsConfig::get_tmc_exercise_download_target(temp.path(), course, "ex"),
+                temp.path().join("tmc").join(course).join("ex")
+            );
+            let mut cc = TmcCourseConfig {
+                course: course.to_string(),
+                course_id: None,
+                exercises: BTreeMap::new(),
+            };
+            cc.add_exercise("ex".to_string(), 1, "a".to_string());
+            cc.save_to_projects_dir(temp.path()).unwrap();
+            dir_to(&temp, format!("tmc/{course}/ex"));
+        }
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+
+        assert_eq!(pc.tmc_courses.len(), 2);
+        assert!(pc.tmc_courses["tmc"].exercises.contains_key("ex"));
+        assert!(pc.tmc_courses["mooc"].exercises.contains_key("ex"));
+        assert!(pc.mooc_courses.is_empty());
+    }
+
+    #[test]
+    fn a_split_layout_config_loads_and_resolves() {
+        init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        file_to(
+            &temp,
+            "tmc/course/course_config.toml",
+            tmc_config("course", &[("ex", 1, "a")]),
+        );
+        dir_to(&temp, "tmc/course/ex");
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+
+        assert_eq!(pc.tmc_courses["course"].exercises["ex"].id, 1);
+        assert_eq!(
+            ProjectsConfig::resolve_tmc_exercise_path(temp.path(), "course", "ex"),
+            temp.path().join("tmc/course/ex")
+        );
+    }
+
+    #[test]
+    fn the_legacy_location_wins_when_an_exercise_is_in_both_layouts() {
+        let temp = tempfile::TempDir::new().unwrap();
+        dir_to(&temp, "course/ex");
+        dir_to(&temp, "tmc/course/ex");
+
+        assert_eq!(
+            ProjectsConfig::resolve_tmc_exercise_path(temp.path(), "course", "ex"),
+            temp.path().join("course/ex")
+        );
+    }
+
+    #[test]
+    fn configs_in_both_layouts_merge_and_save_without_losing_entries() {
+        init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        let legacy_config = temp.path().join("course/course_config.toml");
+        file_to(
+            &temp,
+            "course/course_config.toml",
+            tmc_config(
+                "course",
+                &[
+                    ("legacy only", 1, "a"),
+                    ("in both, legacy dir", 2, "legacy"),
+                    ("in both, split dir", 4, "legacy"),
+                ],
+            ),
+        );
+        file_to(
+            &temp,
+            "tmc/course/course_config.toml",
+            tmc_config(
+                "course",
+                &[
+                    ("split only", 3, "c"),
+                    ("in both, legacy dir", 2, "split"),
+                    ("in both, split dir", 4, "split"),
+                ],
+            )
+            .replacen('\n', "\ncourse_id = 7\n", 1),
+        );
+        dir_to(&temp, "course/legacy only");
+        dir_to(&temp, "course/in both, legacy dir");
+        dir_to(&temp, "tmc/course/split only");
+        dir_to(&temp, "tmc/course/in both, split dir");
+
+        let mut pc = ProjectsConfig::load(temp.path()).unwrap();
+
+        let cc = pc.tmc_courses.get_mut("course").unwrap();
+        assert_eq!(cc.course_id, Some(7));
+        let checksums = cc
+            .exercises
+            .iter()
+            .map(|(name, e)| (name.as_str(), e.checksum.as_str()))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            checksums,
+            [
+                ("in both, legacy dir", "legacy"),
+                ("in both, split dir", "split"),
+                ("legacy only", "a"),
+                ("split only", "c"),
+            ]
+        );
+
+        cc.add_exercise("in both, split dir".to_string(), 4, "updated".to_string());
+        cc.save_to_projects_dir(temp.path()).unwrap();
+        for saved in [
+            read_config(&legacy_config),
+            read_config(temp.path().join("tmc/course/course_config.toml")),
+        ] {
+            assert_eq!(saved.exercises.len(), 4);
+            assert_eq!(saved.exercises["in both, split dir"].checksum, "updated");
+        }
+        let reloaded = ProjectsConfig::load(temp.path()).unwrap();
+        assert_eq!(
+            reloaded.tmc_courses["course"].exercises["in both, split dir"].checksum,
+            "updated"
+        );
+    }
+
+    #[test]
+    fn maintenance_removes_only_exercises_missing_from_both_layouts() {
+        init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        file_to(
+            &temp,
+            "course/course_config.toml",
+            tmc_config(
+                "course",
+                &[("legacy", 1, "a"), ("split", 2, "b"), ("missing", 3, "c")],
+            ),
+        );
+        dir_to(&temp, "course/legacy");
+        dir_to(&temp, "tmc/course/split");
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+
+        let names = |cc: &TmcCourseConfig| cc.exercises.keys().cloned().collect::<Vec<_>>();
+        assert_eq!(names(&pc.tmc_courses["course"]), ["legacy", "split"]);
+        assert_eq!(
+            names(&read_config(temp.path().join("course/course_config.toml"))),
+            ["legacy", "split"]
+        );
+        assert!(!temp.path().join("tmc/course/course_config.toml").exists());
     }
 
     #[test]
