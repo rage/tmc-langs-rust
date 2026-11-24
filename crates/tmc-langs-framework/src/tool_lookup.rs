@@ -27,7 +27,7 @@ pub fn resolve_tool(program: &OsStr) -> Option<ResolvedTool> {
     let tool = normalized_tool_name(&program.to_string_lossy());
     let tool = tool.as_str();
     let names = candidate_names(tool, cfg!(windows));
-    let extensions = executable_extensions(cfg!(windows), std::env::var_os("PATHEXT"));
+    let extensions = executable_extensions(tool, cfg!(windows), std::env::var_os("PATHEXT"));
 
     let path_var = std::env::var_os("PATH").unwrap_or_default();
     let path_dirs: Vec<PathBuf> = std::env::split_paths(&path_var).collect();
@@ -76,10 +76,10 @@ fn candidate_names(tool: &str, is_windows: bool) -> Vec<String> {
     names
 }
 
-/// Suffixes tried after a bare name. The empty one matches Unix executables and names that
-/// already carry an extension; on Windows it comes last, as an extensionless file there is
-/// typically a shell shim that cannot be started.
-fn executable_extensions(is_windows: bool, pathext: Option<OsString>) -> Vec<String> {
+/// Suffixes tried after `tool`'s candidate names. On Windows the empty one is tried, last, only
+/// when `tool` already carries an extension: an extensionless file there is a shell shim that
+/// cannot be started (Rtools puts a `cmd` script on `PATH` ahead of `cmd.exe`).
+fn executable_extensions(tool: &str, is_windows: bool, pathext: Option<OsString>) -> Vec<String> {
     if !is_windows {
         return vec![String::new()];
     }
@@ -87,11 +87,12 @@ fn executable_extensions(is_windows: bool, pathext: Option<OsString>) -> Vec<Str
         .map(|v| v.to_string_lossy().into_owned())
         .filter(|v| !v.is_empty())
         .unwrap_or_else(|| ".COM;.EXE;.BAT;.CMD".to_string());
+    let has_extension = Path::new(tool).extension().is_some();
     pathext
         .split(';')
         .filter(|e| !e.is_empty())
         .map(|e| e.to_lowercase())
-        .chain([String::new()])
+        .chain(has_extension.then(String::new))
         .collect()
 }
 
@@ -400,7 +401,7 @@ mod test {
         let temp = tempfile::tempdir().unwrap();
         touch(&temp.path().join("mingw32-make.exe"));
         let names = candidate_names("make", true);
-        let extensions = executable_extensions(true, Some(OsString::from(".EXE;.CMD")));
+        let extensions = executable_extensions("make", true, Some(OsString::from(".EXE;.CMD")));
         assert_eq!(
             find_in_dirs(&names, &[temp.path().to_path_buf()], &extensions),
             Some(temp.path().join("mingw32-make.exe"))
@@ -409,19 +410,32 @@ mod test {
     }
 
     #[test]
-    fn prefers_an_executable_extension_over_an_extensionless_shim_on_windows() {
+    fn skips_an_extensionless_shim_earlier_on_path_on_windows() {
         let temp = tempfile::tempdir().unwrap();
-        touch(&temp.path().join("python3"));
-        touch(&temp.path().join("python3.exe"));
-        let extensions = executable_extensions(true, Some(OsString::from(".EXE")));
+        let shim_dir = temp.path().join("rtools").join("usr").join("bin");
+        let system_dir = temp.path().join("System32");
+        touch(&shim_dir.join("cmd"));
+        touch(&system_dir.join("cmd.exe"));
+        let extensions = executable_extensions("cmd", true, Some(OsString::from(".EXE")));
         assert_eq!(
             find_in_dirs(
-                &["python3".to_string()],
-                &[temp.path().to_path_buf()],
+                &["cmd".to_string()],
+                &[shim_dir, system_dir.clone()],
                 &extensions
             ),
-            Some(temp.path().join("python3.exe"))
+            Some(system_dir.join("cmd.exe"))
         );
+    }
+
+    #[test]
+    fn tries_a_name_as_given_on_windows_only_when_it_has_an_extension() {
+        let pathext = || Some(OsString::from(".EXE"));
+        assert_eq!(executable_extensions("cmd", true, pathext()), vec![".exe"]);
+        assert_eq!(
+            executable_extensions("mvn.cmd", true, pathext()),
+            vec![".exe", ""]
+        );
+        assert_eq!(executable_extensions("cmd", false, pathext()), vec![""]);
     }
 
     #[test]
