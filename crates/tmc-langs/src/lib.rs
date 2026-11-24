@@ -1127,6 +1127,7 @@ pub fn update_mooc_exercises(
                     local.exercise_name.clone(),
                     task_id,
                     new_checksum.to_string(),
+                    local.exercise_directory.clone(),
                 );
                 course_config.save_to_projects_dir(projects_dir)?;
             }
@@ -1435,12 +1436,7 @@ pub fn download_or_update_mooc_course_exercises(
             course.is_exam,
         );
 
-        // Reuse the directory of an already-downloaded exercise.
-        let exercise_directory = course_config
-            .exercises
-            .get(&exercise_id)
-            .map(|e| e.directory.clone())
-            .unwrap_or_else(|| config::simple_kebab_case(&exercise_name));
+        let exercise_directory = course_config.exercise_directory(exercise_id, &exercise_name);
         let target = ProjectsConfig::get_mooc_exercise_download_target(
             projects_dir,
             &course_config.directory,
@@ -1448,7 +1444,7 @@ pub fn download_or_update_mooc_course_exercises(
         );
 
         if let Some(existing) = course_config.exercises.get(&exercise_id) {
-            if existing.checksum == checksum {
+            if existing.checksum == checksum && existing.directory == exercise_directory {
                 log::info!("Skipping exercise {exercise_id} due to identical checksum");
                 skipped.push(MoocExerciseDownload {
                     exercise_id,
@@ -1471,7 +1467,13 @@ pub fn download_or_update_mooc_course_exercises(
 
         match download_and_extract_mooc_archive(client, auth, &download_url, &target) {
             Ok(()) => {
-                course_config.add_exercise(exercise_id, exercise_name, task_id, checksum);
+                course_config.add_exercise(
+                    exercise_id,
+                    exercise_name,
+                    task_id,
+                    checksum,
+                    exercise_directory,
+                );
                 course_config.save_to_projects_dir(projects_dir)?;
                 downloaded.push(MoocExerciseDownload {
                     exercise_id,

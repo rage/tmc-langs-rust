@@ -5,7 +5,7 @@ mod mooc_credentials;
 mod projects_config;
 mod tmc_config;
 
-pub(crate) use self::projects_config::{MoocCourseConfig, simple_kebab_case};
+pub(crate) use self::projects_config::MoocCourseConfig;
 pub use self::{
     credentials::Credentials,
     mooc_credentials::{MoocAuth, MoocAuthFailure, MoocCredentials},
