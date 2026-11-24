@@ -3883,6 +3883,62 @@ fn mooc_logout_removes_credentials() {
     );
 }
 
+#[test]
+fn mooc_logout_revokes_the_refresh_token_and_still_logs_out_when_that_fails() {
+    for revoke_status in [200, 503] {
+        let mut server = mockito::Server::new();
+        let revoke = server
+            .mock("POST", "/api/v0/main-frontend/oauth/revoke")
+            .match_body(mockito::Matcher::UrlEncoded(
+                "token_type_hint".into(),
+                "refresh_token".into(),
+            ))
+            .with_status(revoke_status)
+            .expect(1)
+            .create();
+        let config_dir = tempfile::tempdir().unwrap();
+        let creds_path = write_credentials_with_refresh_token(config_dir.path());
+
+        let output = run_mooc_auth(&server, &["logout"], config_dir.path()).unwrap();
+        assert!(matches!(
+            output_data(output).result,
+            OutputResult::LoggedOut
+        ));
+        assert!(!creds_path.exists());
+        revoke.assert();
+    }
+}
+
+#[test]
+fn mooc_login_drops_a_legacy_tmc_login() {
+    let mut server = mockito::Server::new();
+    let _device = mock_device_authorization(&mut server);
+    let _authorized = server
+        .mock("POST", token_endpoint())
+        .with_body(
+            serde_json::json!({
+                "access_token": "at", "refresh_token": "rt",
+                "token_type": "bearer", "expires_in": 3600
+            })
+            .to_string(),
+        )
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let legacy = config_dir.path().join("tmc-test").join("credentials.json");
+    std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
+    std::fs::write(
+        &legacy,
+        r#"{"access_token":"legacy","token_type":"bearer","scope":"public"}"#,
+    )
+    .unwrap();
+
+    run_mooc_auth(&server, &["login"], config_dir.path()).unwrap();
+    assert!(
+        !legacy.exists(),
+        "the legacy login must not outrank the new one"
+    );
+}
+
 /// Builds a `.tar.zst` archive from (relative path, contents) pairs.
 fn make_tar_zst(files: &[(&str, &[u8])]) -> Vec<u8> {
     let mut tar_buf = Vec::new();

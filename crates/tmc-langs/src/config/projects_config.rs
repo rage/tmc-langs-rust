@@ -294,14 +294,13 @@ impl ProjectsConfig {
         if !course_config_path.is_file() {
             return Ok(None);
         }
-        let mut course_config =
-            match read_course_config::<MoocCourseConfig>(&course_config_path) {
-                Ok(course_config) => course_config,
-                Err(err) => {
-                    log::warn!("Skipping {}: {err}", course_config_path.display());
-                    return Ok(None);
-                }
-            };
+        let mut course_config = match read_course_config::<MoocCourseConfig>(&course_config_path) {
+            Ok(course_config) => course_config,
+            Err(err) => {
+                log::warn!("Skipping {}: {err}", course_config_path.display());
+                return Ok(None);
+            }
+        };
         let relative_dir = course_dir
             .strip_prefix(mooc_projects_dir)
             .expect("course dirs are walked from the mooc projects dir");

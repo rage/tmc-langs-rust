@@ -704,6 +704,19 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
     Ok(output)
 }
 
+/// Removes the stored tmc.mooc.fi credentials, never the mooc ones: `mooc logout` owns those.
+fn tmc_logout(client_name: &str) -> Result<CliOutput> {
+    if let Some(credentials) = tmc_langs::Credentials::load(client_name)? {
+        credentials.remove()?;
+    }
+    Ok(CliOutput::OutputData(Box::new(OutputData {
+        status: Status::Finished,
+        message: "logged out".to_string(),
+        result: OutputResult::LoggedOut,
+        data: None,
+    })))
+}
+
 fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
     let client_name = &tmc.client_name;
     let client_version = &tmc.client_version;
@@ -711,6 +724,11 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
         .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
         .parse()
         .context("Invalid TMC root url")?;
+    if matches!(tmc.command, TestMyCodeCommand::Logout) {
+        // Building the client could refresh the mooc token over the network, which an
+        // offline logout must not depend on.
+        return tmc_logout(client_name);
+    }
     let mooc_root_url = mooc_root_url()?;
     let mooc_client_id = mooc_client_id();
     let (mut client, mut auth) = tmc_langs::init_testmycode_client_with_credentials(
@@ -956,18 +974,7 @@ fn run_tmc_inner(
             }
         }
 
-        TestMyCodeCommand::Logout => {
-            // Never the mooc credentials: `mooc logout` owns those.
-            if let Some(credentials) = auth.take_stored_tmc() {
-                credentials.remove()?;
-            }
-            CliOutput::OutputData(Box::new(OutputData {
-                status: Status::Finished,
-                message: "logged out".to_string(),
-                result: OutputResult::LoggedOut,
-                data: None,
-            }))
-        }
+        TestMyCodeCommand::Logout => unreachable!("handled before the client is built"),
 
         TestMyCodeCommand::MarkReviewAsRead {
             course_id,
@@ -1169,7 +1176,7 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
     match &mooc.command {
         MoocCommand::Login => return run_mooc_login(&client_name, &root_url, &client_id),
         MoocCommand::LoggedIn => return mooc_logged_in(&client_name, &root_url, &client_id),
-        MoocCommand::Logout => return mooc_logout(&client_name),
+        MoocCommand::Logout => return mooc_logout(&client_name, &root_url, &client_id),
         _ => {}
     }
 
@@ -1216,6 +1223,13 @@ fn run_mooc_login(client_name: &str, root_url: &url::Url, client_id: &str) -> Re
 
     let token = poll_mooc_device_login(root_url, client_id, &device)?;
     tmc_langs::MoocCredentials::save(client_name, token)?;
+    // A legacy tmc.mooc.fi login would otherwise keep sending TMC work to whatever account it
+    // belongs to, which need not be the one just logged in.
+    if let Ok(Some(legacy)) = tmc_langs::Credentials::load(client_name) {
+        if let Err(err) = legacy.remove() {
+            log::warn!("could not remove the legacy tmc.mooc.fi login: {err}");
+        }
+    }
 
     Ok(CliOutput::OutputData(Box::new(OutputData {
         status: Status::Finished,
@@ -1320,9 +1334,15 @@ fn mooc_logged_in(client_name: &str, root_url: &url::Url, client_id: &str) -> Re
     })))
 }
 
-/// Removes the stored mooc credentials — mirrors the tmc `logout` command.
-fn mooc_logout(client_name: &str) -> Result<CliOutput> {
+/// Revokes this device's login at courses.mooc.fi when it can and removes the stored mooc
+/// credentials whether or not it could.
+fn mooc_logout(client_name: &str, root_url: &url::Url, client_id: &str) -> Result<CliOutput> {
     if let Some(credentials) = tmc_langs::MoocCredentials::load(client_name)? {
+        if let Some(refresh_token) = credentials.refresh_token() {
+            if let Err(err) = mooc::revoke_refresh_token(root_url, client_id, &refresh_token) {
+                log::warn!("could not revoke the login at courses.mooc.fi: {err}");
+            }
+        }
         credentials.remove()?;
     }
     Ok(CliOutput::OutputData(Box::new(OutputData {

@@ -261,3 +261,19 @@ fn list_local_tmc_course_exercises_reads_the_legacy_layout() {
             .contains("ex1")
     );
 }
+
+#[test]
+fn logout_needs_no_network() {
+    let server = mockito::Server::new();
+    let config_dir = tempfile::tempdir().unwrap();
+    let credentials = write_stored_tmc_credentials(config_dir.path());
+    let _guard = env_lock();
+    // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+    unsafe {
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", "http://127.0.0.1:1");
+    }
+    drop(_guard);
+
+    run_tmc_in(&server, &["logout"], config_dir.path()).unwrap();
+    assert!(!credentials.exists());
+}

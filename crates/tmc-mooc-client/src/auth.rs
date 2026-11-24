@@ -192,6 +192,50 @@ pub fn poll_device_token(
     }
 }
 
+/// How long a logout waits for the revocation; offline it must still log out promptly.
+const REVOKE_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Revokes a refresh token at the authorization server (RFC 7009), ending this device's login
+/// there; the server answers success for an already invalid token too.
+pub fn revoke_refresh_token(
+    root_url: &Url,
+    client_id: &str,
+    refresh_token: &str,
+) -> MoocClientResult<()> {
+    let url = oauth_url(root_url, "revoke")?;
+    let body = urlencode(&[
+        ("token", refresh_token),
+        ("token_type_hint", "refresh_token"),
+        ("client_id", client_id),
+    ]);
+    let response = auth_client()
+        .post(url.clone())
+        .timeout(REVOKE_TIMEOUT)
+        .header(CLIENT_VERSION_HEADER, env!("CARGO_PKG_VERSION"))
+        .header(CONTENT_TYPE, FORM_CONTENT_TYPE)
+        .body(body)
+        .send()
+        .map_err(|e| {
+            Box::new(MoocClientError::ConnectionError(
+                Method::POST,
+                url.clone(),
+                e.without_url(),
+            ))
+        })?;
+    let status = response.status();
+    if status.is_success() {
+        return Ok(());
+    }
+    let body = read_text(response, &url)?;
+    Err(Box::new(MoocClientError::HttpError {
+        url,
+        status,
+        error: body,
+        obsolete_client: status == StatusCode::UPGRADE_REQUIRED,
+        message_key: None,
+    }))
+}
+
 /// Redeems a refresh token for a fresh token pair (OAuth2 refresh grant).
 ///
 /// The backend rotates the refresh token, returning a new one; if a response
@@ -583,5 +627,22 @@ mod test {
         let root: Url = server.url().parse().unwrap();
         let token = refresh_token(&root, "cid", "old-rt").unwrap();
         assert_eq!(token.refresh_token().unwrap().secret(), "old-rt");
+    }
+
+    #[test]
+    fn revoking_sends_the_refresh_token_with_its_hint() {
+        let mut server = mockito::Server::new();
+        let revoke = server
+            .mock("POST", "/api/v0/main-frontend/oauth/revoke")
+            .match_body(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("token".into(), "refresh-1".into()),
+                mockito::Matcher::UrlEncoded("token_type_hint".into(), "refresh_token".into()),
+                mockito::Matcher::UrlEncoded("client_id".into(), "tmc-vscode".into()),
+            ]))
+            .with_status(200)
+            .create();
+        let root: Url = server.url().parse().unwrap();
+        revoke_refresh_token(&root, "tmc-vscode", "refresh-1").unwrap();
+        revoke.assert();
     }
 }

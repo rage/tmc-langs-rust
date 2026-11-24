@@ -12,7 +12,7 @@ pub use self::{
     auth::{
         AUTH_REQUEST_TIMEOUT, DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE,
         DEVICE_SCOPE, DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization,
-        poll_device_token, refresh_token,
+        poll_device_token, refresh_token, revoke_refresh_token,
     },
     error::{MoocClientError, MoocClientResult},
     exercise::{
