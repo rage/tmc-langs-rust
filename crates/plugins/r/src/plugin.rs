@@ -26,18 +26,6 @@ impl RPlugin {
     }
 }
 
-/// `expression` as the value of Rscript's `-e`. Rscript.exe on Windows re-splits the command
-/// line it forwards to R, so the expression must arrive wrapped in double quotes of its own;
-/// the expressions used here contain no quotes or spaces to escape.
-fn rscript_expression(expression: &str, is_windows: bool) -> String {
-    debug_assert!(!expression.contains(['"', ' ']));
-    if is_windows {
-        format!("\"{expression}\"")
-    } else {
-        expression.to_string()
-    }
-}
-
 /// Project directory:
 /// Contains an R directory.
 impl LanguagePlugin for RPlugin {
@@ -49,13 +37,7 @@ impl LanguagePlugin for RPlugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         // run available points command
-        let args = [
-            "-e",
-            &rscript_expression(
-                "library(tmcRtestrunner);run_available_points()",
-                cfg!(windows),
-            ),
-        ];
+        let args = ["-e", "library(tmcRtestrunner);run_available_points()"];
         let _output = TmcCommand::piped("Rscript")
             .with(|e| e.cwd(path).args(args))
             .output_with_timeout_checked(BUILD_TIMEOUT)?;
@@ -88,10 +70,7 @@ impl LanguagePlugin for RPlugin {
         }
 
         // run test command
-        let args = [
-            "-e",
-            &rscript_expression("library(tmcRtestrunner);run_tests()", cfg!(windows)),
-        ];
+        let args = ["-e", "library(tmcRtestrunner);run_tests()"];
 
         let output = if let Some(timeout) = timeout {
             TmcCommand::piped("Rscript")
@@ -567,16 +546,5 @@ etc
 
         let points = RPlugin::get_available_points(temp.path()).unwrap();
         assert_eq!(points, &["r1", "r2", "r3"]);
-    }
-}
-
-#[cfg(test)]
-mod expression_test {
-    use super::rscript_expression;
-
-    #[test]
-    fn wraps_expression_in_quotes_only_on_windows() {
-        assert_eq!(rscript_expression("run_tests()", false), "run_tests()");
-        assert_eq!(rscript_expression("run_tests()", true), "\"run_tests()\"");
     }
 }
