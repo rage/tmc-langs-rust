@@ -103,6 +103,7 @@ pub enum DataKind {
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
     RefreshResult(tmc_langs::RefreshData),
+    RepositoryExercises(Vec<tmc_langs::RepositoryExercise>),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     ExerciseUpdates(ExerciseUpdates),

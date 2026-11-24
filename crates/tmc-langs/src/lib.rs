@@ -22,7 +22,10 @@ pub use crate::{
         list_local_mooc_course_exercises, list_local_tmc_course_exercises, migrate_exercise,
         move_projects_dir, restore_projects, set_projects_aside,
     },
-    course_refresher::{RefreshData, RefreshExercise, refresh_course},
+    course_refresher::{
+        RefreshData, RefreshExercise, RepositoryExercise, prepare_exercise_repository,
+        refresh_course,
+    },
     data::{
         CombinedCourseData, CombinedMoocCourseData, ConfigValue,
         DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
@@ -2127,10 +2130,12 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, L
     );
 
     let mut paths = vec![];
+    // The search root is exempt: a checkout in a temporary directory has a hidden name.
     for entry in WalkDir::new(exercise_path).into_iter().filter_entry(|e| {
-        !submission_processing::is_hidden_dir(e)
-            && e.file_name() != "private"
-            && !submission_processing::contains_tmcignore(e)
+        e.depth() == 0
+            || (!submission_processing::is_hidden_dir(e)
+                && e.file_name() != "private"
+                && !submission_processing::contains_tmcignore(e))
     }) {
         let entry = entry?;
         // check if the path contains a valid exercise for some plugin

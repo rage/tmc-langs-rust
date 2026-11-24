@@ -704,6 +704,23 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             )
         }
 
+        Command::PrepareExerciseRepository { repository_path } => {
+            let mut lock = Lock::dir(&repository_path, LockOptions::Write)?;
+            let _guard = lock.lock()?;
+
+            let exercises =
+                tmc_langs::prepare_exercise_repository(&repository_path).with_context(|| {
+                    format!(
+                        "Failed to prepare the exercise repository at {}",
+                        repository_path.display()
+                    )
+                })?;
+            CliOutput::finished_with_data(
+                format!("prepared {} exercises", exercises.len()),
+                DataKind::RepositoryExercises(exercises),
+            )
+        }
+
         Command::RefreshCourse {
             cache_path,
             cache_root,

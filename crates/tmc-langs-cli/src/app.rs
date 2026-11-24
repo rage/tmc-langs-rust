@@ -213,6 +213,16 @@ pub enum Command {
         no_archive_prefix: bool,
     },
 
+    /// Prepares a course repository checkout for archiving its exercises one by one: finds every
+    /// exercise directory the way refresh-course does and writes the repository's root
+    /// .tmcproject.yml into each, merged under the exercise's own
+    #[clap(long_about = schema_leaked::<Vec<tmc_langs::RepositoryExercise>>())]
+    PrepareExerciseRepository {
+        /// Path to the repository checkout.
+        #[clap(long)]
+        repository_path: PathBuf,
+    },
+
     /// Refresh the given course
     RefreshCourse {
         /// Path to the cached course.
@@ -986,6 +996,11 @@ mod base_test {
     }
 
     #[test]
+    fn prepare_exercise_repository() {
+        get_matches(&["prepare-exercise-repository", "--repository-path", "path"]);
+    }
+
+    #[test]
     fn refresh_course() {
         get_matches(&[
             "refresh-course",
@@ -1589,6 +1604,7 @@ mod test {
             // refreshCourse
             tmc_langs::RefreshData,
             tmc_langs::RefreshExercise,
+            tmc_langs::RepositoryExercise,
             tmc_langs::TmcProjectYml,
             tmc_langs::PythonVer,
             // runTests
