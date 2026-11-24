@@ -46,6 +46,8 @@ pub enum LangsError {
     MovingProjectsDirIntoItself,
     #[error("No projects-dir found")]
     NoProjectsDir,
+    #[error("The exercises folder {0} cannot be reached; is its drive connected?")]
+    ProjectsDirUnreachable(PathBuf),
     #[error("Exercise in project-config not found")]
     NoProjectExercise,
     #[error("Decoded password was not valid UTF-8")]

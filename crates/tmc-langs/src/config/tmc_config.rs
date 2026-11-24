@@ -62,7 +62,13 @@ impl TmcConfig {
             Self::init_at(client_name, path)?
         };
 
-        if !config.projects_dir.exists() {
+        // A folder on a drive that is not mounted right now must not be recreated empty
+        // elsewhere; get_projects_dir reports it instead.
+        let is_reachable = config
+            .projects_dir
+            .parent()
+            .is_none_or(|parent| parent.exists());
+        if !config.projects_dir.exists() && is_reachable {
             file_util::create_dir_all(&config.projects_dir)?;
         }
         Ok(config)

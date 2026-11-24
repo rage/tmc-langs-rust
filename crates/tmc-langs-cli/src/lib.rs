@@ -225,6 +225,7 @@ fn local_error_kind(cause: &(dyn std::error::Error + 'static)) -> Option<Kind> {
             | LangsError::DeserializeJson(..)
             | LangsError::DeserializeYaml(..)
             | LangsError::TomlDeserialize(..) => return Some(Kind::LocalConfigCorrupt),
+            LangsError::ProjectsDirUnreachable(_) => return Some(Kind::ProjectsDirUnreachable),
             _ => {}
         }
     }
@@ -254,6 +255,9 @@ fn io_error_kind(err: &io::Error) -> Option<Kind> {
 /// The path of the first file-system error in the chain.
 fn find_file_error_path(e: &anyhow::Error) -> Option<PathBuf> {
     e.chain().find_map(|cause| {
+        if let Some(LangsError::ProjectsDirUnreachable(path)) = cause.downcast_ref::<LangsError>() {
+            return Some(path.clone());
+        }
         let file_error = cause
             .downcast_ref::<tmc_langs::FileError>()
             .or_else(|| match cause.downcast_ref::<LangsError>() {

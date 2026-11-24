@@ -176,8 +176,14 @@ pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, La
 
 /// Returns the projects directory for the given client name.
 /// The return value for `my-client` might look something like `/home/username/.local/share/tmc/my-client` on Linux.
+///
+/// Fails with [`LangsError::ProjectsDirUnreachable`] when the folder is missing, e.g. on a
+/// drive that is not connected.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
     let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+    if !projects_dir.is_dir() {
+        return Err(LangsError::ProjectsDirUnreachable(projects_dir));
+    }
     Ok(projects_dir)
 }
 
@@ -2517,6 +2523,27 @@ directory = "ex-2"
         assert!(projects_dir.ends_with("client"));
         let parent = projects_dir.parent().unwrap();
         assert!(parent.ends_with("tmc"));
+    }
+
+    #[test]
+    fn an_exercises_folder_on_a_missing_drive_is_reported_not_recreated() {
+        init();
+        let config_dir = tempfile::tempdir().unwrap();
+        let unplugged = config_dir.path().join("unplugged-drive/exercises");
+        let _guard = crate::config::env_lock();
+        // SAFETY: serialized by `config::env_lock`.
+        unsafe { std::env::set_var(TMC_LANGS_CONFIG_DIR_VAR, config_dir.path()) };
+        let mut config = TmcConfig::load("client").unwrap();
+        config.projects_dir = unplugged.clone();
+        config.save().unwrap();
+
+        let result = get_projects_dir("client");
+        // SAFETY: serialized by `config::env_lock`.
+        unsafe { std::env::remove_var(TMC_LANGS_CONFIG_DIR_VAR) };
+        assert!(
+            matches!(result, Err(LangsError::ProjectsDirUnreachable(path)) if path == unplugged)
+        );
+        assert!(!unplugged.exists());
     }
 
     #[test]

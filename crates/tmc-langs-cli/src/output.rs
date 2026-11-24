@@ -301,6 +301,9 @@ pub enum Kind {
     ToolchainMissing,
     /// A freshly built program was blocked or removed, typically by antivirus software.
     ExecutableBlocked,
+    /// The exercises folder (`path`) is missing, e.g. on a drive that is not connected; it was
+    /// not recreated.
+    ProjectsDirUnreachable,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
