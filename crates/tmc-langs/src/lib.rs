@@ -20,7 +20,7 @@ pub use crate::{
         Credentials, MoocAuth, MoocAuthFailure, MoocCredentials, ProjectsConfig,
         ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, list_local_exercises,
         list_local_mooc_course_exercises, list_local_tmc_course_exercises, migrate_exercise,
-        move_projects_dir,
+        move_projects_dir, restore_projects, set_projects_aside,
     },
     course_refresher::{RefreshData, RefreshExercise, refresh_course},
     data::{
@@ -2004,6 +2004,32 @@ fn move_dir_entries(from: &Path, to: &Path) -> Result<Vec<OsString>, (Vec<OsStri
         moved.push(name);
     }
     Ok(moved)
+}
+
+/// Moves every entry of `from` into `to` by rename, moving the ones already moved back if one
+/// cannot be.
+pub(crate) fn move_all_dir_entries(from: &Path, to: &Path) -> Result<(), LangsError> {
+    let Err((moved, err)) = move_dir_entries(from, to) else {
+        return Ok(());
+    };
+    let mut is_split = false;
+    for name in moved {
+        if let Err(undo_err) = file_util::rename(to.join(&name), from.join(&name)) {
+            log::error!(
+                "failed to move {} back: {undo_err}",
+                to.join(&name).display()
+            );
+            is_split = true;
+        }
+    }
+    if is_split {
+        return Err(LangsError::DirEntriesSplit {
+            from: from.to_path_buf(),
+            to: to.to_path_buf(),
+            cause: err.to_string(),
+        });
+    }
+    Err(err.into())
 }
 
 /// Resets a mooc exercise to a fresh stub, optionally storing the current state

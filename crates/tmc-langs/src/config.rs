@@ -20,6 +20,7 @@ use crate::{
 use std::{
     collections::BTreeMap,
     env,
+    ffi::{OsStr, OsString},
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{
@@ -222,6 +223,110 @@ pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(
     let mut lock = Lock::dir(old_projects_dir.clone(), LockOptions::Write)?;
     let _guard = lock.lock()?;
     super::move_dir(&old_projects_dir, &target, || tmc_config.save())
+}
+
+/// Files operating systems put in any folder, which do not stop a restore.
+const OS_METADATA_FILE_NAMES: &[&str] = &[".ds_store", "thumbs.db", "desktop.ini"];
+
+/// Moves every entry of the projects directory into `target`, leaving the projects directory
+/// empty; [`restore_projects`] moves them back. `target` must be absent or empty, outside the
+/// projects directory and on the same file system. Moves nothing if any entry cannot be moved.
+pub fn set_projects_aside(tmc_config: &TmcConfig, target: &Path) -> Result<(), LangsError> {
+    log::debug!("setting the projects aside into {}", target.display());
+
+    let projects_dir = reachable_projects_dir(tmc_config)?;
+    let is_created = !target.exists();
+    if is_created {
+        file_util::create_dir_all(target)?;
+    } else if !target.is_dir() {
+        return Err(FileError::UnexpectedFile(target.to_path_buf()).into());
+    } else if file_util::read_dir(target)?.next().is_some() {
+        return Err(LangsError::NonEmptyDir(target.to_path_buf()));
+    }
+    if let Err(err) = ensure_outside_projects_dir(projects_dir, target) {
+        if is_created {
+            let _ = file_util::remove_dir_empty(target);
+        }
+        return Err(err);
+    }
+
+    let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
+    let _guard = lock.lock()?;
+    super::move_all_dir_entries(projects_dir, target)
+}
+
+/// Moves every entry of `source`, a folder [`set_projects_aside`] filled, back into the projects
+/// directory and deletes `source`. Fails with [`LangsError::RestoreConflict`], moving nothing,
+/// unless the projects directory holds nothing but OS metadata files such as `.DS_Store`, since
+/// courses merged with another account's would be submitted as that account's. A metadata file
+/// in both is kept from the projects directory.
+pub fn restore_projects(tmc_config: &TmcConfig, source: &Path) -> Result<(), LangsError> {
+    log::debug!("restoring the projects set aside in {}", source.display());
+
+    let projects_dir = reachable_projects_dir(tmc_config)?;
+    ensure_outside_projects_dir(projects_dir, source)?;
+
+    let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
+    let _guard = lock.lock()?;
+    let mut present = sorted_entry_names(projects_dir)?;
+    if let Some(entry) = present.iter().find(|name| !is_os_metadata_file(name)) {
+        return Err(LangsError::RestoreConflict(projects_dir.join(entry)));
+    }
+    present.retain(|name| source.join(name).symlink_metadata().is_ok());
+    for name in present {
+        file_util::remove_file(source.join(name))?;
+    }
+    super::move_all_dir_entries(source, projects_dir)?;
+    if let Err(err) = file_util::remove_dir_empty(source) {
+        log::warn!(
+            "restored the projects but could not delete {}: {err}",
+            source.display()
+        );
+    }
+    Ok(())
+}
+
+fn is_os_metadata_file(name: &OsStr) -> bool {
+    OS_METADATA_FILE_NAMES.contains(&name.to_string_lossy().to_lowercase().as_str())
+}
+
+fn sorted_entry_names(dir: &Path) -> Result<Vec<OsString>, LangsError> {
+    let mut names = file_util::read_dir(dir)?
+        .map(|entry| {
+            entry
+                .map(|entry| entry.file_name())
+                .map_err(|err| FileError::DirRead(dir.to_path_buf(), err))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    names.sort();
+    Ok(names)
+}
+
+fn reachable_projects_dir(tmc_config: &TmcConfig) -> Result<&Path, LangsError> {
+    let projects_dir = tmc_config.get_projects_dir();
+    if !projects_dir.is_dir() {
+        return Err(LangsError::ProjectsDirUnreachable(
+            projects_dir.to_path_buf(),
+        ));
+    }
+    Ok(projects_dir)
+}
+
+/// Fails unless the existing directory `dir` is outside `projects_dir`.
+fn ensure_outside_projects_dir(projects_dir: &Path, dir: &Path) -> Result<(), LangsError> {
+    let dir_canon = dir
+        .canonicalize()
+        .map_err(|e| LangsError::Canonicalize(dir.to_path_buf(), e))?;
+    let projects_dir_canon = projects_dir
+        .canonicalize()
+        .map_err(|e| LangsError::Canonicalize(projects_dir.to_path_buf(), e))?;
+    if dir_canon == projects_dir_canon {
+        return Err(LangsError::MovingProjectsDirToItself);
+    }
+    if dir_canon.starts_with(&projects_dir_canon) {
+        return Err(LangsError::MovingProjectsDirIntoItself);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -571,6 +676,106 @@ mod test {
         );
 
         assert!(!exercise_path.path().exists());
+    }
+
+    fn config_with_projects_dir(projects_dir: &Path) -> TmcConfig {
+        TmcConfig {
+            location: projects_dir.join("unused-config.toml"),
+            projects_dir: projects_dir.to_path_buf(),
+            table: Table::new(),
+        }
+    }
+
+    fn entry_names(dir: &Path) -> Vec<String> {
+        let mut names = std::fs::read_dir(dir)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect::<Vec<_>>();
+        names.sort();
+        names
+    }
+
+    #[test]
+    fn projects_set_aside_come_back_on_restore() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let config = config_with_projects_dir(projects_dir.path());
+        file_to(projects_dir.path(), "course/exercise/file", "contents");
+        file_to(projects_dir.path(), "mooc/course/course_config.toml", "");
+        file_to(projects_dir.path(), ".DS_Store", "");
+        let aside = tempfile::tempdir().unwrap();
+        let target = aside.path().join("set-aside");
+
+        set_projects_aside(&config, &target).unwrap();
+        assert!(entry_names(projects_dir.path()).is_empty());
+        assert_eq!(entry_names(&target), [".DS_Store", "course", "mooc"]);
+
+        file_to(projects_dir.path(), ".DS_Store", "");
+        restore_projects(&config, &target).unwrap();
+        assert_eq!(
+            entry_names(projects_dir.path()),
+            [".DS_Store", "course", "mooc"]
+        );
+        let file = projects_dir.path().join("course/exercise/file");
+        assert_eq!(std::fs::read_to_string(file).unwrap(), "contents");
+        assert!(!target.exists());
+    }
+
+    #[test]
+    fn a_restore_refuses_a_projects_dir_that_holds_exercises() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let config = config_with_projects_dir(projects_dir.path());
+        let aside = tempfile::tempdir().unwrap();
+        file_to(aside.path(), "course/old", "");
+        file_to(aside.path(), "other/old", "");
+
+        for existing in ["course/new", "another course/new"] {
+            file_to(projects_dir.path(), existing, "");
+            let err = restore_projects(&config, aside.path()).unwrap_err();
+            let entry = existing.split('/').next().unwrap();
+            assert!(
+                matches!(&err, LangsError::RestoreConflict(path) if path.ends_with(entry)),
+                "{err}"
+            );
+            assert_eq!(entry_names(projects_dir.path()), [entry]);
+            assert_eq!(entry_names(aside.path()), ["course", "other"]);
+            std::fs::remove_dir_all(projects_dir.path().join(entry)).unwrap();
+        }
+    }
+
+    #[test]
+    fn projects_cannot_be_set_aside_inside_the_projects_dir() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let config = config_with_projects_dir(projects_dir.path());
+        file_to(projects_dir.path(), "course/file", "");
+
+        let err = set_projects_aside(&config, &projects_dir.path().join("aside")).unwrap_err();
+        assert!(
+            matches!(err, LangsError::MovingProjectsDirIntoItself),
+            "{err}"
+        );
+        assert_eq!(entry_names(projects_dir.path()), ["course"]);
+    }
+
+    #[test]
+    fn a_partial_move_of_dir_entries_is_rolled_back() {
+        init();
+        let from = tempfile::tempdir().unwrap();
+        let to = tempfile::tempdir().unwrap();
+        for name in ["a", "b", "c"] {
+            file_to(from.path(), format!("{name}/file"), "");
+        }
+        // Renaming a directory onto a non-empty one fails.
+        file_to(to.path(), "b/blocker", "");
+
+        assert!(crate::move_all_dir_entries(from.path(), to.path()).is_err());
+        assert_eq!(entry_names(from.path()), ["a", "b", "c"]);
+        assert_eq!(entry_names(to.path()), ["b"]);
     }
 
     #[test]

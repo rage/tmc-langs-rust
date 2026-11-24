@@ -48,6 +48,18 @@ pub enum LangsError {
     NoProjectsDir,
     #[error("The exercises folder {0} cannot be reached; is its drive connected?")]
     ProjectsDirUnreachable(PathBuf),
+    #[error("The exercises folder is not empty ({0} is there), so nothing was brought back")]
+    RestoreConflict(PathBuf),
+    #[error(
+        "Failed to move the contents of {} to {} ({cause}), and could not move all of them back",
+        from.display(),
+        to.display()
+    )]
+    DirEntriesSplit {
+        from: PathBuf,
+        to: PathBuf,
+        cause: String,
+    },
     #[error("Exercise in project-config not found")]
     NoProjectExercise,
     #[error("Decoded password was not valid UTF-8")]

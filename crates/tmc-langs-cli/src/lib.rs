@@ -229,6 +229,7 @@ fn local_error_kind(cause: &(dyn std::error::Error + 'static)) -> Option<Kind> {
             | LangsError::DeserializeYaml(..)
             | LangsError::TomlDeserialize(..) => return Some(Kind::LocalConfigCorrupt),
             LangsError::ProjectsDirUnreachable(_) => return Some(Kind::ProjectsDirUnreachable),
+            LangsError::RestoreConflict(_) => return Some(Kind::ProjectsRestoreConflict),
             LangsError::MovingProjectsDirToItself => return Some(Kind::ProjectsDirMoveToItself),
             LangsError::MovingProjectsDirIntoItself => {
                 return Some(Kind::ProjectsDirMoveIntoItself);
@@ -262,7 +263,9 @@ fn io_error_kind(err: &io::Error) -> Option<Kind> {
 /// The path of the first file-system error in the chain.
 fn find_file_error_path(e: &anyhow::Error) -> Option<PathBuf> {
     e.chain().find_map(|cause| {
-        if let Some(LangsError::ProjectsDirUnreachable(path)) = cause.downcast_ref::<LangsError>() {
+        if let Some(LangsError::ProjectsDirUnreachable(path) | LangsError::RestoreConflict(path)) =
+            cause.downcast_ref::<LangsError>()
+        {
             return Some(path.clone());
         }
         let file_error = cause
@@ -1898,6 +1901,16 @@ fn run_settings(settings: Settings) -> Result<CliOutput> {
             let tmc_config = TmcConfig::load(client_name)?;
             tmc_langs::move_projects_dir(tmc_config, dir)?;
             CliOutput::finished("moved project directory")
+        }
+
+        SettingsCommand::SetProjectsAside { dir } => {
+            tmc_langs::set_projects_aside(&TmcConfig::load(client_name)?, &dir)?;
+            CliOutput::finished("set the projects aside")
+        }
+
+        SettingsCommand::RestoreProjects { dir } => {
+            tmc_langs::restore_projects(&TmcConfig::load(client_name)?, &dir)?;
+            CliOutput::finished("restored the projects")
         }
 
         SettingsCommand::Reset => {

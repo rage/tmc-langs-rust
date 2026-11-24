@@ -751,6 +751,24 @@ pub enum SettingsCommand {
     },
     /// Resets the settings file to the defaults
     Reset,
+    /// Moves every entry of the projects directory into the given folder, leaving it empty.
+    /// Moves nothing if an entry cannot be moved; when another program holds it, fails with
+    /// `file-in-use`, whose `path` ends in the entry's name
+    #[clap(long_about = SCHEMA_NULL)]
+    SetProjectsAside {
+        /// The folder to move the projects into: absent or empty, outside the projects directory
+        /// and on the same drive.
+        dir: PathBuf,
+    },
+    /// Moves every entry of a folder `set-projects-aside` filled back into the projects
+    /// directory and deletes the folder. Fails with `projects-restore-conflict`, moving nothing,
+    /// when the projects directory holds anything but OS metadata files; `path` is the first
+    /// such entry
+    #[clap(long_about = SCHEMA_NULL)]
+    RestoreProjects {
+        /// The folder the projects were set aside in.
+        dir: PathBuf,
+    },
     /// Saves a value in the settings
     Set {
         /// The key. Parsed as JSON, assumed to be a string if parsing fails.
@@ -1335,6 +1353,12 @@ mod settings_test {
     #[test]
     fn move_projects_dir() {
         get_matches_settings(&["move-projects-dir", "path"]);
+    }
+
+    #[test]
+    fn set_projects_aside_and_restore_projects() {
+        get_matches_settings(&["set-projects-aside", "path"]);
+        get_matches_settings(&["restore-projects", "path"]);
     }
 
     #[test]

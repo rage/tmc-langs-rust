@@ -313,10 +313,15 @@ pub enum Kind {
     /// The exercises folder (`path`) is missing, e.g. on a drive that is not connected; it was
     /// not recreated.
     ProjectsDirUnreachable,
-    /// The folder the exercises folder was to be moved to is the exercises folder itself.
+    /// The folder given to move the exercises folder, or its contents, to or from is the
+    /// exercises folder itself.
     ProjectsDirMoveToItself,
-    /// The folder the exercises folder was to be moved to is inside the exercises folder.
+    /// The folder given to move the exercises folder, or its contents, to or from is inside the
+    /// exercises folder.
     ProjectsDirMoveIntoItself,
+    /// `settings restore-projects` found the exercises folder holding something other than OS
+    /// metadata files, such as `path`; nothing was moved.
+    ProjectsRestoreConflict,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
