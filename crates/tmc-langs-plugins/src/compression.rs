@@ -5,7 +5,10 @@ use std::{
     io::{Cursor, Read, Seek},
     path::{Path, PathBuf},
 };
-use tmc_langs_framework::{ArchiveBuilder, Compression, StudentFilePolicy, TmcError};
+use tmc_langs_framework::{
+    ArchiveBuilder, Compression, Entry, EntryNameStyle, ExtractionBudget, ExtractionLimits,
+    StudentFilePolicy, TmcError, validate_entry_name,
+};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 use zip::ZipArchive;
@@ -45,6 +48,14 @@ pub fn compress_student_files(
             entry.path().display(),
             relative.display()
         );
+        if entry.file_type().is_symlink() {
+            log::warn!("not packing symbolic link {}", entry.path().display());
+            continue;
+        }
+        if entry.file_type().is_file() && is_sync_conflict_copy(entry.path()) {
+            log::warn!("not packing sync conflict copy {}", entry.path().display());
+            continue;
+        }
         if policy.is_student_file(relative) {
             let path = root_directory
                 .parent()
@@ -55,7 +66,7 @@ pub fn compress_student_files(
                         .expect("entries are inside root_directory")
                 })
                 .unwrap_or_else(|| entry.path());
-            if entry.path().is_dir() {
+            if entry.file_type().is_dir() {
                 writer.add_directory(entry.path(), path)?;
             } else {
                 writer.add_file(entry.path(), path)?;
@@ -84,13 +95,15 @@ pub fn unzip(zip: impl std::io::Read + std::io::Seek, target: &Path) -> Result<(
     let project_dir = find_project_dir(&mut zip_archive)?;
     log::debug!("Project dir in zip: {}", project_dir.display());
 
+    let mut budget = ExtractionBudget::new(ExtractionLimits::default());
     for i in 0..zip_archive.len() {
-        let mut file = zip_archive.by_index(i)?;
-        let file_path = PathBuf::from(file.name());
+        let mut file = Entry::Zip(zip_archive.by_index(i)?);
+        let file_path = validate_entry_name(&file.raw_name(), EntryNameStyle::Zip)?;
+        budget.admit_entry(&file.raw_name(), file.size())?;
         let relative = match file_path.strip_prefix(&project_dir) {
             Ok(relative) => relative,
             _ => {
-                log::trace!("skip {}, not in project dir", file.name());
+                log::trace!("skip {}, not in project dir", file.raw_name());
                 continue;
             }
         };
@@ -102,10 +115,7 @@ pub fn unzip(zip: impl std::io::Read + std::io::Seek, target: &Path) -> Result<(
             file_util::create_dir_all(&path_in_target)?;
         } else {
             log::trace!("writing to {}", path_in_target.display());
-            if let Some(parent) = path_in_target.parent() {
-                file_util::create_dir_all(parent)?;
-            }
-            file_util::read_to_file(&mut file, path_in_target)?;
+            file.write_to_file(&path_in_target, &mut budget)?;
         }
     }
 
@@ -171,6 +181,76 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<P
     } else {
         Err(TmcError::NoProjectDirInArchive)
     }
+}
+
+/// Whether the file looks like a copy that a file-sync client or an office program made next to a
+/// student file, which must not be submitted. Conservative: ambiguous OneDrive-style names count
+/// only when the file they would be a copy of exists beside them.
+fn is_sync_conflict_copy(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+        return false;
+    };
+    if is_unambiguous_conflict_artifact(name) {
+        return true;
+    }
+    onedrive_original_candidates(name)
+        .iter()
+        .any(|original| path.with_file_name(original).is_file())
+}
+
+fn is_unambiguous_conflict_artifact(name: &str) -> bool {
+    // `~$` Office lock files, Syncthing, Dropbox: "name (Alice's conflicted copy 2024-01-31).ext"
+    name.starts_with("~$") || name.contains(".sync-conflict-") || is_dropbox_conflict_copy(name)
+}
+
+fn is_dropbox_conflict_copy(name: &str) -> bool {
+    const MARKER: &str = "'s conflicted copy ";
+    let Some(marker_start) = name.find(MARKER) else {
+        return false;
+    };
+    let before = &name[..marker_start];
+    let after = &name[marker_start + MARKER.len()..];
+    let is_date = after.get(..10).is_some_and(|d| {
+        d.bytes().enumerate().all(|(i, b)| match i {
+            4 | 7 => b == b'-',
+            _ => b.is_ascii_digit(),
+        })
+    });
+    before.contains(" (") && is_date && after[10..].starts_with(')')
+}
+
+/// File names a OneDrive conflict copy `name-HOSTNAME[-n].ext` could be a copy of.
+fn onedrive_original_candidates(name: &str) -> Vec<String> {
+    let (stem, extension) = match name.rfind('.') {
+        Some(dot) if dot > 0 => (&name[..dot], &name[dot..]),
+        _ => (name, ""),
+    };
+    let is_hostname = |host: &str| {
+        host.len() >= 2
+            && host.bytes().any(|b| b.is_ascii_uppercase())
+            && host
+                .bytes()
+                .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'-')
+            && !host.starts_with('-')
+            && !host.ends_with('-')
+    };
+    stem.match_indices('-')
+        .map(|(i, _)| i)
+        .filter(|&i| i > 0)
+        .filter(|&i| {
+            let tail = &stem[i + 1..];
+            let without_counter = match tail.rsplit_once('-') {
+                Some((rest, counter))
+                    if !counter.is_empty() && counter.bytes().all(|b| b.is_ascii_digit()) =>
+                {
+                    rest
+                }
+                _ => tail,
+            };
+            is_hostname(tail) || is_hostname(without_counter)
+        })
+        .map(|i| format!("{}{extension}", &stem[..i]))
+        .collect()
 }
 
 fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
@@ -297,6 +377,137 @@ mod test {
         for i in 0..ziparch.len() {
             let file = ziparch.by_index(i).unwrap();
             assert!(file.name().chars().find(|c| c == &'\\').is_none())
+        }
+    }
+
+    #[test]
+    fn conflict_artifacts_are_recognised() {
+        for name in [
+            "~$report.docx",
+            "Main.sync-conflict-20240131-101010-ABCDEFG.java",
+            "main (Alice's conflicted copy 2024-01-31).py",
+            "main (Alice Smith's conflicted copy 2024-01-31) (1).py",
+        ] {
+            assert!(is_unambiguous_conflict_artifact(name), "{name}");
+        }
+        for name in [
+            "Main.java",
+            "main (1).py",
+            "my-file.py",
+            "conflicted copy.py",
+            "its conflicted copy 2024-01-31.py",
+            "a (Bob's conflicted copy.py",
+            "notes~.txt",
+            "~dollar.txt",
+            "$~x.txt",
+        ] {
+            assert!(!is_unambiguous_conflict_artifact(name), "{name}");
+        }
+    }
+
+    #[test]
+    fn onedrive_candidates_need_an_uppercase_host() {
+        assert_eq!(
+            onedrive_original_candidates("Main-LAPTOP.java"),
+            ["Main.java"]
+        );
+        assert_eq!(
+            onedrive_original_candidates("Main-LAPTOP-1.java"),
+            ["Main.java"]
+        );
+        assert_eq!(
+            onedrive_original_candidates("Main-DESKTOP-AB12CD3.java"),
+            ["Main.java", "Main-DESKTOP.java"]
+        );
+        assert!(onedrive_original_candidates("my-file.py").is_empty());
+        assert!(onedrive_original_candidates("Main.java").is_empty());
+        assert!(onedrive_original_candidates("-LAPTOP.java").is_empty());
+        assert!(onedrive_original_candidates("a-1.py").is_empty());
+    }
+
+    #[test]
+    fn onedrive_copy_is_skipped_only_beside_its_original() {
+        let temp = tempdir().unwrap();
+        let copy = temp.path().join("Main-LAPTOP-1.java");
+        File::create(&copy).unwrap();
+        assert!(!is_sync_conflict_copy(&copy));
+        File::create(temp.path().join("Main.java")).unwrap();
+        assert!(is_sync_conflict_copy(&copy));
+    }
+
+    fn packed_names(root: &Path, compression: Compression) -> Vec<String> {
+        let (bytes, _) = compress_student_files(
+            &EverythingIsStudentFilePolicy::new(root).unwrap(),
+            root,
+            compression,
+            true,
+            false,
+            10,
+        )
+        .unwrap();
+        let mut archive = ZipArchive::new(Cursor::new(bytes)).unwrap();
+        (0..archive.len())
+            .map(|i| archive.by_index(i).unwrap().name().to_string())
+            .collect()
+    }
+
+    #[test]
+    fn packing_skips_conflict_copies() {
+        let temp = tempdir().unwrap();
+        let root = temp.path().join("ex");
+        for name in [
+            "src/Main.java",
+            "src/Main-LAPTOP-1.java",
+            "src/~$Main.java",
+            "src/my-file.py",
+            "src/Util.sync-conflict-20240131-101010-ABC.java",
+        ] {
+            file_util::write_to_file(b"x", root.join(name)).unwrap();
+        }
+        let names = packed_names(&root, Compression::Zip);
+        assert!(names.contains(&"ex/src/Main.java".to_string()));
+        assert!(names.contains(&"ex/src/my-file.py".to_string()));
+        assert_eq!(
+            names.iter().filter(|n| !n.ends_with('/')).count(),
+            2,
+            "{names:?}"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn packing_does_not_follow_symlinks() {
+        let temp = tempdir().unwrap();
+        let outside = temp.path().join("secret.txt");
+        file_util::write_to_file(b"secret", &outside).unwrap();
+        let root = temp.path().join("ex");
+        file_util::write_to_file(b"x", root.join("src/Main.java")).unwrap();
+        std::os::unix::fs::symlink(&outside, root.join("src/leak.txt")).unwrap();
+        std::os::unix::fs::symlink(temp.path(), root.join("src/dirlink")).unwrap();
+        for compression in [Compression::Zip, Compression::Tar, Compression::TarZstd] {
+            let (bytes, _) = compress_student_files(
+                &EverythingIsStudentFilePolicy::new(&root).unwrap(),
+                &root,
+                compression,
+                true,
+                false,
+                10,
+            )
+            .unwrap();
+            let unpacked = tempdir().unwrap();
+            tmc_langs_framework::Archive::new(Cursor::new(bytes), compression)
+                .unwrap()
+                .extract(unpacked.path())
+                .unwrap();
+            assert!(unpacked.path().join("ex/src/Main.java").is_file());
+            assert!(
+                !unpacked.path().join("ex/src/leak.txt").exists(),
+                "{compression}"
+            );
+            assert!(
+                !unpacked.path().join("ex/src/dirlink").exists(),
+                "{compression}"
+            );
         }
     }
 }
