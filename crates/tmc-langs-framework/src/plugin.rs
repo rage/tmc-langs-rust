@@ -171,7 +171,7 @@ pub trait LanguagePlugin {
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
         // used to clean non-student files not in the zip later
-        let mut files_from_archive = HashSet::new();
+        let mut files_from_archive = ArchivePaths::new(IS_FILESYSTEM_CASE_INSENSITIVE);
         files_from_archive.insert(target_tmc_project_yml);
 
         let mut iter = archive.iter()?;
@@ -563,6 +563,43 @@ pub trait LanguagePlugin {
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>>;
 }
 
+/// Whether the target filesystems tmc-langs runs on usually treat paths differing only by case as one.
+const IS_FILESYSTEM_CASE_INSENSITIVE: bool = cfg!(any(windows, target_os = "macos"));
+
+/// The paths an archive extracted. On a case-insensitive filesystem a path matches an extracted
+/// one that differs only by case, since writing the one overwrote the other's file.
+struct ArchivePaths {
+    exact: HashSet<PathBuf>,
+    folded: Option<HashSet<String>>,
+}
+
+impl ArchivePaths {
+    fn new(is_case_insensitive: bool) -> Self {
+        Self {
+            exact: HashSet::new(),
+            folded: is_case_insensitive.then(HashSet::new),
+        }
+    }
+
+    fn insert(&mut self, path: PathBuf) {
+        if let Some(folded) = &mut self.folded {
+            folded.insert(fold_case(&path));
+        }
+        self.exact.insert(path);
+    }
+
+    fn contains(&self, path: &Path) -> bool {
+        match &self.folded {
+            Some(folded) => folded.contains(&fold_case(path)),
+            None => self.exact.contains(path),
+        }
+    }
+}
+
+fn fold_case(path: &Path) -> String {
+    path.to_string_lossy().to_lowercase()
+}
+
 fn is_in_hidden_top_level_entry(relative: &Path) -> bool {
     relative
         .components()
@@ -584,6 +621,20 @@ enum Parse {
 mod test {
     use super::*;
     use crate::test_helpers::{MockPlugin, MockPolicy, SimpleMockPlugin};
+
+    #[test]
+    fn archive_paths_ignore_case_only_when_the_filesystem_does() {
+        let mut sensitive = ArchivePaths::new(false);
+        let mut insensitive = ArchivePaths::new(true);
+        for paths in [&mut sensitive, &mut insensitive] {
+            paths.insert(PathBuf::from("/ex/test/MainTest.java"));
+        }
+        let renamed = Path::new("/ex/test/mainTest.java");
+        assert!(!sensitive.contains(renamed));
+        assert!(insensitive.contains(renamed));
+        assert!(sensitive.contains(Path::new("/ex/test/MainTest.java")));
+        assert!(!insensitive.contains(Path::new("/ex/test/Other.java")));
+    }
     use std::io::Write;
     use zip::{ZipWriter, write::SimpleFileOptions};
 

@@ -40,7 +40,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     convert::TryFrom,
-    ffi::{OsStr, OsString},
+    ffi::OsString,
     io::Cursor,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -54,7 +54,6 @@ pub use tmc_langs_framework::{
 use tmc_langs_plugins::{
     CSharpPlugin, MakePlugin, NoTestsPlugin, Plugin, PluginType, Python3Plugin, RPlugin,
 };
-use tmc_langs_util::file_util::LOCK_FILE_NAME;
 // the Java plugin is disabled on musl
 pub use tmc_langs_util::{FileError, file_util, notification_reporter, progress_reporter};
 pub use tmc_mooc_client as mooc;
@@ -323,8 +322,8 @@ fn closed_chapter_exercise_ids(
         .collect())
 }
 
-/// Downloads the user's old submission from the server.
-/// Resets the exercise at the path before the download.
+/// Downloads the user's old submission from the server and restores it over a fresh template at
+/// the path, replacing the directory's contents.
 /// If a submission_url is given, the current state of the exercise is submitted to that URL before the download.
 pub fn download_old_submission(
     client: &tmc::TestMyCodeClient,
@@ -347,18 +346,25 @@ pub fn download_old_submission(
         log::debug!("finished submission");
     }
 
-    // reset old exercise
-    reset(client, exercise_id, output_path)?;
-    log::debug!("reset exercise");
-
-    // dl submission
-    let mut buf = vec![];
-    client.download_old_submission(submission_id, &mut buf)?;
+    // Fetch both archives before touching the exercise: a failed download must not wipe the
+    // student's work.
+    let mut submission = vec![];
+    client.download_old_submission(submission_id, &mut submission)?;
+    let mut template = vec![];
+    client.download_exercise(exercise_id, &mut template)?;
     log::debug!("downloaded old submission");
 
-    // extract submission
-    extract_student_files(Cursor::new(buf), Compression::Zip, output_path)?;
-    log::debug!("extracted project");
+    let staging = staging_dir_beside(output_path)?;
+    extract_project(
+        Cursor::new(template),
+        staging.path(),
+        Compression::Zip,
+        false,
+        false,
+    )?;
+    extract_student_files(Cursor::new(submission), Compression::Zip, staging.path())?;
+    replace_dir_contents(output_path, staging.path())?;
+    log::debug!("restored old submission");
     Ok(())
 }
 
@@ -578,13 +584,7 @@ pub fn download_or_update_course_exercises(
                         DownloadTargetKind::Template => {
                             let mut buf = vec![];
                             client.download_exercise(download_target.target.id, &mut buf)?;
-                            extract_project(
-                                Cursor::new(buf),
-                                &download_target.target.path,
-                                Compression::Zip,
-                                true,
-                                false,
-                            )?;
+                            extract_update(buf, &download_target.target.path, Compression::Zip)?;
                         }
                         DownloadTargetKind::Submission { submission_id } => {
                             let mut buf = vec![];
@@ -980,13 +980,7 @@ pub fn update_tmc_exercises(
             for exercise in &exercises_to_update {
                 let mut buf = vec![];
                 client.download_exercise(exercise.id, &mut buf)?;
-                extract_project(
-                    Cursor::new(buf),
-                    &exercise.path,
-                    Compression::Zip,
-                    true,
-                    false,
-                )?;
+                extract_update(buf, &exercise.path, Compression::Zip)?;
             }
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
@@ -1197,8 +1191,7 @@ fn download_and_extract_mooc_archive(
     let data = auth
         .call(client, |c| c.download(url.clone()))
         .map_err(DownloadArchiveError::Auth)?;
-    extract_project(Cursor::new(data), target, Compression::TarZstd, true, false)
-        .map_err(DownloadArchiveError::Local)?;
+    extract_update(data, target, Compression::TarZstd).map_err(DownloadArchiveError::Local)?;
     Ok(())
 }
 
@@ -1705,16 +1698,75 @@ pub fn reset(
     replace_dir_contents(exercise_path, staging.path())
 }
 
+/// Updates the exercise at `target` to the archive's version, keeping student files (see
+/// [`extract_project`] with `clean`). Also downloads a new exercise.
+///
+/// Works on a copy of `target` that is swapped in whole, so a held file or a killed process
+/// never leaves the exercise half-updated or with truncated files.
+fn extract_update(
+    archive: impl AsRef<[u8]>,
+    target: &Path,
+    compression: Compression,
+) -> Result<(), LangsError> {
+    let staging = staging_dir_beside(target)?;
+    if target.is_dir() {
+        file_util::copy_dir_contents(target, staging.path(), || {})?;
+    }
+    extract_project(
+        Cursor::new(archive),
+        staging.path(),
+        compression,
+        true,
+        false,
+    )?;
+    replace_dir_contents(target, staging.path())
+}
+
+/// How old a leftover `.tmc-staging-*` directory must be before it is treated as abandoned
+/// rather than as another running command's.
+const STALE_STAGING_AGE: std::time::Duration = std::time::Duration::from_secs(24 * 60 * 60);
+
+/// Deletes `.tmc-staging-*` directories in `dir` that a killed command left behind.
+fn sweep_stale_staging_dirs(dir: &Path, min_age: std::time::Duration) {
+    let Ok(entries) = file_util::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let is_staging = entry
+            .file_name()
+            .to_string_lossy()
+            .starts_with(STAGING_DIR_PREFIX);
+        let is_stale = entry
+            .metadata()
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|modified| modified.elapsed().ok())
+            .is_some_and(|age| age >= min_age);
+        if is_staging && is_stale && entry.file_type().is_ok_and(|t| t.is_dir()) {
+            log::warn!(
+                "deleting abandoned staging directory {}",
+                entry.path().display()
+            );
+            if let Err(err) = file_util::remove_dir_all(entry.path()) {
+                log::warn!("failed to delete it: {err}");
+            }
+        }
+    }
+}
+
+const STAGING_DIR_PREFIX: &str = ".tmc-staging-";
+
 /// A temporary directory beside `path`, on its filesystem, for content to move into `path`
-/// by rename.
+/// by rename. Sweeps abandoned ones from earlier runs first.
 fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
     let parent = match path.parent() {
         Some(parent) if !parent.as_os_str().is_empty() => parent,
         _ => Path::new("."),
     };
     file_util::create_dir_all(parent)?;
+    sweep_stale_staging_dirs(parent, STALE_STAGING_AGE);
     let staging = tempfile::Builder::new()
-        .prefix(".tmc-staging-")
+        .prefix(STAGING_DIR_PREFIX)
         .tempdir_in(parent)
         .map_err(FileError::TempFile)?;
     Ok(staging)
@@ -1746,7 +1798,13 @@ fn replace_dir_contents(target: &Path, staged: &Path) -> Result<(), LangsError> 
         restore_dir_entries(&replaced, target, &moved_out, &err)?;
         return Err(err.into());
     }
-    file_util::remove_dir_all(&replaced)?;
+    if let Err(err) = file_util::remove_dir_all(&replaced) {
+        log::warn!(
+            "replaced {} but could not delete the old files in {}: {err}",
+            target.display(),
+            replaced.display()
+        );
+    }
     Ok(())
 }
 
@@ -2058,9 +2116,7 @@ fn move_dir_with(
     Ok(())
 }
 
-/// Copies everything under `source` into `target`, symlinks as symlinks.
 fn copy_contents_for_move(source: &Path, target: &Path) -> Result<(), LangsError> {
-    let mut file_count_copied = 0;
     let mut file_count_total = 0;
     for entry in WalkDir::new(source) {
         if !entry?.file_type().is_dir() {
@@ -2072,34 +2128,13 @@ fn copy_contents_for_move(source: &Path, target: &Path) -> Result<(), LangsError
         format!("Moving dir {} -> {}", source.display(), target.display()),
     );
 
-    for entry in WalkDir::new(source).min_depth(1) {
-        let entry = entry?;
-        let entry_path = entry.path();
-        let relative = entry_path
-            .strip_prefix(source)
-            .expect("the entry is inside the source");
-        let target_path = target.join(relative);
-
-        if entry_path.file_name() == Some(OsStr::new(LOCK_FILE_NAME)) {
-            log::info!("skipping lock file");
-        } else if entry.file_type().is_symlink() {
-            file_util::copy_symlink(entry_path, &target_path)?;
-        } else if entry.file_type().is_dir() {
-            file_util::create_dir_all(&target_path)?;
-            continue;
-        } else {
-            log::debug!(
-                "Copying {} -> {}",
-                entry_path.display(),
-                target_path.display()
-            );
-            file_util::copy(entry_path, &target_path)?;
-        }
+    let mut file_count_copied = 0;
+    file_util::copy_dir_contents(source, target, || {
         file_count_copied += 1;
         progress_stage(format!(
             "Moved file {file_count_copied} / {file_count_total}"
         ));
-    }
+    })?;
     Ok(())
 }
 
@@ -3813,6 +3848,129 @@ checksum = 'new checksum'
         assert_eq!(
             file_util::read_file_to_string(target.join("src/main.py")).unwrap(),
             "stub"
+        );
+    }
+
+    fn maven_archive(files: &[(&str, &str)]) -> Vec<u8> {
+        let mut zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        for (name, contents) in files {
+            zw.start_file(*name, SimpleFileOptions::default()).unwrap();
+            zw.write_all(contents.as_bytes()).unwrap();
+        }
+        zw.finish().unwrap().into_inner()
+    }
+
+    fn staging_dir_names(parent: &Path) -> Vec<OsString> {
+        dir_entry_names(parent)
+            .unwrap()
+            .into_iter()
+            .filter(|n| n.to_string_lossy().starts_with(STAGING_DIR_PREFIX))
+            .collect()
+    }
+
+    #[test]
+    fn extract_update_swaps_in_the_new_version_and_keeps_student_files() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let exercise = parent.path().join("ex");
+        file_to(&exercise, "pom.xml", b"old");
+        file_to(&exercise, "src/main/java/File.java", b"student work");
+        file_to(&exercise, "src/test/java/Stale.java", b"stale");
+        file_to(&exercise, ".venv/keep", b"env");
+        let archive = maven_archive(&[
+            ("pom.xml", "new"),
+            ("src/main/java/File.java", "template"),
+            ("src/test/java/FileTest.java", "test"),
+        ]);
+
+        extract_update(archive, &exercise, Compression::Zip).unwrap();
+
+        let read = |p: &str| file_util::read_file_to_string(exercise.join(p)).unwrap();
+        assert_eq!(read("pom.xml"), "new");
+        assert_eq!(read("src/main/java/File.java"), "student work");
+        assert_eq!(read("src/test/java/FileTest.java"), "test");
+        assert_eq!(read(".venv/keep"), "env");
+        assert!(!exercise.join("src/test/java/Stale.java").exists());
+        assert!(staging_dir_names(parent.path()).is_empty());
+    }
+
+    #[test]
+    fn extract_update_leaves_the_exercise_alone_when_extraction_fails() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let exercise = parent.path().join("ex");
+        file_to(&exercise, "pom.xml", b"old");
+        file_to(&exercise, "src/main/java/File.java", b"student work");
+
+        let result = extract_update(b"not an archive".to_vec(), &exercise, Compression::Zip);
+
+        assert!(result.is_err());
+        let read = |p: &str| file_util::read_file_to_string(exercise.join(p)).unwrap();
+        assert_eq!(read("pom.xml"), "old");
+        assert_eq!(read("src/main/java/File.java"), "student work");
+        assert!(staging_dir_names(parent.path()).is_empty());
+    }
+
+    #[test]
+    fn extract_update_downloads_a_missing_exercise_whole() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let exercise = parent.path().join("course/ex");
+        let archive = maven_archive(&[("pom.xml", "new"), ("src/main/java/File.java", "t")]);
+
+        extract_update(archive, &exercise, Compression::Zip).unwrap();
+
+        assert_eq!(
+            file_util::read_file_to_string(exercise.join("pom.xml")).unwrap(),
+            "new"
+        );
+    }
+
+    #[test]
+    fn staging_sweep_removes_only_old_staging_dirs() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        file_to(parent.path(), ".tmc-staging-abc/left", b"x");
+        file_to(parent.path(), "exercise/file", b"x");
+
+        sweep_stale_staging_dirs(parent.path(), std::time::Duration::from_secs(3600));
+        assert!(parent.path().join(".tmc-staging-abc").exists());
+
+        sweep_stale_staging_dirs(parent.path(), std::time::Duration::ZERO);
+        assert!(!parent.path().join(".tmc-staging-abc").exists());
+        assert!(parent.path().join("exercise/file").exists());
+    }
+
+    #[test]
+    fn download_old_submission_keeps_the_work_when_the_download_fails() {
+        init();
+        let mut server = Server::new();
+        let exercise = tempfile::tempdir().unwrap();
+        file_to(exercise.path(), "src/main/java/File.java", b"student work");
+        let template = maven_archive(&[("pom.xml", "t"), ("src/main/java/File.java", "t")]);
+        let _template = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(template)
+            .create();
+        let _submission = server
+            .mock("GET", mockito::Matcher::Regex("submission".to_string()))
+            .with_status(500)
+            .create();
+        let client = mock_testmycode_client(&server);
+
+        let result = download_old_submission(&client, 1, exercise.path(), 2, false);
+
+        assert!(result.is_err());
+        assert_eq!(
+            file_util::read_file_to_string(exercise.path().join("src/main/java/File.java"))
+                .unwrap(),
+            "student work"
         );
     }
 

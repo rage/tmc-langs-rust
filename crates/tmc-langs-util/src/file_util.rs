@@ -458,6 +458,42 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
     Ok(())
 }
 
+/// Copies everything under `source` into `target`, skipping the legacy lock file and copying
+/// symlinks as symlinks. `on_copied` runs after each non-directory entry.
+pub fn copy_dir_contents(
+    source: &Path,
+    target: &Path,
+    mut on_copied: impl FnMut(),
+) -> Result<(), FileError> {
+    for entry in WalkDir::new(source).min_depth(1) {
+        let entry = entry?;
+        let entry_path = entry.path();
+        let relative = entry_path
+            .strip_prefix(source)
+            .expect("the entry is inside the source");
+        let target_path = target.join(relative);
+
+        if entry.file_type().is_dir() {
+            create_dir_all(&target_path)?;
+            continue;
+        }
+        if entry_path.file_name() == Some(std::ffi::OsStr::new(LOCK_FILE_NAME)) {
+            log::info!("skipping lock file");
+        } else if entry.file_type().is_symlink() {
+            copy_symlink(entry_path, &target_path)?;
+        } else {
+            log::debug!(
+                "copying {} -> {}",
+                entry_path.display(),
+                target_path.display()
+            );
+            copy(entry_path, &target_path)?;
+        }
+        on_copied();
+    }
+    Ok(())
+}
+
 /// Whether `err` from a rename means source and target are on different volumes.
 pub fn is_cross_volume_error(err: &FileError) -> bool {
     let FileError::Rename { source, .. } = err else {
