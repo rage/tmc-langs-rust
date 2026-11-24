@@ -59,6 +59,10 @@ jobs:
           export CFLAGS_$suffix='${{ matrix.cflags }}' CXXFLAGS_$suffix='${{ matrix.cflags }}'
           cargo zigbuild -p tmc-langs-cli --release --target ${{ matrix.target }}.$GLIBC_VERSION
 
+      - name: Smoke test
+        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'i686-unknown-linux-gnu'
+        run: ./target/${{ matrix.target }}/release/tmc-langs-cli --version
+
       - name: Check the glibc requirement
         run: |
           NEEDED_GLIBC=$(readelf -W --dyn-syms ./target/${{ matrix.target }}/release/tmc-langs-cli | sed -n 's/.*@GLIBC_\([0-9.]*\).*/\1/p' | sort -V | tail -1)
@@ -116,6 +120,9 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-musl
           cargo build -p tmc-langs-cli --release --target x86_64-unknown-linux-musl
+
+      - name: Smoke test
+        run: ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli --version
 
       - name: Generate checksums
         run: |
@@ -188,6 +195,10 @@ jobs:
           $env:RUSTFLAGS="-C target-feature=+crt-static"  # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
 
+      - name: Smoke test
+        if: matrix.target != 'aarch64-pc-windows-msvc'
+        run: ./target/${{ matrix.target }}/release/tmc-langs-cli.exe --version
+
       - name: Generate checksums
         run: |
           $name = "tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe"
@@ -242,6 +253,9 @@ jobs:
 
       - name: Sign
         run: codesign --force -s - target/${{ matrix.target }}/release/tmc-langs-cli
+
+      - name: Smoke test
+        run: ./target/${{ matrix.target }}/release/tmc-langs-cli --version
 
       - name: Generate checksums
         run: |
