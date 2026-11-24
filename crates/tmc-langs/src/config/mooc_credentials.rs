@@ -706,12 +706,7 @@ fn write_stored(path: &Path, stored: &StoredCredentials) -> Result<(), LangsErro
         .map_err(|e| tmc_langs_util::FileError::FileWrite(temp.path().to_path_buf(), e))?;
     temp.flush()
         .map_err(|e| tmc_langs_util::FileError::FileWrite(temp.path().to_path_buf(), e))?;
-    temp.persist(path)
-        .map_err(|e| tmc_langs_util::FileError::Rename {
-            from: e.file.path().to_path_buf(),
-            to: path.to_path_buf(),
-            source: e.error,
-        })?;
+    file_util::persist_temp_file(temp, path)?;
     Ok(())
 }
 

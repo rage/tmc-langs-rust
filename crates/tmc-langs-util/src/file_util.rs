@@ -156,6 +156,83 @@ pub fn with_file_lock_timeout<T>(
     }
 }
 
+/// Waits between attempts of [`retry_transient`]; about 3 s in total.
+const TRANSIENT_RETRY_DELAYS: [Duration; 6] = [
+    Duration::from_millis(50),
+    Duration::from_millis(100),
+    Duration::from_millis(200),
+    Duration::from_millis(400),
+    Duration::from_millis(800),
+    Duration::from_millis(1500),
+];
+
+/// Whether `err` is a Windows sharing, lock or access violation that a scanner, indexer or sync
+/// client holding the file usually releases within seconds. Never true elsewhere.
+fn is_transient_sharing_error(err: &std::io::Error) -> bool {
+    // ERROR_ACCESS_DENIED, ERROR_SHARING_VIOLATION, ERROR_LOCK_VIOLATION
+    cfg!(windows) && matches!(err.raw_os_error(), Some(5 | 32 | 33))
+}
+
+/// Runs `op`, retrying after each of `delays` while `is_transient` classifies its error.
+fn retry_transient<T>(
+    mut op: impl FnMut() -> std::io::Result<T>,
+    is_transient: impl Fn(&std::io::Error) -> bool,
+    delays: &[Duration],
+) -> std::io::Result<T> {
+    let mut delays = delays.iter();
+    loop {
+        match op() {
+            Err(err) if is_transient(&err) => match delays.next() {
+                Some(delay) => {
+                    log::debug!("retrying in {delay:?} after transient error: {err}");
+                    std::thread::sleep(*delay);
+                }
+                None => return Err(err),
+            },
+            result => return result,
+        }
+    }
+}
+
+fn retry_sharing<T>(op: impl FnMut() -> std::io::Result<T>) -> std::io::Result<T> {
+    retry_transient(op, is_transient_sharing_error, &TRANSIENT_RETRY_DELAYS)
+}
+
+/// Moves `temp` to `path`, replacing it, retrying while the target is briefly held open.
+pub fn persist_temp_file(temp: NamedTempFile, path: &Path) -> Result<(), FileError> {
+    let from = temp.path().to_path_buf();
+    let mut temp = Some(temp);
+    retry_sharing(|| {
+        match temp.take().expect("restored after every failed attempt").persist(path) {
+            Ok(_) => Ok(()),
+            Err(tempfile::PersistError { error, file }) => {
+                temp = Some(file);
+                Err(error)
+            }
+        }
+    })
+    .map_err(|source| FileError::Rename {
+        from,
+        to: path.to_path_buf(),
+        source,
+    })
+}
+
+/// Writes `contents` to `path` through a temp file in the same directory, so a crash or full
+/// disk leaves the previous contents intact. Callers needing mutual exclusion take a lock.
+pub fn write_atomically(path: &Path, contents: impl AsRef<[u8]>) -> Result<(), FileError> {
+    let parent = match path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent,
+        _ => Path::new("."),
+    };
+    create_dir_all(parent)?;
+    let mut temp = named_temp_file_in(parent)?;
+    temp.write_all(contents.as_ref())
+        .and_then(|()| temp.flush())
+        .map_err(|e| FileError::FileWrite(temp.path().to_path_buf(), e))?;
+    persist_temp_file(temp, path)
+}
+
 pub fn temp_file() -> Result<File, FileError> {
     tempfile::tempfile().map_err(FileError::TempFile)
 }
@@ -211,7 +288,7 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
             create_dir_all(parent)?;
         }
     }
-    File::create(path).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
+    retry_sharing(|| File::create(path)).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
 }
 
 /// Removes whatever is at the path, whether it is a directory or file. The _all suffix hopefully makes the function sound at least slightly dangerous.
@@ -228,7 +305,8 @@ pub fn remove_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
 
 pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
     let path = path.as_ref();
-    fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
+    retry_sharing(|| fs::remove_file(path))
+        .map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
 }
 
 pub fn remove_file_locked<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
@@ -281,17 +359,19 @@ pub fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
 }
 
 pub fn remove_dir_empty<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
-    fs::remove_dir(&path).map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
+    retry_sharing(|| fs::remove_dir(&path))
+        .map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
 }
 
 pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
-    fs::remove_dir_all(&path).map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
+    retry_sharing(|| fs::remove_dir_all(&path))
+        .map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
 }
 
 pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<(), FileError> {
     let from = from.as_ref();
     let to = to.as_ref();
-    fs::rename(from, to).map_err(|e| FileError::Rename {
+    retry_sharing(|| fs::rename(from, to)).map_err(|e| FileError::Rename {
         from: from.to_path_buf(),
         to: to.to_path_buf(),
         source: e,
@@ -390,6 +470,79 @@ mod test {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    fn sharing_violation() -> std::io::Error {
+        std::io::Error::from_raw_os_error(32)
+    }
+
+    #[test]
+    fn retry_transient_retries_classified_errors_until_success() {
+        let mut attempts = 0;
+        let result = retry_transient(
+            || {
+                attempts += 1;
+                if attempts < 3 {
+                    Err(sharing_violation())
+                } else {
+                    Ok(attempts)
+                }
+            },
+            |_| true,
+            &[Duration::ZERO; 5],
+        );
+        assert_eq!(result.unwrap(), 3);
+    }
+
+    #[test]
+    fn retry_transient_gives_up_after_the_last_delay() {
+        let mut attempts = 0;
+        let result: std::io::Result<()> = retry_transient(
+            || {
+                attempts += 1;
+                Err(sharing_violation())
+            },
+            |_| true,
+            &[Duration::ZERO; 2],
+        );
+        assert!(result.is_err());
+        assert_eq!(attempts, 3);
+    }
+
+    #[test]
+    fn retry_transient_does_not_retry_other_errors() {
+        let mut attempts = 0;
+        let result: std::io::Result<()> = retry_transient(
+            || {
+                attempts += 1;
+                Err(std::io::Error::from(std::io::ErrorKind::NotFound))
+            },
+            |_| false,
+            &[Duration::ZERO; 5],
+        );
+        assert!(result.is_err());
+        assert_eq!(attempts, 1);
+    }
+
+    #[test]
+    fn sharing_errors_are_transient_only_on_windows() {
+        for code in [5, 32, 33] {
+            let err = std::io::Error::from_raw_os_error(code);
+            assert_eq!(is_transient_sharing_error(&err), cfg!(windows));
+        }
+        assert!(!is_transient_sharing_error(&std::io::Error::from_raw_os_error(2)));
+    }
+
+    #[test]
+    fn write_atomically_replaces_the_file_and_leaves_no_temp_files() {
+        init();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("sub/config.toml");
+        write_atomically(&path, "one").unwrap();
+        write_atomically(&path, "two").unwrap();
+        assert_eq!(read_file_to_string(&path).unwrap(), "two");
+        let names = fs::read_dir(path.parent().unwrap()).unwrap().count();
+        assert_eq!(names, 1);
     }
 
     #[test]
