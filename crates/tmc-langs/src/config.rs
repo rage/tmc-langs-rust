@@ -20,7 +20,7 @@ use crate::{
 use std::{
     collections::BTreeMap,
     env,
-    ffi::{OsStr, OsString},
+    ffi::OsStr,
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{
@@ -194,17 +194,16 @@ pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(
     if target.is_file() {
         return Err(FileError::UnexpectedFile(target).into());
     }
-    if !target.exists() {
-        file_util::create_dir_all(&target)?;
-    }
 
     if !tmc_config.projects_dir.is_dir() {
         // The only way out of `ProjectsDirUnreachable`: there is nothing left to move.
+        file_util::create_dir_all(&target)?;
         tmc_config.set_projects_dir(target)?;
         return tmc_config.save();
     }
 
     ensure_outside_projects_dir(&tmc_config.projects_dir, &target)?;
+    file_util::create_dir_all(&target)?;
 
     let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
 
@@ -223,19 +222,13 @@ pub fn set_projects_aside(tmc_config: &TmcConfig, target: &Path) -> Result<(), L
     log::debug!("setting the projects aside into {}", target.display());
 
     let projects_dir = reachable_projects_dir(tmc_config)?;
-    let is_created = !target.exists();
-    if is_created {
+    ensure_outside_projects_dir(projects_dir, target)?;
+    if !target.exists() {
         file_util::create_dir_all(target)?;
     } else if !target.is_dir() {
         return Err(FileError::UnexpectedFile(target.to_path_buf()).into());
     } else if file_util::read_dir(target)?.next().is_some() {
         return Err(LangsError::NonEmptyDir(target.to_path_buf()));
-    }
-    if let Err(err) = ensure_outside_projects_dir(projects_dir, target) {
-        if is_created {
-            let _ = file_util::remove_dir_empty(target);
-        }
-        return Err(err);
     }
 
     let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
@@ -254,13 +247,14 @@ pub fn restore_projects(tmc_config: &TmcConfig, source: &Path) -> Result<(), Lan
     log::debug!("restoring the projects set aside in {}", source.display());
 
     let projects_dir = reachable_projects_dir(tmc_config)?;
-    ensure_outside_projects_dir(projects_dir, source)?;
 
     let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
     let _guard = lock.lock()?;
     let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
     let _config_update_guard = config_update_lock.lock()?;
-    let mut present = sorted_entry_names(projects_dir)?;
+    ensure_outside_projects_dir(projects_dir, source)?;
+    let mut present = super::dir_entry_names(projects_dir)?;
+    present.sort();
     if let Some(entry) = present.iter().find(|name| !is_os_metadata_file(name)) {
         return Err(LangsError::RestoreConflict(projects_dir.join(entry)));
     }
@@ -282,18 +276,6 @@ fn is_os_metadata_file(name: &OsStr) -> bool {
     OS_METADATA_FILE_NAMES.contains(&name.to_string_lossy().to_lowercase().as_str())
 }
 
-fn sorted_entry_names(dir: &Path) -> Result<Vec<OsString>, LangsError> {
-    let mut names = file_util::read_dir(dir)?
-        .map(|entry| {
-            entry
-                .map(|entry| entry.file_name())
-                .map_err(|err| FileError::DirRead(dir.to_path_buf(), err))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    names.sort();
-    Ok(names)
-}
-
 fn reachable_projects_dir(tmc_config: &TmcConfig) -> Result<&Path, LangsError> {
     let projects_dir = tmc_config.get_projects_dir();
     if !projects_dir.is_dir() {
@@ -304,11 +286,10 @@ fn reachable_projects_dir(tmc_config: &TmcConfig) -> Result<&Path, LangsError> {
     Ok(projects_dir)
 }
 
-/// Fails unless the existing directory `dir` neither is, is inside nor contains `projects_dir`.
+/// Fails unless `dir`, which need not exist yet, neither is, is inside nor contains
+/// `projects_dir`.
 fn ensure_outside_projects_dir(projects_dir: &Path, dir: &Path) -> Result<(), LangsError> {
-    let dir_canon = dir
-        .canonicalize()
-        .map_err(|e| LangsError::Canonicalize(dir.to_path_buf(), e))?;
+    let dir_canon = canonicalize_maybe_missing(dir)?;
     let projects_dir_canon = projects_dir
         .canonicalize()
         .map_err(|e| LangsError::Canonicalize(projects_dir.to_path_buf(), e))?;
@@ -319,6 +300,23 @@ fn ensure_outside_projects_dir(projects_dir: &Path, dir: &Path) -> Result<(), La
         return Err(LangsError::MovingProjectsDirIntoItself);
     }
     Ok(())
+}
+
+/// `path` canonicalized through its nearest existing ancestor, with the missing rest appended.
+fn canonicalize_maybe_missing(path: &Path) -> Result<PathBuf, LangsError> {
+    let absolute =
+        std::path::absolute(path).map_err(|e| LangsError::Canonicalize(path.to_path_buf(), e))?;
+    let existing = absolute
+        .ancestors()
+        .find(|ancestor| ancestor.exists())
+        .unwrap_or(&absolute);
+    let canon = existing
+        .canonicalize()
+        .map_err(|e| LangsError::Canonicalize(existing.to_path_buf(), e))?;
+    match absolute.strip_prefix(existing) {
+        Ok(missing) if !missing.as_os_str().is_empty() => Ok(canon.join(missing)),
+        _ => Ok(canon),
+    }
 }
 
 #[cfg(test)]

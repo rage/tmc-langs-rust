@@ -1,3 +1,4 @@
+use crate::MoocClientError;
 use chrono::{DateTime, Utc};
 use exercise_services_api as api;
 use schemars::JsonSchema;
@@ -102,6 +103,19 @@ impl TmcExerciseSlide {
             .ok_or(MoocDownloadFailure::BrowserOnly)
     }
 
+    /// [`Self::editor_download`], failing with the client error that names this exercise.
+    pub fn require_editor_download(&self) -> Result<(Uuid, &str), Box<MoocClientError>> {
+        let exercise_id = self.exercise_id;
+        self.editor_download().map_err(|failure| {
+            Box::new(match failure {
+                MoocDownloadFailure::SeveralEditorTasks => {
+                    MoocClientError::SeveralEditorTasks { exercise_id }
+                }
+                _ => MoocClientError::NoDownloadableExerciseTask { exercise_id },
+            })
+        })
+    }
+
     /// Stub archive download URL for this slide's first editor task, if any.
     /// `None` for browser exercises, which expose no downloadable archive.
     pub fn editor_stub_download_url(&self) -> Option<&str> {
@@ -142,7 +156,7 @@ impl TmcExerciseSlide {
 impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
     type Error = JsonError;
     fn try_from(value: api::ExerciseSlide) -> Result<Self, Self::Error> {
-        let slide = Self {
+        let mut slide = Self {
             slide_id: value.slide_id,
             exercise_id: value.exercise_id,
             course_id: value.course_id,
@@ -159,10 +173,8 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
             chapter: value.chapter.map(Into::into),
             unsupported: None,
         };
-        Ok(Self {
-            unsupported: slide.editor_download().err(),
-            ..slide
-        })
+        slide.unsupported = slide.editor_download().err();
+        Ok(slide)
     }
 }
 

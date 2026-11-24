@@ -357,16 +357,7 @@ impl MoocClient {
     /// with no editor task.
     pub fn download_exercise(&self, exercise: Uuid) -> MoocClientResult<Bytes> {
         let slide = self.exercise(exercise)?;
-        if slide.has_several_editor_tasks() {
-            return Err(Box::new(MoocClientError::SeveralEditorTasks {
-                exercise_id: exercise,
-            }));
-        }
-        let download_url = slide.editor_stub_download_url().ok_or_else(|| {
-            Box::new(MoocClientError::NoDownloadableExerciseTask {
-                exercise_id: exercise,
-            })
-        })?;
+        let (_, download_url) = slide.require_editor_download()?;
         let url = Url::parse(download_url)
             .map_err(|err| MoocClientError::UrlParse(download_url.to_string(), err))
             .map_err(Box::new)?;

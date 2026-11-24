@@ -1241,10 +1241,7 @@ impl TmcDownloadFailure {
                 tmc::TestMyCodeClientError::ConnectionError(..) => Self::ConnectionError,
                 _ => Self::Other,
             },
-            LangsError::Tmc(_)
-            | LangsError::FileError(_)
-            | LangsError::Plugin(_)
-            | LangsError::Zip(_) => Self::ExtractFailed,
+            err if is_extract_error(err) => Self::ExtractFailed,
             _ => Self::Other,
         }
     }
@@ -1255,18 +1252,29 @@ fn mooc_download_failure(err: &LangsError) -> MoocDownloadFailure {
     match err {
         LangsError::MoocClient(err) => match err.as_ref() {
             mooc::MoocClientError::FileNotFound { .. } => MoocDownloadFailure::FileMissing,
+            mooc::MoocClientError::NoDownloadableExerciseTask { .. } => {
+                MoocDownloadFailure::BrowserOnly
+            }
+            mooc::MoocClientError::SeveralEditorTasks { .. } => {
+                MoocDownloadFailure::SeveralEditorTasks
+            }
             mooc::MoocClientError::ConnectionError(..) => MoocDownloadFailure::ConnectionError,
             mooc::MoocClientError::HttpError { status, .. } if status.is_server_error() => {
                 MoocDownloadFailure::ServerError
             }
             _ => MoocDownloadFailure::Other,
         },
-        LangsError::Tmc(_)
-        | LangsError::FileError(_)
-        | LangsError::Plugin(_)
-        | LangsError::Zip(_) => MoocDownloadFailure::ExtractFailed,
+        err if is_extract_error(err) => MoocDownloadFailure::ExtractFailed,
         _ => MoocDownloadFailure::Other,
     }
+}
+
+/// Whether `err` came from unpacking a downloaded exercise archive rather than fetching it.
+fn is_extract_error(err: &LangsError) -> bool {
+    matches!(
+        err,
+        LangsError::Tmc(_) | LangsError::FileError(_) | LangsError::Plugin(_) | LangsError::Zip(_)
+    )
 }
 
 /// Flattens an error's `source()` chain into strings, outermost first, for the
@@ -1521,25 +1529,17 @@ pub fn download_or_update_mooc_course_exercises(
             continue;
         };
 
-        let (task_id, download_url) = match slide.editor_download() {
+        let (task_id, download_url) = match slide.require_editor_download() {
             Ok(editor_download) => editor_download,
-            Err(failure) => {
-                let reason = match failure {
-                    MoocDownloadFailure::SeveralEditorTasks => {
-                        mooc::MoocClientError::SeveralEditorTasks { exercise_id }.to_string()
-                    }
-                    _ => format!(
-                        "Exercise {exercise_id} has no downloadable editor task \
-                         (browser exercises have no project archive)"
-                    ),
-                };
+            Err(err) => {
+                let err = LangsError::from(err);
                 failed.push((
                     MoocExerciseDownload {
                         exercise_id,
                         path: projects_dir.join("mooc"),
                     },
-                    vec![reason],
-                    failure,
+                    error_chain(&err),
+                    mooc_download_failure(&err),
                 ));
                 continue;
             }
@@ -1968,14 +1968,7 @@ fn restore_dir_entries(
     names: &[OsString],
     cause: &FileError,
 ) -> Result<(), LangsError> {
-    let mut restore_failed = false;
-    for name in names {
-        if let Err(err) = file_util::rename(replaced.join(name), target.join(name)) {
-            log::error!("failed to restore {}: {err}", target.join(name).display());
-            restore_failed = true;
-        }
-    }
-    if restore_failed {
+    if !move_entries_back(replaced, target, names) {
         return Err(LangsError::ExerciseRestoreFailed {
             exercise_path: target.to_path_buf(),
             kept_at: replaced.to_path_buf(),
@@ -1984,6 +1977,18 @@ fn restore_dir_entries(
     }
     let _ = file_util::remove_dir_empty(replaced);
     Ok(())
+}
+
+/// Renames each of `names` from `from` into `to`, logging each failure; false if any failed.
+fn move_entries_back(from: &Path, to: &Path, names: &[OsString]) -> bool {
+    let mut is_complete = true;
+    for name in names {
+        if let Err(err) = file_util::rename(from.join(name), to.join(name)) {
+            log::error!("failed to move {} back: {err}", from.join(name).display());
+            is_complete = false;
+        }
+    }
+    is_complete
 }
 
 fn dir_entry_names(dir: &Path) -> Result<Vec<OsString>, FileError> {
@@ -2016,17 +2021,7 @@ pub(crate) fn move_all_dir_entries(from: &Path, to: &Path) -> Result<(), LangsEr
     let Err((moved, err)) = move_dir_entries(from, to) else {
         return Ok(());
     };
-    let mut is_split = false;
-    for name in moved {
-        if let Err(undo_err) = file_util::rename(to.join(&name), from.join(&name)) {
-            log::error!(
-                "failed to move {} back: {undo_err}",
-                to.join(&name).display()
-            );
-            is_split = true;
-        }
-    }
-    if is_split {
+    if !move_entries_back(to, from, &moved) {
         return Err(LangsError::DirEntriesSplit {
             from: from.to_path_buf(),
             to: to.to_path_buf(),

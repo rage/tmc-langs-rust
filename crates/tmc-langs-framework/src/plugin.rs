@@ -427,8 +427,10 @@ pub trait LanguagePlugin {
             student_file_paths: HashSet::new(),
             exercise_file_paths: HashSet::new(),
             tests_timeout_ms: Some(
-                u64::try_from(tests_timeout(policy.get_project_config()).as_millis())
-                    .unwrap_or(u64::MAX),
+                policy
+                    .get_project_config()
+                    .tests_timeout_ms
+                    .map_or(DEFAULT_TESTS_TIMEOUT.as_secs() * 1000, u64::from),
             ),
             plugin: Some(Self::PLUGIN_NAME.to_string()),
         };

@@ -160,7 +160,7 @@ impl ProjectsConfig {
             let mut deleted_exercises = vec![];
             // Compared as files, so that names differing only in case match exactly where the
             // file system ignores case.
-            let mut claimed_directories = vec![];
+            let mut claimed_directories = HashSet::new();
             for (exercise_id, exercise) in course_config.exercises.iter() {
                 if !is_safe_directory_name(&exercise.directory) {
                     log::warn!(
@@ -184,17 +184,15 @@ impl ProjectsConfig {
                     deleted_exercises.push(*exercise_id);
                     continue;
                 }
-                if let Ok(directory) = same_file::Handle::from_path(&expected_dir) {
-                    if claimed_directories.contains(&directory) {
-                        log::warn!(
-                            "forgetting local exercise {exercise_id}: another exercise of the \
-                             course is stored in its directory {:?}",
-                            exercise.directory
-                        );
-                        deleted_exercises.push(*exercise_id);
-                        continue;
-                    }
-                    claimed_directories.push(directory);
+                if let Ok(directory) = same_file::Handle::from_path(&expected_dir)
+                    && !claimed_directories.insert(directory)
+                {
+                    log::warn!(
+                        "forgetting local exercise {exercise_id}: another exercise of the \
+                         course is stored in its directory {:?}",
+                        exercise.directory
+                    );
+                    deleted_exercises.push(*exercise_id);
                 }
             }
             for deleted_exercise in &deleted_exercises {

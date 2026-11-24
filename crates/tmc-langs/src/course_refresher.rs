@@ -67,7 +67,7 @@ pub fn prepare_exercise_repository(
 ) -> Result<Vec<RepositoryExercise>, LangsError> {
     log::info!("preparing the exercises in {}", repository.display());
 
-    let exercise_dirs = super::find_exercise_directories(repository)?
+    let exercise_dirs: Vec<PathBuf> = super::find_exercise_directories(repository)?
         .into_iter()
         .map(|dir| {
             dir.strip_prefix(repository)
@@ -76,13 +76,16 @@ pub fn prepare_exercise_repository(
         })
         .filter(|relative| !relative.as_os_str().is_empty())
         .collect();
-    let root_tmcproject_yml = TmcProjectYml::load(repository)?;
-    let has_root_tmcproject_yml = root_tmcproject_yml.is_some();
-    get_and_merge_tmcproject_configs(root_tmcproject_yml, repository, exercise_dirs)?
+    // Without a root config there is nothing to merge in, so the exercises' own stay untouched.
+    let exercises = match TmcProjectYml::load(repository)? {
+        Some(root) => get_and_merge_tmcproject_configs(Some(root), repository, exercise_dirs)?,
+        None => exercise_dirs.into_iter().map(|dir| (dir, None)).collect(),
+    };
+    exercises
         .into_iter()
         .map(|(relative, merged_tmcproject_yml)| {
             let path = repository.join(&relative);
-            if let Some(merged) = merged_tmcproject_yml.filter(|_| has_root_tmcproject_yml) {
+            if let Some(merged) = merged_tmcproject_yml {
                 merged.save_to_dir(&path)?;
             }
             let part = match relative.parent() {
