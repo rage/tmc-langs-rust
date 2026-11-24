@@ -46,7 +46,8 @@ pub(crate) fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
 }
 
 /// Returns every exercise in the projects directory, from both backends, ordered
-/// by course slug and then exercise slug within each backend.
+/// by course slug and then exercise slug within each backend. No two have the same path: of
+/// mooc exercises recorded in one directory, compared without case, only the first is kept.
 ///
 /// This is the whole-projects-dir listing; [`list_local_tmc_course_exercises`]
 /// and [`list_local_mooc_course_exercises`] are filtered views of it.

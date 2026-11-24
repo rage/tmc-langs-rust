@@ -158,11 +158,22 @@ impl ProjectsConfig {
         }
         for course_config in mooc_course_configs.values_mut() {
             let mut deleted_exercises = vec![];
+            // Compared without case, like `unique_directory_name`, since Windows and macOS do.
+            let mut claimed_directories = HashSet::new();
             for (exercise_id, exercise) in course_config.exercises.iter() {
                 if !is_safe_directory_name(&exercise.directory) {
                     log::warn!(
                         "forgetting local exercise {exercise_id}: its directory {:?} is not a \
                          plain directory name",
+                        exercise.directory
+                    );
+                    deleted_exercises.push(*exercise_id);
+                    continue;
+                }
+                if !claimed_directories.insert(exercise.directory.to_lowercase()) {
+                    log::warn!(
+                        "forgetting local exercise {exercise_id}: another exercise of the course \
+                         is stored in its directory {:?}",
                         exercise.directory
                     );
                     deleted_exercises.push(*exercise_id);
@@ -1068,6 +1079,45 @@ checksum = "defg4567"
         );
         let pc = ProjectsConfig::load(temp.path()).unwrap();
         assert_eq!(pc.mooc_courses[&id].directory, "Ohjelmointi osa 1/2");
+    }
+
+    #[test]
+    fn exercises_sharing_a_directory_keep_only_one_entry() {
+        init_logging();
+        let temp = tempfile::TempDir::new().unwrap();
+        let course_id = Uuid::new_v4();
+        let exercise = |directory: &str| ProjectsDirMoocExercise {
+            name: directory.to_string(),
+            task_id: Uuid::new_v4(),
+            checksum: "abcd".to_string(),
+            directory: directory.to_string(),
+        };
+        let exercises = BTreeMap::from([
+            (Uuid::new_v4(), exercise("ex")),
+            (Uuid::new_v4(), exercise("EX")),
+            (Uuid::new_v4(), exercise("other")),
+        ]);
+        MoocCourseConfig {
+            course_id,
+            course: "course".to_string(),
+            directory: "course".to_string(),
+            is_exam: false,
+            exercises,
+        }
+        .save_to_projects_dir(temp.path())
+        .unwrap();
+        for directory in ["ex", "EX", "other"] {
+            dir_to(&temp, format!("mooc/course/{directory}"));
+        }
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+        let mut directories = pc.mooc_courses[&course_id]
+            .exercises
+            .values()
+            .map(|exercise| exercise.directory.to_lowercase())
+            .collect::<Vec<_>>();
+        directories.sort();
+        assert_eq!(directories, ["ex", "other"]);
     }
 
     #[test]
