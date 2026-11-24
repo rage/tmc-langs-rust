@@ -3,6 +3,7 @@
 use crate::{
     Archive, Compression,
     archive::ArchiveIterator,
+    archive_safety::{ExtractionBudget, ExtractionLimits},
     domain::{
         DEFAULT_TESTS_TIMEOUT, ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus,
         StyleValidationResult, TestResult,
@@ -160,8 +161,10 @@ pub trait LanguagePlugin {
         // extract config file first, as the policy depends on it
         let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
         let target_tmc_project_yml = target_location.join(".tmcproject.yml");
+        let mut budget = ExtractionBudget::new(ExtractionLimits::default());
         if let Some(mut file) = archive.by_path(&tmc_project_yml_path)? {
-            file_util::read_to_file(&mut file, &target_tmc_project_yml)?;
+            budget.admit_entry(&file.raw_name(), file.size())?;
+            file.write_to_file(&target_tmc_project_yml, &mut budget)?;
         } else if clean && target_tmc_project_yml.is_file() {
             file_util::remove_file(&target_tmc_project_yml)?;
         }
@@ -180,6 +183,7 @@ pub trait LanguagePlugin {
                     return Ok(Continue(()));
                 }
 
+                budget.admit_entry(&file.raw_name(), file.size())?;
                 let relative = match file_path.strip_prefix(&project_dir) {
                     Ok(relative) => relative,
                     _ => {
@@ -196,8 +200,10 @@ pub trait LanguagePlugin {
                     // just extract
                     if file.is_dir() {
                         file_util::create_dir_all(path_in_target)?;
+                    } else if file.is_file() {
+                        file.write_to_file(&path_in_target, &mut budget)?;
                     } else {
-                        file_util::read_to_file(&mut file, path_in_target)?;
+                        log::warn!("not extracting special archive entry {}", file.raw_name());
                     }
                 } else if !policy.is_student_file(relative)
                     || policy.is_updating_forced(relative)?
@@ -208,7 +214,7 @@ pub trait LanguagePlugin {
                         if path_in_target.is_dir() {
                             file_util::remove_dir_all(&path_in_target)?;
                         }
-                        file_util::read_to_file(&mut file, path_in_target)?;
+                        file.write_to_file(&path_in_target, &mut budget)?;
                     }
                 }
                 Ok(Continue(()))
@@ -283,11 +289,13 @@ pub trait LanguagePlugin {
 
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
+        let mut budget = ExtractionBudget::new(ExtractionLimits::default());
         let mut iter: ArchiveIterator<_> = archive.iter()?;
         loop {
             let next = iter.with_next::<(), _>(|mut file| {
                 // get the path where the file should be extracted
                 let file_path = file.path()?;
+                budget.admit_entry(&file.raw_name(), file.size())?;
                 let relative = match file_path.strip_prefix(&project_dir) {
                     Ok(relative) => relative,
                     _ => {
@@ -302,8 +310,8 @@ pub trait LanguagePlugin {
                     if file.is_file() {
                         // for files, everything should be removed out of the way
                         file_util::remove_all(&path_in_target)?;
-                        file_util::read_to_file(&mut file, &path_in_target)?;
-                    } else {
+                        file.write_to_file(&path_in_target, &mut budget)?;
+                    } else if file.is_dir() {
                         // for directories, we should keep existing directories but delete files at the same path
                         if path_in_target.is_file() {
                             file_util::remove_file(&path_in_target)?;

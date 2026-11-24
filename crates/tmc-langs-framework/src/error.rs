@@ -22,8 +22,14 @@ pub enum TmcError {
     ZipReadFile(PathBuf, #[source] std::io::Error),
     #[error("Failed to write file at {0} to zip archive")]
     ZipWrite(PathBuf, #[source] std::io::Error),
-    #[error("Invalid name {0} in zip")]
-    ZipName(String),
+    #[error("Unsafe archive entry {entry}: it {reason}")]
+    UnsafeArchiveEntry { entry: String, reason: &'static str },
+    #[error("Archive entry {entry} exceeds the extraction limit of {max} {limit}")]
+    ArchiveExtractionLimitExceeded {
+        entry: String,
+        limit: &'static str,
+        max: u64,
+    },
     #[error("Path {0} cannot be used as an archive entry name")]
     InvalidArchiveEntryPath(PathBuf),
     #[error("Failed to read tar archive")]

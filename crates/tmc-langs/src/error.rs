@@ -4,7 +4,6 @@
 use crate::course_refresher::ModeBits;
 use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
-use tmc_langs_plugins::compression::ZipError;
 use tmc_langs_util::{JsonError, TomlError, YamlError};
 use uuid::Uuid;
 
@@ -17,16 +16,10 @@ pub enum LangsError {
     TempDir(#[source] std::io::Error),
     #[error("Invalid parameter key/value: {0}")]
     InvalidParam(String, #[source] ParamError),
-    #[error("Error decoding data with zstd")]
-    ZstdDecode(#[source] std::io::Error),
-    #[error("Error extracting tar to {0}")]
-    TarExtract(PathBuf, #[source] std::io::Error),
     #[error("Failed to aquire mutex")]
     MutexError,
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip(PathBuf),
-    #[error("Error extracting zip to {0}")]
-    ZipExtract(PathBuf, #[source] ZipError),
     #[error("Failed to parse file {0}")]
     SubmissionParse(PathBuf, #[source] Box<Self>),
     #[error(

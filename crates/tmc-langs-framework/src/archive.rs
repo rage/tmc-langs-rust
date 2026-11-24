@@ -1,6 +1,9 @@
 //! Contains types that abstract over the various archive formats.
 
-use crate::TmcError;
+use crate::{
+    TmcError,
+    archive_safety::{EntryNameStyle, ExtractionBudget, ExtractionLimits, validate_entry_name},
+};
 use blake3::{Hash, Hasher};
 use serde::Deserialize;
 use std::{
@@ -11,7 +14,7 @@ use std::{
     str::FromStr,
 };
 use tar::Builder;
-use tmc_langs_util::file_util;
+use tmc_langs_util::{FileError, file_util};
 use walkdir::WalkDir;
 use zip::{DateTime, ZipWriter, write::SimpleFileOptions};
 
@@ -53,18 +56,38 @@ impl<T: Read + Seek> Archive<T> {
         Ok(Self(ArchiveInner::Zip(archive)))
     }
 
+    /// Extracts every file and directory under [`ExtractionLimits::default`], failing on the first
+    /// unsafe entry name or exceeded limit. Links and other special entries are not extracted.
     pub fn extract(self, target_directory: &Path) -> Result<(), TmcError> {
-        match self {
-            Self(ArchiveInner::Tar(mut tar)) => {
-                tar.unpack(target_directory).map_err(TmcError::TarRead)?
+        self.extract_with_limits(target_directory, ExtractionLimits::default())
+    }
+
+    pub fn extract_with_limits(
+        mut self,
+        target_directory: &Path,
+        limits: ExtractionLimits,
+    ) -> Result<(), TmcError> {
+        let mut budget = ExtractionBudget::new(limits);
+        let mut iter = self.iter()?;
+        loop {
+            let next = iter.with_next::<(), _>(|mut entry| {
+                let relative = entry.path()?;
+                budget.admit_entry(&entry.raw_name(), entry.size())?;
+                let target = target_directory.join(relative);
+                if entry.is_dir() {
+                    file_util::create_dir_all(target)?;
+                } else if entry.is_file() {
+                    file_util::remove_all(&target)?;
+                    entry.write_to_file(&target, &mut budget)?;
+                } else {
+                    log::warn!("not extracting special archive entry {}", entry.raw_name());
+                }
+                Ok(ControlFlow::Continue(()))
+            })?;
+            if let Break(_) = next {
+                return Ok(());
             }
-            Self(ArchiveInner::TarZstd(mut zstd)) => {
-                zstd.unpack(target_directory).map_err(TmcError::TarRead)?
-            }
-            Self(ArchiveInner::Zip(mut zip)) => zip.extract(target_directory)?,
-            Self(ArchiveInner::Empty) => unreachable!("This is a bug."),
         }
-        Ok(())
     }
 
     pub fn iter(&mut self) -> Result<ArchiveIterator<'_, T>, TmcError> {
@@ -235,23 +258,56 @@ pub enum Entry<'a, T: Read> {
 }
 
 impl<T: Read> Entry<'_, T> {
+    /// The validated relative path of the entry, see [`validate_entry_name`].
     pub fn path(&self) -> Result<PathBuf, TmcError> {
         match self {
-            Self::Tar(entry) => {
-                let name = entry.path().map_err(TmcError::TarRead)?.into_owned();
-                Ok(name)
+            Self::Tar(_) | Self::TarZstd(_) => {
+                validate_entry_name(&self.raw_name(), EntryNameStyle::Tar)
             }
-            Self::TarZstd(entry) => {
-                let name = entry.path().map_err(TmcError::TarRead)?.into_owned();
-                Ok(name)
+            Self::Zip(_) => validate_entry_name(&self.raw_name(), EntryNameStyle::Zip),
+        }
+    }
+
+    /// The entry name as stored in the archive, for error messages.
+    pub fn raw_name(&self) -> String {
+        match self {
+            Self::Tar(entry) => String::from_utf8_lossy(&entry.path_bytes()).into_owned(),
+            Self::TarZstd(entry) => String::from_utf8_lossy(&entry.path_bytes()).into_owned(),
+            Self::Zip(entry) => entry.name().to_string(),
+        }
+    }
+
+    /// The uncompressed size the header declares; not trustworthy, see [`Self::write_to_file`].
+    pub fn size(&self) -> u64 {
+        match self {
+            Self::Tar(entry) => entry.size(),
+            Self::TarZstd(entry) => entry.size(),
+            Self::Zip(entry) => entry.size(),
+        }
+    }
+
+    /// Writes the entry's contents to `target`, counting the bytes actually read against `budget`
+    /// and failing as soon as a limit is exceeded.
+    pub fn write_to_file(
+        &mut self,
+        target: &Path,
+        budget: &mut ExtractionBudget,
+    ) -> Result<(), TmcError> {
+        let name = self.raw_name();
+        let mut file = file_util::create_file(target)?;
+        let mut buffer = [0u8; 64 * 1024];
+        let mut entry_bytes = 0u64;
+        loop {
+            let read = self
+                .read(&mut buffer)
+                .map_err(|e| TmcError::ZipReadFile(PathBuf::from(&name), e))?;
+            if read == 0 {
+                return Ok(());
             }
-            Self::Zip(entry) => {
-                let name = entry
-                    .enclosed_name()
-                    .ok_or_else(|| TmcError::ZipName(entry.name().to_string()))?
-                    .to_path_buf();
-                Ok(name)
-            }
+            entry_bytes += read as u64;
+            budget.charge_written(&name, entry_bytes, read as u64)?;
+            file.write_all(&buffer[..read])
+                .map_err(|e| FileError::FileWrite(target.to_path_buf(), e))?;
         }
     }
 
@@ -305,9 +361,9 @@ impl Compression {
     pub fn compress(self, path: &Path, hash: bool) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
         let mut builder = ArchiveBuilder::new(Cursor::new(Vec::new()), self, None, true, hash);
         walk_dir_for_compression(path, |entry, relative_path| {
-            if entry.path().is_dir() {
+            if entry.file_type().is_dir() {
                 builder.add_directory(entry.path(), relative_path)?;
-            } else if entry.path().is_file() {
+            } else if entry.file_type().is_file() {
                 builder.add_file(entry.path(), relative_path)?;
             }
             Ok(())
@@ -648,5 +704,164 @@ mod test {
             builder.add_file(temp.path(), Path::new("file")).is_err(),
             "should be over size limit"
         );
+    }
+
+    fn tar_with_entry(name: &[u8], contents: &[u8]) -> Vec<u8> {
+        let mut header = tar::Header::new_gnu();
+        header.set_size(contents.len() as u64);
+        header.set_mode(0o644);
+        header.set_entry_type(tar::EntryType::Regular);
+        // set_path rejects unsafe names, so write the name field directly
+        header.as_old_mut().name[..name.len()].copy_from_slice(name);
+        header.set_cksum();
+        let mut builder = Builder::new(Vec::new());
+        builder.append(&header, contents).unwrap();
+        builder.into_inner().unwrap()
+    }
+
+    fn zip_with_entry(name: &str, contents: &[u8]) -> Vec<u8> {
+        let mut zw = ZipWriter::new(Cursor::new(vec![]));
+        zw.start_file(name, SimpleFileOptions::default()).unwrap();
+        zw.write_all(contents).unwrap();
+        zw.finish().unwrap().into_inner()
+    }
+
+    fn archives_with_entry(name: &str, contents: &[u8]) -> Vec<(Compression, Vec<u8>)> {
+        let tar = tar_with_entry(name.as_bytes(), contents);
+        let zstd = zstd::encode_all(Cursor::new(tar.clone()), 0).unwrap();
+        vec![
+            (Compression::Tar, tar),
+            (Compression::TarZstd, zstd),
+            (Compression::Zip, zip_with_entry(name, contents)),
+        ]
+    }
+
+    #[test]
+    fn extraction_rejects_unsafe_entries() {
+        for name in [
+            "../x",
+            "/abs",
+            "C:\\x",
+            "a\\..\\..\\x",
+            "CON",
+            "aux.txt",
+            "x:stream",
+            "name.",
+        ] {
+            for (compression, bytes) in archives_with_entry(name, b"data") {
+                let temp = tempfile::tempdir().unwrap();
+                let target = temp.path().join("target");
+                let result = Archive::new(Cursor::new(bytes), compression)
+                    .unwrap()
+                    .extract(&target);
+                let err = result.expect_err(&format!("{compression} {name}"));
+                assert!(
+                    matches!(err, TmcError::UnsafeArchiveEntry { .. }),
+                    "{compression} {name}: {err}"
+                );
+                assert!(err.to_string().contains(name), "{err}");
+                assert!(!temp.path().join("x").exists());
+            }
+        }
+    }
+
+    #[test]
+    fn extraction_writes_safe_entries() {
+        for (compression, bytes) in archives_with_entry("dir/Makefile", b"all:") {
+            let temp = tempfile::tempdir().unwrap();
+            Archive::new(Cursor::new(bytes), compression)
+                .unwrap()
+                .extract(temp.path())
+                .unwrap();
+            assert_eq!(
+                std::fs::read(temp.path().join("dir/Makefile")).unwrap(),
+                b"all:"
+            );
+        }
+    }
+
+    #[test]
+    fn extraction_enforces_limits() {
+        let limits = ExtractionLimits {
+            max_total_bytes: 100,
+            max_entry_bytes: 50,
+            max_entries: 3,
+        };
+        let cases = [(vec![0u8; 51], "bytes per entry"), (vec![0u8; 50], "ok")];
+        for (contents, expected) in cases {
+            for (compression, bytes) in archives_with_entry("f", &contents) {
+                let temp = tempfile::tempdir().unwrap();
+                let result = Archive::new(Cursor::new(bytes), compression)
+                    .unwrap()
+                    .extract_with_limits(temp.path(), limits);
+                match (expected, result) {
+                    ("ok", Ok(())) => {}
+                    (
+                        "bytes per entry",
+                        Err(TmcError::ArchiveExtractionLimitExceeded { limit, .. }),
+                    ) => assert_eq!(limit, "bytes per entry"),
+                    (_, other) => panic!("{compression} {expected}: {other:?}"),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn extraction_limits_total_bytes_and_entry_count() {
+        let mut builder = Builder::new(Vec::new());
+        for i in 0..4 {
+            let mut header = tar::Header::new_gnu();
+            header.set_size(40);
+            header.set_mode(0o644);
+            builder
+                .append_data(&mut header, format!("f{i}"), &[1u8; 40][..])
+                .unwrap();
+        }
+        let tar = builder.into_inner().unwrap();
+        let limits = |max_total_bytes, max_entries| ExtractionLimits {
+            max_total_bytes,
+            max_entry_bytes: 40,
+            max_entries,
+        };
+        let extract = |limits| {
+            let temp = tempfile::tempdir().unwrap();
+            Archive::tar(Cursor::new(tar.clone())).extract_with_limits(temp.path(), limits)
+        };
+        extract(limits(160, 4)).unwrap();
+        assert!(matches!(
+            extract(limits(159, 4)),
+            Err(TmcError::ArchiveExtractionLimitExceeded {
+                limit: "bytes in total",
+                ..
+            })
+        ));
+        assert!(matches!(
+            extract(limits(160, 3)),
+            Err(TmcError::ArchiveExtractionLimitExceeded {
+                limit: "entries",
+                ..
+            })
+        ));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn compress_does_not_follow_symlinks() {
+        let temp = tempfile::tempdir().unwrap();
+        let outside = temp.path().join("outside.txt");
+        file_util::write_to_file(b"secret", &outside).unwrap();
+        let root = temp.path().join("exercise");
+        file_util::write_to_file(b"x", root.join("a.txt")).unwrap();
+        std::os::unix::fs::symlink(&outside, root.join("link.txt")).unwrap();
+        for compression in [Compression::Tar, Compression::TarZstd, Compression::Zip] {
+            let (bytes, _) = compression.compress(&root, false).unwrap();
+            let unpacked = tempfile::tempdir().unwrap();
+            Archive::new(Cursor::new(bytes), compression)
+                .unwrap()
+                .extract(unpacked.path())
+                .unwrap();
+            assert!(unpacked.path().join("exercise/a.txt").is_file());
+            assert!(!unpacked.path().join("exercise/link.txt").exists());
+        }
     }
 }

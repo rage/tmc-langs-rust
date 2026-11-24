@@ -2051,27 +2051,7 @@ fn extract_project_overwrite(
     target_location: &Path,
     compression: Compression,
 ) -> Result<(), LangsError> {
-    match compression {
-        Compression::Tar => {
-            let mut archive = tar::Archive::new(compressed_project);
-            archive
-                .unpack(target_location)
-                .map_err(|e| LangsError::TarExtract(target_location.to_path_buf(), e))?;
-        }
-        Compression::TarZstd => {
-            let decoder = zstd::Decoder::new(compressed_project).map_err(LangsError::ZstdDecode)?;
-            let mut archive = tar::Archive::new(decoder);
-            archive
-                .unpack(target_location)
-                .map_err(|e| LangsError::TarExtract(target_location.to_path_buf(), e))?;
-        }
-        Compression::Zip => {
-            let mut archive = zip::ZipArchive::new(compressed_project)?;
-            archive
-                .extract(target_location)
-                .map_err(|e| LangsError::ZipExtract(target_location.to_path_buf(), e))?;
-        }
-    }
+    Archive::new(compressed_project, compression)?.extract(target_location)?;
     Ok(())
 }
 

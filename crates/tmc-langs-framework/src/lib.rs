@@ -3,6 +3,7 @@
 //! Contains functionality for dealing with projects.
 
 mod archive;
+mod archive_safety;
 mod command;
 mod domain;
 mod error;
@@ -15,7 +16,8 @@ mod tmc_project_yml;
 mod test_helpers;
 
 pub use self::{
-    archive::{Archive, ArchiveBuilder, Compression, entry_name},
+    archive::{Archive, ArchiveBuilder, Compression, Entry, entry_name},
+    archive_safety::{EntryNameStyle, ExtractionBudget, ExtractionLimits, validate_entry_name},
     command::{ExitStatus, Output, TmcCommand},
     domain::{
         DEFAULT_TESTS_TIMEOUT, ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus,
