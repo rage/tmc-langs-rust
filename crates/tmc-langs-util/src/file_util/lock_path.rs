@@ -71,16 +71,46 @@ fn resolve_default_locks_dir(
         }
     }
 
-    // keyed per user: /tmp is world-readable, so an unkeyed shared dir would let
-    // whichever OS user gets there first own files a second user can't open
-    let dir = temp_dir
-        .join("tmc-langs")
-        .join(format!("locks-{}", user_key()));
-    super::create_dir_all(&dir)?;
-    #[cfg(unix)]
-    harden_permissions(&dir);
+    // keyed per user: /tmp is shared, so an unkeyed dir would let whichever OS user gets
+    // there first own (or block) every other user's locks
+    let dir = temp_dir.join(format!("tmc-langs-locks-{}", user_key()));
+    create_private_dir(&dir)?;
     prune_stale_locks_once(&dir);
     Ok(dir)
+}
+
+/// Creates `dir` readable only by this user, or accepts an existing one only if this user owns
+/// it and nobody else can write to it: in a shared temp dir another user may have made it first.
+#[cfg(unix)]
+fn create_private_dir(dir: &Path) -> Result<(), FileError> {
+    use std::os::unix::fs::{DirBuilderExt, MetadataExt};
+
+    match std::fs::DirBuilder::new().mode(0o700).create(dir) {
+        Ok(()) => return Ok(()),
+        Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => {}
+        Err(err) => return Err(FileError::DirCreate(dir.to_path_buf(), err)),
+    }
+    let metadata = std::fs::symlink_metadata(dir)
+        .map_err(|err| FileError::DirCreate(dir.to_path_buf(), err))?;
+    let is_private = metadata.is_dir()
+        && metadata.uid() == nix::unistd::geteuid().as_raw()
+        && metadata.mode() & 0o022 == 0;
+    if is_private {
+        Ok(())
+    } else {
+        Err(FileError::DirCreate(
+            dir.to_path_buf(),
+            std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "the lock directory exists but belongs to another user or is writable by others",
+            ),
+        ))
+    }
+}
+
+#[cfg(not(unix))]
+fn create_private_dir(dir: &Path) -> Result<(), FileError> {
+    super::create_dir_all(dir)
 }
 
 fn sanitize_ascii(s: &str, max_len: usize) -> String {
@@ -119,14 +149,6 @@ fn linux_real_uid() -> Option<u32> {
     let status = std::fs::read_to_string("/proc/self/status").ok()?;
     let line = status.lines().find(|l| l.starts_with("Uid:"))?;
     line.split_whitespace().nth(1)?.parse().ok()
-}
-
-#[cfg(unix)]
-fn harden_permissions(dir: &Path) {
-    use std::os::unix::fs::PermissionsExt;
-    if let Err(err) = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700)) {
-        log::warn!("failed to restrict permissions of {}: {err}", dir.display());
-    }
 }
 
 const STALE_LOCK_AGE: Duration = Duration::from_secs(30 * 24 * 60 * 60);
@@ -388,7 +410,7 @@ mod test {
     fn falls_back_to_temp_dir_when_data_local_dir_is_unavailable() {
         let temp_dir = tempfile::tempdir().unwrap();
         let dir = resolve_default_locks_dir(None, temp_dir.path().to_path_buf()).unwrap();
-        assert!(dir.starts_with(temp_dir.path().join("tmc-langs")));
+        assert!(dir.starts_with(temp_dir.path()));
     }
 
     // turning the fallthrough's `.is_ok()` into a `?` would make an unwritable data dir a hard
@@ -410,11 +432,7 @@ mod test {
 
         std::fs::set_permissions(unwritable.path(), std::fs::Permissions::from_mode(0o700))
             .unwrap();
-        assert!(
-            result
-                .unwrap()
-                .starts_with(temp_dir.path().join("tmc-langs"))
-        );
+        assert!(result.unwrap().starts_with(temp_dir.path()));
     }
 
     #[test]
@@ -426,6 +444,20 @@ mod test {
         let dir = resolve_default_locks_dir(None, temp_dir.path().to_path_buf()).unwrap();
         let mode = std::fs::metadata(&dir).unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o700);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn temp_dir_fallback_refuses_a_directory_others_can_write_to() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let planted = temp_dir
+            .path()
+            .join(format!("tmc-langs-locks-{}", user_key()));
+        std::fs::create_dir(&planted).unwrap();
+        std::fs::set_permissions(&planted, std::fs::Permissions::from_mode(0o777)).unwrap();
+        assert!(resolve_default_locks_dir(None, temp_dir.path().to_path_buf()).is_err());
     }
 
     #[test]

@@ -80,6 +80,69 @@ fn lock_in_process_until(
     }
 }
 
+/// A marker held longer than this was left by a killed refresh: a live holder spends at most one
+/// refresh request and one write under it.
+const REFRESH_MARKER_STALE_AFTER: Duration = Duration::from_secs(2 * 30);
+
+const _: () = assert!(
+    REFRESH_MARKER_STALE_AFTER.as_secs() > mooc::AUTH_REQUEST_TIMEOUT.as_secs(),
+    "a refresh in flight must not be taken for a stale one"
+);
+
+/// Serializes refreshes between processes where `fcntl` locks do not work (NFS without a lock
+/// daemon): creating a file that must not exist yet is atomic there too.
+struct RefreshMarker {
+    path: PathBuf,
+}
+
+impl RefreshMarker {
+    fn acquire(credentials_path: &Path, deadline: Instant) -> Result<Self, LangsError> {
+        let path = sibling_path(credentials_path, ".refreshing");
+        loop {
+            match std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&path)
+            {
+                Ok(_) => return Ok(Self { path }),
+                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                    let is_stale = std::fs::metadata(&path)
+                        .and_then(|metadata| metadata.modified())
+                        .is_ok_and(|modified| {
+                            modified
+                                .elapsed()
+                                .is_ok_and(|age| age > REFRESH_MARKER_STALE_AFTER)
+                        });
+                    if is_stale {
+                        log::warn!("removing a stale refresh marker {}", path.display());
+                        let _ = std::fs::remove_file(&path);
+                        continue;
+                    }
+                }
+                Err(e) => return Err(FileError::FileCreate(path, e).into()),
+            }
+            if Instant::now() >= deadline {
+                return Err(LangsError::FileError(FileError::LockTimeout {
+                    path,
+                    timeout: LOCK_TIMEOUT,
+                }));
+            }
+            std::thread::sleep(IN_PROCESS_POLL_INTERVAL);
+        }
+    }
+}
+
+impl Drop for RefreshMarker {
+    fn drop(&mut self) {
+        if let Err(err) = std::fs::remove_file(&self.path) {
+            log::warn!(
+                "failed to remove refresh marker {}: {err}",
+                self.path.display()
+            );
+        }
+    }
+}
+
 /// The pre-host-keying file name, still used when the hostname is unknown.
 const SHARED_CREDENTIALS_FILE_NAME: &str = "credentials_mooc.json";
 
@@ -191,8 +254,18 @@ fn adopt_shared_credentials(shared: &Path, per_host: &Path) -> bool {
 /// Never deleted, logout included: a locker that opened it just before the unlink
 /// would hold the orphaned inode while the next opener locks a fresh one.
 fn lock_file_path(path: &Path) -> PathBuf {
+    sibling_path(path, ".lock")
+}
+
+/// Where rotated tokens go when they cannot replace the credentials file: the old refresh token
+/// in it is already spent, and presenting it again would end the login.
+fn pending_file_path(path: &Path) -> PathBuf {
+    sibling_path(path, ".pending")
+}
+
+fn sibling_path(path: &Path, suffix: &str) -> PathBuf {
     let mut name = path.file_name().unwrap_or_default().to_os_string();
-    name.push(".lock");
+    name.push(suffix);
     path.with_file_name(name)
 }
 
@@ -279,9 +352,17 @@ impl MoocCredentials {
             lock_file_path(&self.path),
             LockOptions::WriteCreate,
             LOCK_TIMEOUT,
-            |_guard| remove_if_exists(&self.path),
+            |_guard| {
+                remove_if_exists(&pending_file_path(&self.path))?;
+                remove_if_exists(&self.path)
+            },
         )??;
         Ok(())
+    }
+
+    /// The refresh token, for revoking it at logout.
+    pub fn refresh_token(&self) -> Option<String> {
+        self.stored.refresh_token_secret()
     }
 
     /// Persists a freshly obtained token, stamping it with the current time.
@@ -401,7 +482,15 @@ impl MoocCredentials {
             lock_file_path(path),
             LockOptions::WriteCreate,
             remaining,
-            |_guard| Self::refresh_holding_lock(path, root_url, client_id, rejected_access_token),
+            |_guard| {
+                // `file_util` fails open, so the lock above may not have locked anything.
+                let _marker = if file_util::locking_unavailable() {
+                    Some(RefreshMarker::acquire(path, deadline)?)
+                } else {
+                    None
+                };
+                Self::refresh_holding_lock(path, root_url, client_id, rejected_access_token)
+            },
         )?
     }
 
@@ -412,18 +501,6 @@ impl MoocCredentials {
         client_id: &str,
         rejected_access_token: Option<&str>,
     ) -> Result<Option<Self>, LangsError> {
-        if file_util::locking_unavailable() {
-            // `file_util` fails open, so the lock above may not have locked
-            // anything; only concurrent commands on this machine remain at risk
-            // (the file is per-host).
-            log::warn!(
-                "refreshing the mooc token without a working file lock on {} -- \
-                 another command refreshing at the same time would invalidate \
-                 the login and require signing in again",
-                path.display()
-            );
-        }
-
         // Double-checked re-read under the lock.
         let stored = match read_stored(path) {
             Ok(Some(stored)) => stored,
@@ -468,7 +545,20 @@ impl MoocCredentials {
                     token,
                     obtained_at: Utc::now(),
                 };
-                write_stored(path, &stored)?;
+                if let Err(err) = write_stored(path, &stored) {
+                    let pending = pending_file_path(path);
+                    log::error!(
+                        "could not save the refreshed mooc token to {} ({err}); keeping it in {}",
+                        path.display(),
+                        pending.display()
+                    );
+                    if let Err(err) = write_pending(&pending, &stored) {
+                        log::error!(
+                            "could not save the refreshed mooc token anywhere ({err}); the \
+                             next command will have to log in again"
+                        );
+                    }
+                }
                 Ok(Some(Self {
                     path: path.to_path_buf(),
                     stored,
@@ -641,13 +731,30 @@ fn read_stored_shared(
         .truncate(false)
         .open(&lock_path)
         .map_err(|e| FileError::FileCreate(lock_path.clone(), e))?;
-    let bytes = file_util::with_file_lock_timeout(
+    let (bytes, pending) = file_util::with_file_lock_timeout(
         &lock_path,
         LockOptions::Read,
         LOCK_TIMEOUT,
-        |_guard| read_file_if_exists(path),
+        |_guard| Ok::<_, FileError>((read_file_if_exists(path)?, read_pending(path))),
     )??;
-    Ok(bytes.map(|bytes| deserialize::json_from_slice(&bytes)))
+    let stored = bytes.map(|bytes| deserialize::json_from_slice(&bytes));
+    Ok(match (stored, pending) {
+        (Some(Ok(stored)), pending) => Some(Ok(newest(stored, pending))),
+        (stored, _) => stored,
+    })
+}
+
+/// The tokens a failed save left in the pending file, if any are readable.
+fn read_pending(path: &Path) -> Option<StoredCredentials> {
+    let bytes = read_file_if_exists(&pending_file_path(path)).ok()??;
+    deserialize::json_from_slice(&bytes).ok()
+}
+
+fn newest(stored: StoredCredentials, pending: Option<StoredCredentials>) -> StoredCredentials {
+    match pending {
+        Some(pending) if pending.obtained_at > stored.obtained_at => pending,
+        _ => stored,
+    }
 }
 
 /// Reads and parses the credentials file, `None` if it is gone. Used only while
@@ -658,7 +765,7 @@ fn read_stored(path: &Path) -> Result<Option<StoredCredentials>, LangsError> {
     };
     let stored = deserialize::json_from_slice(&bytes)
         .map_err(|e| LangsError::DeserializeCredentials(path.to_path_buf(), e))?;
-    Ok(Some(stored))
+    Ok(Some(newest(stored, read_pending(path))))
 }
 
 /// Reads the file, `None` if it does not exist. A logout can delete the
@@ -707,6 +814,25 @@ fn write_stored(path: &Path, stored: &StoredCredentials) -> Result<(), LangsErro
     temp.flush()
         .map_err(|e| tmc_langs_util::FileError::FileWrite(temp.path().to_path_buf(), e))?;
     file_util::persist_temp_file(temp, path)?;
+    remove_if_exists(&pending_file_path(path))?;
+    Ok(())
+}
+
+/// A plain write, for when the atomic replace in [`write_stored`] keeps failing.
+fn write_pending(pending: &Path, stored: &StoredCredentials) -> Result<(), LangsError> {
+    let bytes = serde_json::to_vec(stored)?;
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    let mut file = options
+        .open(pending)
+        .map_err(|e| FileError::FileCreate(pending.to_path_buf(), e))?;
+    std::io::Write::write_all(&mut file, &bytes)
+        .map_err(|e| FileError::FileWrite(pending.to_path_buf(), e))?;
     Ok(())
 }
 
@@ -759,6 +885,51 @@ mod test {
             loaded.token().refresh_token().unwrap().secret(),
             "refresh-1"
         );
+    }
+
+    #[test]
+    fn a_newer_pending_token_wins_until_the_next_save() {
+        let _guard = env_lock();
+        let config_dir = tempfile::tempdir().unwrap();
+        set_config_dir(config_dir.path());
+        MoocCredentials::save("test", make_token("old", Some("spent"), Some(3600))).unwrap();
+        let path = MoocCredentials::get_credentials_path("test").unwrap();
+        write_pending(
+            &pending_file_path(&path),
+            &StoredCredentials {
+                token: make_token("rotated", Some("fresh"), Some(3600)),
+                obtained_at: Utc::now() + chrono::Duration::seconds(5),
+            },
+        )
+        .unwrap();
+
+        let loaded = MoocCredentials::load("test").unwrap().unwrap();
+        assert_eq!(loaded.refresh_token().as_deref(), Some("fresh"));
+
+        MoocCredentials::save("test", make_token("new", Some("newest"), Some(3600))).unwrap();
+        assert!(!pending_file_path(&path).exists());
+        let loaded = MoocCredentials::load("test").unwrap().unwrap();
+        assert_eq!(loaded.refresh_token().as_deref(), Some("newest"));
+    }
+
+    #[test]
+    fn refresh_marker_waits_for_its_holder_and_replaces_a_stale_one() {
+        let dir = tempfile::tempdir().unwrap();
+        let credentials = dir.path().join("credentials_mooc_host.json");
+        let held = RefreshMarker::acquire(&credentials, Instant::now()).unwrap();
+        assert!(matches!(
+            RefreshMarker::acquire(&credentials, Instant::now() + Duration::from_millis(100)),
+            Err(LangsError::FileError(FileError::LockTimeout { .. }))
+        ));
+        drop(held);
+        assert!(!sibling_path(&credentials, ".refreshing").exists());
+
+        let marker = sibling_path(&credentials, ".refreshing");
+        let file = std::fs::File::create(&marker).unwrap();
+        file.set_modified(std::time::SystemTime::now() - REFRESH_MARKER_STALE_AFTER * 2)
+            .unwrap();
+        drop(file);
+        let _taken = RefreshMarker::acquire(&credentials, Instant::now()).unwrap();
     }
 
     #[cfg(unix)]
