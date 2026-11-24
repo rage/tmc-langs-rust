@@ -266,6 +266,48 @@ mod test {
         );
     }
 
+    /// tmc-vscode reads these locations without starting the CLI, in `src/init/cliConfigFolder.ts`.
+    #[test]
+    fn config_files_stay_where_tmc_vscode_looks_for_them() {
+        let _env = env_lock();
+        let previous = env::var_os(TMC_LANGS_CONFIG_DIR_VAR);
+        // SAFETY: all env access in these tests is serialized by `env_lock`.
+        unsafe {
+            env::remove_var(TMC_LANGS_CONFIG_DIR_VAR);
+        }
+        let default_dir = get_tmc_dir("client");
+        let config_dir = tempfile::tempdir().unwrap();
+        // SAFETY: as above.
+        unsafe {
+            env::set_var(TMC_LANGS_CONFIG_DIR_VAR, config_dir.path());
+        }
+        let configured_dir = get_tmc_dir("client").unwrap();
+        let config_file = TmcConfig::get_location("client").unwrap();
+        let credentials_file = Credentials::get_credentials_path("client").unwrap();
+        // SAFETY: as above.
+        unsafe {
+            match previous {
+                Some(previous) => env::set_var(TMC_LANGS_CONFIG_DIR_VAR, previous),
+                None => env::remove_var(TMC_LANGS_CONFIG_DIR_VAR),
+            }
+        }
+
+        assert_eq!(
+            default_dir.unwrap(),
+            dirs::config_dir().unwrap().join("tmc-client")
+        );
+        assert_eq!(configured_dir, config_dir.path().join("tmc-client"));
+        assert_eq!(config_file, configured_dir.join("config.toml"));
+        assert_eq!(credentials_file, configured_dir.join("credentials.json"));
+        let mooc_credentials_file = MoocCredentials::credentials_file_name();
+        assert!(
+            mooc_credentials_file == "credentials_mooc.json"
+                || (mooc_credentials_file.starts_with("credentials_mooc_")
+                    && mooc_credentials_file.ends_with(".json")),
+            "{mooc_credentials_file}"
+        );
+    }
+
     /// Writes a TMC course with a single exercise, plus the exercise directory
     /// the config loader requires to consider it present.
     fn tmc_course_to(projects_dir: &Path, course_slug: &str, exercise_slug: &str, id: u32) {
