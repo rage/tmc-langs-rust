@@ -1107,7 +1107,8 @@ impl StoredCourse {
 }
 
 /// Updates the mooc exercises in the local projects directory. The exercises of a course
-/// courses.mooc.fi refuses land in `failed` and the other courses are still updated.
+/// courses.mooc.fi refuses, and those whose archive fails to download or extract, land in
+/// `failed` and the rest are still updated.
 pub fn update_mooc_exercises(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1213,7 +1214,25 @@ pub fn update_mooc_exercises(
                 );
                 continue;
             };
-            download_and_extract_mooc_archive(client, auth, download_url, &target)?;
+            match download_and_extract_mooc_archive(client, auth, download_url, &target) {
+                Ok(()) => {}
+                Err(DownloadArchiveError::Auth(auth_err)) if auth_err.is_permanent() => {
+                    return Err(auth_err.into());
+                }
+                Err(err) => {
+                    let err: LangsError = err.into();
+                    let failure = mooc_download_failure(&err);
+                    failed.push((
+                        MoocExerciseDownload {
+                            exercise_id: slide.exercise_id,
+                            path: target,
+                        },
+                        error_chain(&err),
+                        failure,
+                    ));
+                    continue;
+                }
+            }
 
             // Persist the new checksum, or every later check re-reports the update.
             // Prefer the editor task id (the checksum's owner) over the stored one.
@@ -3872,6 +3891,64 @@ checksum = 'new checksum'
         let extracted = projects_dir.path().join("mooc/my-course/ex-1/src/main.py");
         let contents = file_util::read_file_to_string(&extracted).unwrap();
         assert_eq!(contents, "print('updated')");
+    }
+
+    #[test]
+    fn update_mooc_exercises_continues_past_an_exercise_whose_archive_fails() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let (_course_id, exercise_id, task_id) =
+            write_mooc_course_config(projects_dir.path(), "old checksum");
+        let broken_id = add_second_mooc_exercise(projects_dir.path());
+
+        let _slides = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_body(format!(
+                "[{}, {}]",
+                editor_slide_json(
+                    broken_id,
+                    Uuid::new_v4(),
+                    "new checksum",
+                    &format!("{}/files/broken.tar.zst", server.url()),
+                ),
+                editor_slide_json(
+                    exercise_id,
+                    task_id,
+                    "new checksum",
+                    &format!("{}/files/stub.tar.zst", server.url()),
+                ),
+            ))
+            .create();
+        let _broken = server
+            .mock("GET", "/files/broken.tar.zst")
+            .with_status(500)
+            .create();
+        let _archive = server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(make_tar_zst(&[("src/main.py", b"print('updated')")]))
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
+
+        assert_eq!(result.downloaded.len(), 1);
+        assert_eq!(result.downloaded[0].exercise_id, exercise_id);
+        let failed = result.failed.expect("the broken exercise is reported");
+        assert_eq!(failed.len(), 1);
+        assert_eq!(failed[0].0.exercise_id, broken_id);
+        assert_eq!(failed[0].2, MoocDownloadFailure::ServerError);
+        let config = ProjectsConfig::load(projects_dir.path()).unwrap();
+        let course = config.mooc_courses.values().next().unwrap();
+        assert_eq!(course.exercises[&broken_id].checksum, "old checksum");
+        assert_eq!(course.exercises[&exercise_id].checksum, "new checksum");
     }
 
     // the Java plugin is disabled on musl
