@@ -30,7 +30,7 @@ const MVN_VERSION: &str = "3.8.1";
 static MVN_EXTRACT_MUTEX: Mutex<()> = Mutex::new(());
 
 /// `MAVEN_OPTS` that make Maven's JVM read and write UTF-8 in an English locale, appended to
-/// whatever the user already set.
+/// whatever the user already set, which comes last so it wins.
 fn maven_opts(existing: Option<&str>) -> String {
     let locale_opts = crate::TEST_JVM_LOCALE_ARGS.join(" ");
     match existing.filter(|opts| !opts.trim().is_empty()) {

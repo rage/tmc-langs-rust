@@ -96,6 +96,20 @@ fn executable_extensions(tool: &str, is_windows: bool, pathext: Option<OsString>
         .collect()
 }
 
+/// A regular file the shell could run; on Unix one without an execute bit is skipped like it does.
+fn is_runnable_file(path: &Path) -> bool {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        path.metadata()
+            .is_ok_and(|meta| meta.is_file() && meta.permissions().mode() & 0o111 != 0)
+    }
+    #[cfg(not(unix))]
+    {
+        path.is_file()
+    }
+}
+
 fn find_in_dirs(names: &[String], dirs: &[PathBuf], extensions: &[String]) -> Option<PathBuf> {
     for dir in dirs {
         if dir.as_os_str().is_empty() || !dir.is_absolute() {
@@ -105,7 +119,7 @@ fn find_in_dirs(names: &[String], dirs: &[PathBuf], extensions: &[String]) -> Op
         for name in names {
             for extension in extensions {
                 let candidate = dir.join(format!("{name}{extension}"));
-                if candidate.is_file() && !is_store_alias_stub(&candidate) {
+                if is_runnable_file(&candidate) && !is_store_alias_stub(&candidate) {
                     return Some(candidate);
                 }
             }
@@ -379,6 +393,30 @@ mod test {
     fn touch(path: &Path) {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         fs::write(path, b"").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn skips_a_file_without_the_execute_bit() {
+        use std::os::unix::fs::PermissionsExt;
+        let temp = tempfile::tempdir().unwrap();
+        let (first, second) = (temp.path().join("a"), temp.path().join("b"));
+        touch(&first.join("tool"));
+        touch(&second.join("tool"));
+        fs::set_permissions(first.join("tool"), fs::Permissions::from_mode(0o644)).unwrap();
+
+        let found = find_in_dirs(
+            &["tool".to_string()],
+            &[first, second.clone()],
+            &[String::new()],
+        );
+
+        assert_eq!(found, Some(second.join("tool")));
     }
 
     #[test]
