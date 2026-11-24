@@ -91,16 +91,15 @@ impl ChapterLockingStatus {
 }
 
 impl TmcExerciseSlide {
-    /// Why the exercise cannot be downloaded into an editor, or `None` when it can; what
-    /// [`Self::unsupported`] reports.
-    pub fn unsupported_reason(&self) -> Option<MoocDownloadFailure> {
+    /// The task id and stub archive URL an editor downloads the exercise with, or why it cannot
+    /// (`SeveralEditorTasks` or `BrowserOnly`), which [`Self::unsupported`] reports.
+    pub fn editor_download(&self) -> Result<(Uuid, &str), MoocDownloadFailure> {
         if self.has_several_editor_tasks() {
-            Some(MoocDownloadFailure::SeveralEditorTasks)
-        } else if self.editor_stub_download_url().is_none() {
-            Some(MoocDownloadFailure::BrowserOnly)
-        } else {
-            None
+            return Err(MoocDownloadFailure::SeveralEditorTasks);
         }
+        self.editor_task_id()
+            .zip(self.editor_stub_download_url())
+            .ok_or(MoocDownloadFailure::BrowserOnly)
     }
 
     /// Stub archive download URL for this slide's first editor task, if any.
@@ -161,7 +160,7 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
             unsupported: None,
         };
         Ok(Self {
-            unsupported: slide.unsupported_reason(),
+            unsupported: slide.editor_download().err(),
             ..slide
         })
     }

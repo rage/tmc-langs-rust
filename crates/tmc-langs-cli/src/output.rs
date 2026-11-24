@@ -318,11 +318,15 @@ pub enum Kind {
     /// exercises folder itself.
     ProjectsDirMoveToItself,
     /// The folder given to move the exercises folder, or its contents, to or from is inside the
-    /// exercises folder.
+    /// exercises folder, or contains it.
     ProjectsDirMoveIntoItself,
     /// `settings restore-projects` found the exercises folder holding something other than OS
     /// metadata files, such as `path`; nothing was moved.
     ProjectsRestoreConflict,
+    /// Setting the projects aside or restoring them failed part way and could not be undone:
+    /// some entries are still in the folder they were being moved to (`path`), the rest where
+    /// they were.
+    ProjectsSplit,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;

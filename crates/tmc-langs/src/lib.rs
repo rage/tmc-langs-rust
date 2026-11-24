@@ -1228,7 +1228,9 @@ impl TmcDownloadFailure {
     fn of(err: &LangsError) -> Self {
         match err {
             LangsError::TestMyCodeClient(err) => match err.as_ref() {
-                tmc::TestMyCodeClientError::HttpError { status, .. } if status.as_u16() == 404 => {
+                tmc::TestMyCodeClientError::HttpError { status, .. }
+                    if matches!(status.as_u16(), 403 | 404) =>
+                {
                     Self::NotFound
                 }
                 tmc::TestMyCodeClientError::HttpError { status, .. }
@@ -1259,9 +1261,10 @@ fn mooc_download_failure(err: &LangsError) -> MoocDownloadFailure {
             }
             _ => MoocDownloadFailure::Other,
         },
-        LangsError::Tmc(_) | LangsError::FileError(_) | LangsError::Plugin(_) => {
-            MoocDownloadFailure::ExtractFailed
-        }
+        LangsError::Tmc(_)
+        | LangsError::FileError(_)
+        | LangsError::Plugin(_)
+        | LangsError::Zip(_) => MoocDownloadFailure::ExtractFailed,
         _ => MoocDownloadFailure::Other,
     }
 }
@@ -1518,30 +1521,28 @@ pub fn download_or_update_mooc_course_exercises(
             continue;
         };
 
-        if let Some(failure) = slide.unsupported_reason() {
-            let reason = match failure {
-                MoocDownloadFailure::SeveralEditorTasks => {
-                    mooc::MoocClientError::SeveralEditorTasks { exercise_id }.to_string()
-                }
-                _ => format!(
-                    "Exercise {exercise_id} has no downloadable editor task \
-                     (browser exercises have no project archive)"
-                ),
-            };
-            failed.push((
-                MoocExerciseDownload {
-                    exercise_id,
-                    path: projects_dir.join("mooc"),
-                },
-                vec![reason],
-                failure,
-            ));
-            continue;
-        }
-        let (Some(task_id), Some(download_url)) =
-            (slide.editor_task_id(), slide.editor_stub_download_url())
-        else {
-            unreachable!("a slide with no unsupported reason has an editor task");
+        let (task_id, download_url) = match slide.editor_download() {
+            Ok(editor_download) => editor_download,
+            Err(failure) => {
+                let reason = match failure {
+                    MoocDownloadFailure::SeveralEditorTasks => {
+                        mooc::MoocClientError::SeveralEditorTasks { exercise_id }.to_string()
+                    }
+                    _ => format!(
+                        "Exercise {exercise_id} has no downloadable editor task \
+                         (browser exercises have no project archive)"
+                    ),
+                };
+                failed.push((
+                    MoocExerciseDownload {
+                        exercise_id,
+                        path: projects_dir.join("mooc"),
+                    },
+                    vec![reason],
+                    failure,
+                ));
+                continue;
+            }
         };
         let download_url = download_url.to_string();
         let checksum = slide.editor_checksum().unwrap_or_default().to_string();
@@ -2130,12 +2131,11 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, L
     );
 
     let mut paths = vec![];
-    // The search root is exempt: a checkout in a temporary directory has a hidden name.
     for entry in WalkDir::new(exercise_path).into_iter().filter_entry(|e| {
-        e.depth() == 0
-            || (!submission_processing::is_hidden_dir(e)
-                && e.file_name() != "private"
-                && !submission_processing::contains_tmcignore(e))
+        // A checkout in a temporary directory has a hidden name.
+        (e.depth() == 0 || !submission_processing::is_hidden_dir(e))
+            && e.file_name() != "private"
+            && !submission_processing::contains_tmcignore(e)
     }) {
         let entry = entry?;
         // check if the path contains a valid exercise for some plugin

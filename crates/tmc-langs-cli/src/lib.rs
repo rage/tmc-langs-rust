@@ -230,6 +230,7 @@ fn local_error_kind(cause: &(dyn std::error::Error + 'static)) -> Option<Kind> {
             | LangsError::TomlDeserialize(..) => return Some(Kind::LocalConfigCorrupt),
             LangsError::ProjectsDirUnreachable(_) => return Some(Kind::ProjectsDirUnreachable),
             LangsError::RestoreConflict(_) => return Some(Kind::ProjectsRestoreConflict),
+            LangsError::DirEntriesSplit { .. } => return Some(Kind::ProjectsSplit),
             LangsError::MovingProjectsDirToItself => return Some(Kind::ProjectsDirMoveToItself),
             LangsError::MovingProjectsDirIntoItself => {
                 return Some(Kind::ProjectsDirMoveIntoItself);
@@ -263,8 +264,11 @@ fn io_error_kind(err: &io::Error) -> Option<Kind> {
 /// The path of the first file-system error in the chain.
 fn find_file_error_path(e: &anyhow::Error) -> Option<PathBuf> {
     e.chain().find_map(|cause| {
-        if let Some(LangsError::ProjectsDirUnreachable(path) | LangsError::RestoreConflict(path)) =
-            cause.downcast_ref::<LangsError>()
+        if let Some(
+            LangsError::ProjectsDirUnreachable(path)
+            | LangsError::RestoreConflict(path)
+            | LangsError::DirEntriesSplit { to: path, .. },
+        ) = cause.downcast_ref::<LangsError>()
         {
             return Some(path.clone());
         }

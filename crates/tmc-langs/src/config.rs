@@ -48,7 +48,7 @@ pub(crate) fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
 
 /// Returns every exercise in the projects directory, from both backends, ordered
 /// by course slug and then exercise slug within each backend. No two have the same path: of
-/// mooc exercises recorded in one directory, compared without case, only the first is kept.
+/// mooc exercises recorded in one directory, only the first by id is kept.
 ///
 /// This is the whole-projects-dir listing; [`list_local_tmc_course_exercises`]
 /// and [`list_local_mooc_course_exercises`] are filtered views of it.
@@ -204,19 +204,7 @@ pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(
         return tmc_config.save();
     }
 
-    let target_canon = target
-        .canonicalize()
-        .map_err(|e| LangsError::Canonicalize(target.clone(), e))?;
-    let prev_dir_canon = tmc_config
-        .projects_dir
-        .canonicalize()
-        .map_err(|e| LangsError::Canonicalize(tmc_config.projects_dir.clone(), e))?;
-    if target_canon == prev_dir_canon {
-        return Err(LangsError::MovingProjectsDirToItself);
-    }
-    if target_canon.starts_with(&prev_dir_canon) {
-        return Err(LangsError::MovingProjectsDirIntoItself);
-    }
+    ensure_outside_projects_dir(&tmc_config.projects_dir, &target)?;
 
     let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
 
@@ -252,6 +240,8 @@ pub fn set_projects_aside(tmc_config: &TmcConfig, target: &Path) -> Result<(), L
 
     let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
     let _guard = lock.lock()?;
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     super::move_all_dir_entries(projects_dir, target)
 }
 
@@ -268,6 +258,8 @@ pub fn restore_projects(tmc_config: &TmcConfig, source: &Path) -> Result<(), Lan
 
     let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
     let _guard = lock.lock()?;
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let mut present = sorted_entry_names(projects_dir)?;
     if let Some(entry) = present.iter().find(|name| !is_os_metadata_file(name)) {
         return Err(LangsError::RestoreConflict(projects_dir.join(entry)));
@@ -312,7 +304,7 @@ fn reachable_projects_dir(tmc_config: &TmcConfig) -> Result<&Path, LangsError> {
     Ok(projects_dir)
 }
 
-/// Fails unless the existing directory `dir` is outside `projects_dir`.
+/// Fails unless the existing directory `dir` neither is, is inside nor contains `projects_dir`.
 fn ensure_outside_projects_dir(projects_dir: &Path, dir: &Path) -> Result<(), LangsError> {
     let dir_canon = dir
         .canonicalize()
@@ -323,7 +315,7 @@ fn ensure_outside_projects_dir(projects_dir: &Path, dir: &Path) -> Result<(), La
     if dir_canon == projects_dir_canon {
         return Err(LangsError::MovingProjectsDirToItself);
     }
-    if dir_canon.starts_with(&projects_dir_canon) {
+    if dir_canon.starts_with(&projects_dir_canon) || projects_dir_canon.starts_with(&dir_canon) {
         return Err(LangsError::MovingProjectsDirIntoItself);
     }
     Ok(())
@@ -760,6 +752,14 @@ mod test {
             "{err}"
         );
         assert_eq!(entry_names(projects_dir.path()), ["course"]);
+        assert!(!projects_dir.path().join("aside").exists());
+
+        let parent = projects_dir.path().parent().unwrap();
+        let err = restore_projects(&config, parent).unwrap_err();
+        assert!(
+            matches!(err, LangsError::MovingProjectsDirIntoItself),
+            "{err}"
+        );
     }
 
     #[test]

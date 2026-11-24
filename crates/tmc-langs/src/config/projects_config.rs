@@ -158,22 +158,14 @@ impl ProjectsConfig {
         }
         for course_config in mooc_course_configs.values_mut() {
             let mut deleted_exercises = vec![];
-            // Compared without case, like `unique_directory_name`, since Windows and macOS do.
-            let mut claimed_directories = HashSet::new();
+            // Compared as files, so that names differing only in case match exactly where the
+            // file system ignores case.
+            let mut claimed_directories = vec![];
             for (exercise_id, exercise) in course_config.exercises.iter() {
                 if !is_safe_directory_name(&exercise.directory) {
                     log::warn!(
                         "forgetting local exercise {exercise_id}: its directory {:?} is not a \
                          plain directory name",
-                        exercise.directory
-                    );
-                    deleted_exercises.push(*exercise_id);
-                    continue;
-                }
-                if !claimed_directories.insert(exercise.directory.to_lowercase()) {
-                    log::warn!(
-                        "forgetting local exercise {exercise_id}: another exercise of the course \
-                         is stored in its directory {:?}",
                         exercise.directory
                     );
                     deleted_exercises.push(*exercise_id);
@@ -190,6 +182,19 @@ impl ProjectsConfig {
                         expected_dir.display()
                     );
                     deleted_exercises.push(*exercise_id);
+                    continue;
+                }
+                if let Ok(directory) = same_file::Handle::from_path(&expected_dir) {
+                    if claimed_directories.contains(&directory) {
+                        log::warn!(
+                            "forgetting local exercise {exercise_id}: another exercise of the \
+                             course is stored in its directory {:?}",
+                            exercise.directory
+                        );
+                        deleted_exercises.push(*exercise_id);
+                        continue;
+                    }
+                    claimed_directories.push(directory);
                 }
             }
             for deleted_exercise in &deleted_exercises {
@@ -1094,7 +1099,8 @@ checksum = "defg4567"
         };
         let exercises = BTreeMap::from([
             (Uuid::new_v4(), exercise("ex")),
-            (Uuid::new_v4(), exercise("EX")),
+            (Uuid::new_v4(), exercise("ex")),
+            (Uuid::new_v4(), exercise("missing")),
             (Uuid::new_v4(), exercise("other")),
         ]);
         MoocCourseConfig {
@@ -1106,7 +1112,7 @@ checksum = "defg4567"
         }
         .save_to_projects_dir(temp.path())
         .unwrap();
-        for directory in ["ex", "EX", "other"] {
+        for directory in ["ex", "other"] {
             dir_to(&temp, format!("mooc/course/{directory}"));
         }
 
@@ -1114,7 +1120,7 @@ checksum = "defg4567"
         let mut directories = pc.mooc_courses[&course_id]
             .exercises
             .values()
-            .map(|exercise| exercise.directory.to_lowercase())
+            .map(|exercise| exercise.directory.clone())
             .collect::<Vec<_>>();
         directories.sort();
         assert_eq!(directories, ["ex", "other"]);
