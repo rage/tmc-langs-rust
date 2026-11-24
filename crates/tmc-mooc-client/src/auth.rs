@@ -9,7 +9,10 @@
 //! Endpoints (`POST .../device_authorization`, `POST .../token`) are mounted at
 //! `/api/v0/main-frontend/oauth` in the backend.
 
-use crate::{CLIENT_VERSION_HEADER, error::MoocClientError, error::MoocClientResult};
+use crate::{
+    CLIENT_VERSION_HEADER,
+    error::{MoocClientError, MoocClientResult, ResponseMeta},
+};
 use exercise_services_api as api;
 use oauth2::{RefreshToken, TokenResponse};
 use reqwest::{
@@ -176,6 +179,7 @@ pub fn poll_device_token(
 
     // RFC 8628 §3.5: every non-success state is a 400 with an OAuth error code.
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
+    let meta = ResponseMeta::of(response.headers());
     let body = read_text(response, &url)?;
     match parse_oauth_error_code(&body).as_deref() {
         Some("authorization_pending") => Ok(DeviceTokenPoll::Pending),
@@ -188,6 +192,7 @@ pub fn poll_device_token(
             error: body,
             obsolete_client,
             message_key: None,
+            meta,
         })),
     }
 }
@@ -226,6 +231,7 @@ pub fn revoke_refresh_token(
     if status.is_success() {
         return Ok(());
     }
+    let meta = ResponseMeta::of(response.headers());
     let body = read_text(response, &url)?;
     Err(Box::new(MoocClientError::HttpError {
         url,
@@ -233,6 +239,7 @@ pub fn revoke_refresh_token(
         error: body,
         obsolete_client: status == StatusCode::UPGRADE_REQUIRED,
         message_key: None,
+        meta,
     }))
 }
 
@@ -280,6 +287,7 @@ pub fn refresh_token(
     // never lead the caller to delete credentials.
     let status = response.status();
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
+    let meta = ResponseMeta::of(response.headers());
     let body = read_text(response, &url)?;
     if status == StatusCode::BAD_REQUEST {
         if let Some(error) = parse_oauth_error_code(&body) {
@@ -292,6 +300,7 @@ pub fn refresh_token(
         error: body,
         obsolete_client,
         message_key: None,
+        meta,
     }))
 }
 
@@ -338,6 +347,7 @@ fn read_text(response: reqwest::blocking::Response, url: &Url) -> MoocClientResu
 fn http_error(response: reqwest::blocking::Response, url: Url) -> Box<MoocClientError> {
     let status = response.status();
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
+    let meta = ResponseMeta::of(response.headers());
     let error = response.text().unwrap_or_default();
     Box::new(MoocClientError::HttpError {
         url,
@@ -345,6 +355,7 @@ fn http_error(response: reqwest::blocking::Response, url: Url) -> Box<MoocClient
         error,
         obsolete_client,
         message_key: None,
+        meta,
     })
 }
 

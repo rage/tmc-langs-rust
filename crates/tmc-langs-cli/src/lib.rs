@@ -7,7 +7,7 @@ pub mod error;
 pub mod output;
 
 use self::{
-    error::{InvalidTokenError, SandboxTestError},
+    error::{InvalidTokenError, SandboxTestError, TmcLoginNotAcceptedError},
     output::{CliOutput, DataKind, Kind, OutputData, OutputResult, Status},
 };
 use crate::app::{Cli, Locale};
@@ -61,6 +61,9 @@ pub fn map_parsing_result(result: Result<Cli, clap::Error>) -> ParsingResult {
                     kind: Kind::Generic,
                     trace: causes,
                     http_status: None,
+                    request_id: None,
+                    retry_after_secs: None,
+                    path: None,
                 }),
             }));
             ParsingResult::Err(output)
@@ -83,6 +86,10 @@ pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
             let message = error_message_special_casing(&e);
             let kind = solve_error_kind(&e);
             let http_status = find_http_status(&e);
+            let mooc_error = e.chain().find_map(as_mooc_client_error);
+            let request_id = mooc_error.and_then(|err| err.request_id().map(str::to_string));
+            let retry_after_secs = mooc_error.and_then(MoocClientError::retry_after_secs);
+            let path = find_file_error_path(&e);
             let sandbox_path = check_sandbox_err(&e);
             let output = CliOutput::OutputData(Box::new(OutputData {
                 status: Status::Finished,
@@ -92,6 +99,9 @@ pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
                     kind,
                     trace: causes,
                     http_status,
+                    request_id,
+                    retry_after_secs,
+                    path,
                 }),
             }));
             Err(CliError {
@@ -123,13 +133,16 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         if cause.downcast_ref::<InvalidTokenError>().is_some() {
             return Kind::InvalidToken;
         }
+        if cause.downcast_ref::<TmcLoginNotAcceptedError>().is_some() {
+            return Kind::TmcLoginNotAccepted;
+        }
 
         // check for tmc client errors
         match downcast_through_box::<TestMyCodeClientError>(cause) {
             Some(TestMyCodeClientError::HttpError {
                 url,
                 status,
-                error: _,
+                error,
                 obsolete_client,
             }) => {
                 if *obsolete_client {
@@ -141,6 +154,9 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                 if status.as_u16() == 401 {
                     return Kind::NotLoggedIn;
                 }
+                if status.as_u16() == 503 && error.contains(TMC_INTROSPECTION_UNAVAILABLE_TEXT) {
+                    return Kind::TmcLoginUnconfirmed;
+                }
                 if let Some(kind) = http_status_kind(status.as_u16(), url) {
                     return kind;
                 }
@@ -148,8 +164,8 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             Some(TestMyCodeClientError::NotAuthenticated) => {
                 return Kind::NotLoggedIn;
             }
-            Some(TestMyCodeClientError::ConnectionError { .. }) => {
-                return Kind::ConnectionError;
+            Some(TestMyCodeClientError::ConnectionError(_, _, error)) => {
+                return connection_failure_kind(mooc::ConnectionFailure::of(error));
             }
             _ => {}
         }
@@ -157,9 +173,95 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         if let Some(kind) = as_mooc_client_error(cause).and_then(mooc_error_kind) {
             return kind;
         }
+        if let Some(kind) = local_error_kind(cause) {
+            return kind;
+        }
     }
 
     Kind::Generic
+}
+
+/// The start of what tmc.mooc.fi answers with a 503 when courses.mooc.fi cannot vouch for the
+/// login (`Api::V8::BaseController`'s `CoursesMoocFiTokenIntrospector::Unavailable` rescue).
+/// tmc-server sends no error key for it, so its wording is matched; keep the two in step.
+const TMC_INTROSPECTION_UNAVAILABLE_TEXT: &str = "courses.mooc.fi could not verify your login";
+
+fn connection_failure_kind(failure: mooc::ConnectionFailure) -> Kind {
+    match failure {
+        mooc::ConnectionFailure::Timeout => Kind::ConnectionTimeout,
+        mooc::ConnectionFailure::Certificate => Kind::CertificateError,
+        mooc::ConnectionFailure::Proxy => Kind::ProxyError,
+        mooc::ConnectionFailure::Unreachable => Kind::ConnectionError,
+    }
+}
+
+/// The kind of a failure on this computer rather than at a server.
+fn local_error_kind(cause: &(dyn std::error::Error + 'static)) -> Option<Kind> {
+    if let Some(err) = cause.downcast_ref::<CommandError>() {
+        match err {
+            CommandError::NotFound { .. } => return Some(Kind::ToolchainMissing),
+            CommandError::ExecutableBlocked { .. } => return Some(Kind::ExecutableBlocked),
+            _ => {}
+        }
+    }
+    if let Some(err) = cause.downcast_ref::<tmc_langs::TmcError>() {
+        match err {
+            tmc_langs::TmcError::ArchiveSizeLimitExceeded { .. }
+            | tmc_langs::TmcError::ArchiveExtractionLimitExceeded { .. } => {
+                return Some(Kind::ArchiveTooLarge);
+            }
+            tmc_langs::TmcError::Command(CommandError::NotFound { .. }) => {
+                return Some(Kind::ToolchainMissing);
+            }
+            tmc_langs::TmcError::Command(CommandError::ExecutableBlocked { .. }) => {
+                return Some(Kind::ExecutableBlocked);
+            }
+            _ => {}
+        }
+    }
+    if let Some(err) = cause.downcast_ref::<LangsError>() {
+        match err {
+            LangsError::DeserializeCredentials(..)
+            | LangsError::DeserializeJson(..)
+            | LangsError::DeserializeYaml(..)
+            | LangsError::TomlDeserialize(..) => return Some(Kind::LocalConfigCorrupt),
+            _ => {}
+        }
+    }
+    cause.downcast_ref::<io::Error>().and_then(io_error_kind)
+}
+
+/// The kind of a file-system failure the user can act on; `None` for the rest.
+fn io_error_kind(err: &io::Error) -> Option<Kind> {
+    // Windows codes: sharing and lock violations, filename too long, disk full.
+    #[cfg(windows)]
+    match err.raw_os_error() {
+        Some(32 | 33) => return Some(Kind::FileInUse),
+        Some(206) => return Some(Kind::PathTooLong),
+        Some(112) => return Some(Kind::DiskFull),
+        _ => {}
+    }
+    match err.kind() {
+        io::ErrorKind::PermissionDenied => Some(Kind::PermissionDenied),
+        io::ErrorKind::StorageFull
+        | io::ErrorKind::QuotaExceeded
+        | io::ErrorKind::ReadOnlyFilesystem => Some(Kind::DiskFull),
+        io::ErrorKind::InvalidFilename => Some(Kind::PathTooLong),
+        _ => None,
+    }
+}
+
+/// The path of the first file-system error in the chain.
+fn find_file_error_path(e: &anyhow::Error) -> Option<PathBuf> {
+    e.chain().find_map(|cause| {
+        let file_error = cause
+            .downcast_ref::<tmc_langs::FileError>()
+            .or_else(|| match cause.downcast_ref::<LangsError>() {
+                Some(LangsError::FileError(err)) => Some(err),
+                _ => None,
+            })?;
+        file_error.path().map(Path::to_path_buf)
+    })
 }
 
 /// The `MoocClientError` one link of an error chain carries, however it is wrapped.
@@ -206,6 +308,7 @@ fn http_status_kind(status: u16, url: &Url) -> Option<Kind> {
     match status {
         404 if names_one_exercise(url) => Some(Kind::ExerciseNotFound),
         404 => Some(Kind::NotFound),
+        400 | 405 | 409 | 410 | 411 | 413 | 414 | 415 | 422 => Some(Kind::InvalidRequest),
         500..=599 => Some(Kind::ServerError),
         _ => None,
     }
@@ -260,10 +363,13 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 // `duplicate_upload` is left unmapped: only a buggy client triggers it.
                 _ => None,
             };
+            let is_login_service = url.path().contains("/oauth/");
             if *obsolete_client {
                 Some(Kind::ObsoleteClient)
             } else if key_kind.is_some() {
                 key_kind
+            } else if is_login_service && matches!(status.as_u16(), 400 | 401) {
+                Some(Kind::LoginClientRejected)
             } else if status.as_u16() == 429 {
                 Some(Kind::RateLimited)
             } else if status.as_u16() == 403 {
@@ -274,13 +380,19 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 http_status_kind(status.as_u16(), url)
             }
         }
-        MoocClientError::NotAuthenticated => Some(Kind::NotLoggedIn),
+        MoocClientError::NotAuthenticated { .. } => Some(Kind::NotLoggedIn),
+        MoocClientError::DeserializingResponse { .. } => Some(Kind::UnexpectedResponse),
+        MoocClientError::NoDownloadableExerciseTask { .. }
+        | MoocClientError::NoSubmittableExerciseTask { .. }
+        | MoocClientError::SeveralEditorTasks { .. } => Some(Kind::UnsupportedExercise),
         MoocClientError::FileNotFound { .. } => Some(Kind::NotFound),
         MoocClientError::DeviceAccessDenied => Some(Kind::DeviceLoginDenied),
         MoocClientError::DeviceCodeExpired => Some(Kind::DeviceLoginExpired),
         // Stored credentials are gone; the user must log in again.
         MoocClientError::RefreshTokenRejected { .. } => Some(Kind::NotLoggedIn),
-        MoocClientError::ConnectionError { .. } => Some(Kind::ConnectionError),
+        MoocClientError::ConnectionError(_, _, error) => {
+            Some(connection_failure_kind(mooc::ConnectionFailure::of(error)))
+        }
         _ => None,
     }
 }
@@ -754,6 +866,10 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
                             log::error!("Received HTTP 401 error, deleting TMC credentials");
                             credentials.remove()?;
                             return Err(InvalidTokenError { source: error }.into());
+                        }
+                        // The token was fresh from courses.mooc.fi, so the login has not ended.
+                        if matches!(auth, tmc_langs::TestMyCodeAuth::Mooc(_)) {
+                            return Err(TmcLoginNotAcceptedError { source: error }.into());
                         }
                     }
                 }
@@ -1700,8 +1816,8 @@ fn wait_for_mooc_grading(
                 }
                 report_grading_progress(&mut last_message, mooc_grading_message(&status));
             }
-            // No session left to poll with; fail fast.
-            Err(e) if e.is_permanent() => {
+            // No session left to poll with, or a refusal polling cannot change; fail fast.
+            Err(e) if e.is_permanent() || is_definitive_refusal(&e) => {
                 progress_reporter::finish_stage::<()>(
                     "Grading status unavailable, stopped waiting".to_string(),
                     None,
@@ -1726,6 +1842,20 @@ fn wait_for_mooc_grading(
             }
         }
         thread::sleep(interval);
+    }
+}
+
+/// Whether a failed grading poll would fail the same way however long it is repeated: a 4xx
+/// other than the ones that clear with time, or a body this version cannot read.
+fn is_definitive_refusal(failure: &tmc_langs::MoocAuthFailure) -> bool {
+    let (tmc_langs::MoocAuthFailure::Permanent(err) | tmc_langs::MoocAuthFailure::Other(err)) =
+        failure;
+    match err.as_ref() {
+        MoocClientError::HttpError { status, .. } => {
+            status.is_client_error() && !matches!(status.as_u16(), 401 | 408 | 429)
+        }
+        MoocClientError::DeserializingResponse { .. } => true,
+        _ => false,
     }
 }
 

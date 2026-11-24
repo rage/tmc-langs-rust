@@ -77,6 +77,15 @@ pub enum DataKind {
         /// The HTTP status a server answered with, when the error is one.
         #[serde(skip_serializing_if = "Option::is_none")]
         http_status: Option<u16>,
+        /// The id courses.mooc.fi logged the failed request under, for support.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        request_id: Option<String>,
+        /// How long the server asked to wait before trying again, in seconds.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        retry_after_secs: Option<u64>,
+        /// The file or folder a file-system error concerns.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        path: Option<PathBuf>,
     },
     Validation(Option<StyleValidationResult>),
     /// megabytes
@@ -252,6 +261,46 @@ pub enum Kind {
     /// The exercise takes no more submissions from the user, whatever its chapter's locking
     /// status says (backend `message_key: "exercise_locked"`, HTTP 403).
     ExerciseLocked,
+    /// The server refused the request as invalid (a 4xx with no more specific kind); retrying
+    /// the same request cannot help.
+    InvalidRequest,
+    /// The server answered with something this version cannot read, e.g. a captive portal's
+    /// login page.
+    UnexpectedResponse,
+    /// No answer before the timeout; the server may be slow rather than unreachable.
+    ConnectionTimeout,
+    /// TLS failed, typically an untrusted certificate from a network security product or a
+    /// wrong system clock.
+    CertificateError,
+    /// A proxy refused the connection or asked for credentials.
+    ProxyError,
+    /// courses.mooc.fi's login service refused this client itself (e.g. `invalid_client`); the
+    /// user logging in again cannot fix it.
+    LoginClientRejected,
+    /// tmc.mooc.fi answered 401 to the courses.mooc.fi login, which courses.mooc.fi still
+    /// accepts.
+    TmcLoginNotAccepted,
+    /// tmc.mooc.fi could not confirm the courses.mooc.fi login with courses.mooc.fi right now.
+    TmcLoginUnconfirmed,
+    /// A local settings, course or credentials file could not be read.
+    LocalConfigCorrupt,
+    /// An archive is over a size or entry limit.
+    ArchiveTooLarge,
+    /// The exercise cannot be worked on in the editor: it has no editor task, several, or one of
+    /// another exercise service.
+    UnsupportedExercise,
+    /// Another program holds a file the command needs (`path`).
+    FileInUse,
+    /// The OS denied access to `path`.
+    PermissionDenied,
+    /// `path` is longer than the file system allows.
+    PathTooLong,
+    /// The disk or the user's quota is full, or the file system is read-only.
+    DiskFull,
+    /// A program needed to build or test the exercise is not installed or not found.
+    ToolchainMissing,
+    /// A freshly built program was blocked or removed, typically by antivirus software.
+    ExecutableBlocked,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
@@ -315,6 +364,9 @@ mod test {
                 kind: Kind::Generic,
                 trace: vec!["trace 1".to_string(), "trace 2".to_string()],
                 http_status: None,
+                request_id: None,
+                retry_after_secs: None,
+                path: None,
             }),
         }));
         let actual = serde_json::to_string_pretty(&output_data).unwrap();

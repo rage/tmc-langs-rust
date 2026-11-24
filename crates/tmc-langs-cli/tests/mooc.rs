@@ -717,11 +717,10 @@ fn mooc_422_unknown_upload_maps_to_unknown_upload_kind() {
 }
 
 #[test]
-fn mooc_422_duplicate_upload_maps_to_generic_without_a_retry() {
-    // `duplicate_upload` stays unmapped on purpose: it means a submit named one upload
-    // id twice, which no retry or user action can fix, so there is no answer a dedicated
-    // kind could give the user. It must also not trip the upload retry, which keys on
-    // `upload_expired` alone -- re-uploading would just produce the same duplicate.
+fn mooc_422_duplicate_upload_maps_to_invalid_request_without_a_retry() {
+    // `duplicate_upload` gets no kind of its own: it means a submit named one upload id
+    // twice, which no retry or user action can fix. It must also not trip the upload retry,
+    // which keys on `upload_expired` alone -- re-uploading would produce the same duplicate.
     let mut server = mockito::Server::new();
     let _exercise = mock_exercise_for_submit(&mut server);
     let upload = mock_upload_for_submit(&mut server).expect(1);
@@ -765,7 +764,7 @@ fn mooc_422_duplicate_upload_maps_to_generic_without_a_retry() {
 
     upload.assert();
     submit.assert();
-    assert_error_kind(error, "generic");
+    assert_error_kind(error, "invalid-request");
 }
 
 #[test]
@@ -4067,4 +4066,127 @@ fn wait_for_grading_stops_at_a_hidden_exam_grading() {
     )
     .unwrap();
     assert_eq!(submission_status_json(output)["status"], "grading-hidden");
+}
+
+fn error_data(error: &tmc_langs_cli::CliError) -> serde_json::Value {
+    match &*error.output {
+        CliOutput::OutputData(data) => {
+            serde_json::to_value(&data.data).unwrap()["output-data"].clone()
+        }
+        other => panic!("expected OutputData, got {other:?}"),
+    }
+}
+
+#[test]
+fn a_refusal_carries_the_request_id_and_retry_after() {
+    let mut server = mockito::Server::new();
+    let _limited = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_status(429)
+        .with_header("request-id", "7f1c0a2e-0000-4000-8000-000000000001")
+        .with_header("retry-after", "42")
+        .with_body(r#"{"message_key":"rate_limited","message":"slow down"}"#)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    let data = error_data(&error);
+    assert_eq!(data["kind"], "rate-limited");
+    assert_eq!(data["request_id"], "7f1c0a2e-0000-4000-8000-000000000001");
+    assert_eq!(data["retry_after_secs"], 42);
+}
+
+#[test]
+fn a_get_is_retried_once_after_a_gateway_error() {
+    let mut server = mockito::Server::new();
+    let _failing = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_status(502)
+        .expect(1)
+        .create();
+    let _working = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_body("[]")
+        .expect(1)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let output = run_mooc_in(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    assert!(matches!(data_of(output.unwrap()), DataKind::MoocCourses(_)));
+}
+
+#[test]
+fn a_4xx_without_a_key_is_an_invalid_request_and_a_bad_body_unexpected() {
+    let mut server = mockito::Server::new();
+    let _bad = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_status(400)
+        .create();
+    let _portal = server
+        .mock("GET", "/api/v0/exercise-services/client/exams")
+        .with_body("<html>log in to the wifi</html>")
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    assert_error_kind(error, "invalid-request");
+    let error =
+        run_mooc_in_expect_error(&server, &["exams"], config_dir.path(), projects_dir.path());
+    assert_error_kind(error, "unexpected-response");
+}
+
+#[test]
+fn a_login_service_refusing_the_client_is_not_a_logout() {
+    let mut server = mockito::Server::new();
+    let _refused = server
+        .mock("POST", "/api/v0/main-frontend/oauth/device_authorization")
+        .with_status(401)
+        .with_body(r#"{"error":"invalid_client"}"#)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let error = run_mooc_auth(&server, &["login"], config_dir.path()).unwrap_err();
+    assert_error_kind(error, "login-client-rejected");
+}
+
+#[test]
+fn wait_for_grading_stops_at_a_definitive_refusal() {
+    let mut server = mockito::Server::new();
+    let submission_id = "66666666-6666-6666-6666-666666666666";
+    let _gone = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_status(404)
+        .expect(1)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["wait-for-grading", "--submission-id", submission_id],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    assert_error_kind(error, "not-found");
 }

@@ -14,7 +14,7 @@ pub use self::{
         DEVICE_SCOPE, DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization,
         poll_device_token, refresh_token, revoke_refresh_token,
     },
-    error::{MoocClientError, MoocClientResult},
+    error::{ConnectionFailure, MoocClientError, MoocClientResult, ResponseMeta},
     exercise::{
         BrowserTestRuntime, BrowserTestSpec, ChapterLockingStatus, ExerciseChapter, ExerciseType,
         ModelSolutionSpec, PublicSpec, TMC_SERVICE_SLUG, TmcExerciseSlide, TmcExerciseTask,
@@ -645,46 +645,75 @@ impl MoocRequest {
     }
 
     fn send(self) -> MoocClientResult<Response> {
-        match self.builder.send() {
-            Ok(res) => {
-                let status = res.status();
-                match status {
-                    _success if status.is_success() => Ok(res),
-                    StatusCode::UNAUTHORIZED => Err(Box::new(MoocClientError::NotAuthenticated)),
-                    _other => {
-                        let status = res.status();
-                        // 426 Upgrade Required signals the client is too old; the
-                        // backend enforces a minimum `X-Client-Version`.
-                        let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
-                        let body =
-                            res.text()
-                                .map_err(|err| MoocClientError::ReadingResponseBody {
-                                    method: self.method,
-                                    url: self.url.clone(),
-                                    error: Box::new(err.without_url()),
-                                })?;
-                        // Controlled errors carry an `ApiErrorResponse` `message_key`
-                        // (e.g. `not_enrolled`); lift it so the CLI can map it to a typed
-                        // error kind.
-                        let message_key = serde_json::from_str::<ApiErrorBody>(&body)
-                            .ok()
-                            .and_then(|parsed| parsed.message_key);
-                        Err(Box::new(MoocClientError::HttpError {
-                            url: self.url,
-                            status,
-                            error: body,
-                            obsolete_client,
-                            message_key,
-                        }))
-                    }
-                }
+        // Only a GET is safe to repeat: a POST may have been applied before its answer was lost.
+        let retry = if self.method == Method::GET {
+            self.builder.try_clone()
+        } else {
+            None
+        };
+        match (
+            Self::send_once(&self.method, &self.url, self.builder),
+            retry,
+        ) {
+            (Err(err), Some(retry)) if is_worth_retrying(&err) => {
+                log::warn!(
+                    "retrying {} once after: {err}",
+                    redact_query(self.url.as_str())
+                );
+                std::thread::sleep(RETRY_DELAY);
+                Self::send_once(&self.method, &self.url, retry)
             }
-            Err(error) => Err(Box::new(MoocClientError::ConnectionError(
-                self.method,
-                self.url,
-                error.without_url(),
-            ))),
+            (result, _) => result,
         }
+    }
+
+    fn send_once(
+        method: &Method,
+        url: &Url,
+        builder: RequestBuilder,
+    ) -> MoocClientResult<Response> {
+        let res = match builder.send() {
+            Ok(res) => res,
+            Err(error) => {
+                return Err(Box::new(MoocClientError::ConnectionError(
+                    method.clone(),
+                    url.clone(),
+                    error.without_url(),
+                )));
+            }
+        };
+        let status = res.status();
+        if status.is_success() {
+            return Ok(res);
+        }
+        let meta = ResponseMeta::of(res.headers());
+        let body = res
+            .text()
+            .map_err(|err| MoocClientError::ReadingResponseBody {
+                method: method.clone(),
+                url: url.clone(),
+                error: Box::new(err.without_url()),
+            })?;
+        if status == StatusCode::UNAUTHORIZED {
+            return Err(Box::new(MoocClientError::NotAuthenticated {
+                detail: error::response_detail(&body),
+                meta,
+            }));
+        }
+        // Controlled errors carry an `ApiErrorResponse` `message_key` (e.g. `not_enrolled`);
+        // lift it so the CLI can map it to a typed error kind.
+        let message_key = serde_json::from_str::<ApiErrorBody>(&body)
+            .ok()
+            .and_then(|parsed| parsed.message_key);
+        Err(Box::new(MoocClientError::HttpError {
+            url: url.clone(),
+            status,
+            error: body,
+            // The backend enforces a minimum `X-Client-Version` with 426 Upgrade Required.
+            obsolete_client: status == StatusCode::UPGRADE_REQUIRED,
+            message_key,
+            meta,
+        }))
     }
 
     fn send_expect_bytes(self) -> MoocClientResult<Bytes> {
@@ -737,6 +766,20 @@ fn submittable_task_id(slide: &TmcExerciseSlide) -> MoocClientResult<Uuid> {
     slide
         .editor_task_id()
         .ok_or_else(|| Box::new(MoocClientError::NoSubmittableExerciseTask { exercise_id }))
+}
+
+/// Wait before the one retry of a GET; long enough for a restarting pod, short enough not to
+/// stall the editor.
+const RETRY_DELAY: Duration = Duration::from_millis(500);
+
+/// Failures a second try a moment later may not repeat: no answer, or a gateway or overloaded
+/// server. A timeout is not among them, as a second one would double an already long wait.
+fn is_worth_retrying(error: &MoocClientError) -> bool {
+    match error {
+        MoocClientError::ConnectionError(_, _, error) => !error.is_timeout(),
+        MoocClientError::HttpError { status, .. } => matches!(status.as_u16(), 502..=504),
+        _ => false,
+    }
 }
 
 fn is_upload_expired(error: &MoocClientError) -> bool {

@@ -683,6 +683,29 @@
                 "kind": {
                   "$ref": "#/$defs/Kind"
                 },
+                "path": {
+                  "description": "The file or folder a file-system error concerns.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "request_id": {
+                  "description": "The id courses.mooc.fi logged the failed request under, for support.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "retry_after_secs": {
+                  "description": "How long the server asked to wait before trying again, in seconds.",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint64",
+                  "minimum": 0
+                },
                 "trace": {
                   "type": "array",
                   "items": {
@@ -2581,6 +2604,91 @@
           "description": "The exercise takes no more submissions from the user, whatever its chapter's locking\nstatus says (backend `message_key: \"exercise_locked\"`, HTTP 403).",
           "type": "string",
           "const": "exercise-locked"
+        },
+        {
+          "description": "The server refused the request as invalid (a 4xx with no more specific kind); retrying\nthe same request cannot help.",
+          "type": "string",
+          "const": "invalid-request"
+        },
+        {
+          "description": "The server answered with something this version cannot read, e.g. a captive portal's\nlogin page.",
+          "type": "string",
+          "const": "unexpected-response"
+        },
+        {
+          "description": "No answer before the timeout; the server may be slow rather than unreachable.",
+          "type": "string",
+          "const": "connection-timeout"
+        },
+        {
+          "description": "TLS failed, typically an untrusted certificate from a network security product or a\nwrong system clock.",
+          "type": "string",
+          "const": "certificate-error"
+        },
+        {
+          "description": "A proxy refused the connection or asked for credentials.",
+          "type": "string",
+          "const": "proxy-error"
+        },
+        {
+          "description": "courses.mooc.fi's login service refused this client itself (e.g. `invalid_client`); the\nuser logging in again cannot fix it.",
+          "type": "string",
+          "const": "login-client-rejected"
+        },
+        {
+          "description": "tmc.mooc.fi answered 401 to the courses.mooc.fi login, which courses.mooc.fi still\naccepts.",
+          "type": "string",
+          "const": "tmc-login-not-accepted"
+        },
+        {
+          "description": "tmc.mooc.fi could not confirm the courses.mooc.fi login with courses.mooc.fi right now.",
+          "type": "string",
+          "const": "tmc-login-unconfirmed"
+        },
+        {
+          "description": "A local settings, course or credentials file could not be read.",
+          "type": "string",
+          "const": "local-config-corrupt"
+        },
+        {
+          "description": "An archive is over a size or entry limit.",
+          "type": "string",
+          "const": "archive-too-large"
+        },
+        {
+          "description": "The exercise cannot be worked on in the editor: it has no editor task, several, or one of\nanother exercise service.",
+          "type": "string",
+          "const": "unsupported-exercise"
+        },
+        {
+          "description": "Another program holds a file the command needs (`path`).",
+          "type": "string",
+          "const": "file-in-use"
+        },
+        {
+          "description": "The OS denied access to `path`.",
+          "type": "string",
+          "const": "permission-denied"
+        },
+        {
+          "description": "`path` is longer than the file system allows.",
+          "type": "string",
+          "const": "path-too-long"
+        },
+        {
+          "description": "The disk or the user's quota is full, or the file system is read-only.",
+          "type": "string",
+          "const": "disk-full"
+        },
+        {
+          "description": "A program needed to build or test the exercise is not installed or not found.",
+          "type": "string",
+          "const": "toolchain-missing"
+        },
+        {
+          "description": "A freshly built program was blocked or removed, typically by antivirus software.",
+          "type": "string",
+          "const": "executable-blocked"
         }
       ]
     },

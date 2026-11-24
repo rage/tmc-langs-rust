@@ -41,7 +41,7 @@ pub(crate) fn redact_query(url: &str) -> String {
 
 /// What a backend's error body says to a person: an `ApiErrorResponse` `message` or an OAuth
 /// `error_description`/`error`, else the body itself when it is fit to quote.
-fn response_detail(body: &str) -> Option<String> {
+pub(crate) fn response_detail(body: &str) -> Option<String> {
     if let Ok(serde_json::Value::Object(fields)) = serde_json::from_str(body) {
         let detail = ["message", "error_description", "error"]
             .into_iter()
@@ -53,6 +53,72 @@ fn response_detail(body: &str) -> Option<String> {
         }
     }
     quotable_body(body)
+}
+
+/// What an error response says besides its status and body.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ResponseMeta {
+    /// The `request-id` courses.mooc.fi stamps on every response and logs the request under.
+    pub request_id: Option<String>,
+    /// From `Retry-After`, in seconds; only the delta-seconds form is read.
+    pub retry_after_secs: Option<u64>,
+}
+
+impl ResponseMeta {
+    pub(crate) fn of(headers: &reqwest::header::HeaderMap) -> Self {
+        let header = |name: &str| headers.get(name).and_then(|value| value.to_str().ok());
+        Self {
+            request_id: header("request-id").map(str::to_string),
+            retry_after_secs: header("retry-after").and_then(|value| value.trim().parse().ok()),
+        }
+    }
+}
+
+/// Why a request got no response at all.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConnectionFailure {
+    /// The server did not answer in time.
+    Timeout,
+    /// TLS failed, typically an untrusted certificate (an intercepting proxy or security
+    /// product) or a wrong system clock.
+    Certificate,
+    /// A proxy refused the connection or asked for credentials.
+    Proxy,
+    /// Anything else: no network, DNS failure, connection refused.
+    Unreachable,
+}
+
+impl ConnectionFailure {
+    pub fn of(error: &reqwest::Error) -> Self {
+        if error.is_timeout() {
+            return Self::Timeout;
+        }
+        let mut causes = Vec::new();
+        let mut source: Option<&(dyn Error + 'static)> = error.source();
+        while let Some(cause) = source {
+            causes.push(cause.to_string().to_lowercase());
+            source = cause.source();
+        }
+        Self::from_causes(&causes)
+    }
+
+    // Split out because a `reqwest::Error` cannot be built in a test.
+    fn from_causes(causes: &[String]) -> Self {
+        let mentions = |needles: &[&str]| {
+            causes
+                .iter()
+                .any(|cause| needles.iter().any(|needle| cause.contains(needle)))
+        };
+        if mentions(&["certificate", "tls", "ssl", "handshake"]) {
+            Self::Certificate
+        } else if mentions(&["proxy", "407"]) {
+            Self::Proxy
+        } else if mentions(&["timed out", "timeout"]) {
+            Self::Timeout
+        } else {
+            Self::Unreachable
+        }
+    }
 }
 
 #[derive(Debug, Error)]
@@ -70,6 +136,7 @@ pub enum MoocClientError {
         /// `message_key` of the backend's `ApiErrorResponse` body, if it had that shape;
         /// lets the CLI map controlled errors (e.g. `not_enrolled`) to a typed `Kind`.
         message_key: Option<String>,
+        meta: ResponseMeta,
     },
     /// A file download answered 404: the exercise's or submission's files are gone from the
     /// backend's file store.
@@ -85,8 +152,12 @@ pub enum MoocClientError {
         redact_query(url.as_str())
     )]
     InsecureScheme { url: Url },
-    #[error("Authentication required")]
-    NotAuthenticated,
+    /// A 401 from the resource API: the token is missing, expired or revoked.
+    #[error("Authentication required{}", detail.as_ref().map(|detail| format!(": {detail}")).unwrap_or_default())]
+    NotAuthenticated {
+        detail: Option<String>,
+        meta: ResponseMeta,
+    },
     #[error("The device authorization request expired before it was approved")]
     DeviceCodeExpired,
     #[error("The device authorization request was denied")]
@@ -131,9 +202,52 @@ pub enum MoocClientError {
     SeveralEditorTasks { exercise_id: Uuid },
 }
 
+impl MoocClientError {
+    pub fn request_id(&self) -> Option<&str> {
+        match self {
+            Self::HttpError { meta, .. } | Self::NotAuthenticated { meta, .. } => {
+                meta.request_id.as_deref()
+            }
+            _ => None,
+        }
+    }
+
+    pub fn retry_after_secs(&self) -> Option<u64> {
+        match self {
+            Self::HttpError { meta, .. } => meta.retry_after_secs,
+            _ => None,
+        }
+    }
+
+    pub fn connection_failure(&self) -> Option<ConnectionFailure> {
+        match self {
+            Self::ConnectionError(_, _, error) => Some(ConnectionFailure::of(error)),
+            _ => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use super::redact_query;
+    use super::{ConnectionFailure, redact_query};
+
+    #[test]
+    fn connection_failures_are_told_apart_by_their_cause() {
+        let of = |cause: &str| ConnectionFailure::from_causes(&[cause.to_lowercase()]);
+        assert_eq!(
+            of("invalid peer certificate: UnknownIssuer"),
+            ConnectionFailure::Certificate
+        );
+        assert_eq!(
+            of("unsuccessful tunnel: 407 Proxy Authentication Required"),
+            ConnectionFailure::Proxy
+        );
+        assert_eq!(of("operation timed out"), ConnectionFailure::Timeout);
+        assert_eq!(
+            of("dns error: failed to lookup address"),
+            ConnectionFailure::Unreachable
+        );
+    }
 
     #[test]
     fn redact_query_leaves_a_url_without_a_query_alone() {

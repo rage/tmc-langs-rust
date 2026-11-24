@@ -49,12 +49,14 @@ use tmc_langs_framework::Archive;
 pub use tmc_langs_framework::{
     CommandError, Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
-    StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
+    StyleValidationStrategy, TestDesc, TestResult, TmcError, TmcProjectYml,
 };
 use tmc_langs_plugins::{
     CSharpPlugin, MakePlugin, NoTestsPlugin, Plugin, PluginType, Python3Plugin, RPlugin,
 };
 // the Java plugin is disabled on musl
+#[cfg(not(target_env = "musl"))]
+use tmc_langs_plugins::{AntPlugin, MavenPlugin};
 pub use tmc_langs_util::{FileError, file_util, notification_reporter, progress_reporter};
 pub use tmc_mooc_client as mooc;
 use tmc_mooc_client::MoocClient;
@@ -63,11 +65,6 @@ use toml::Value as TomlValue;
 use url::Url;
 use uuid::Uuid;
 use walkdir::WalkDir;
-#[cfg(not(target_env = "musl"))]
-use {
-    tmc_langs_framework::TmcError,
-    tmc_langs_plugins::{AntPlugin, MavenPlugin},
-};
 
 const TMC_LANGS_CONFIG_DIR_VAR: &str = "TMC_LANGS_CONFIG_DIR";
 
@@ -3228,6 +3225,7 @@ checksum = 'new checksum'
             error: String::new(),
             obsolete_client,
             message_key: message_key.map(str::to_string),
+            meta: Default::default(),
         })
     }
 
@@ -3262,7 +3260,10 @@ checksum = 'new checksum'
             MoocAuthFailure::Other(mooc_http_error(403, true)),
             MoocAuthFailure::Permanent(mooc_http_error(403, false)),
             MoocAuthFailure::Permanent(mooc_http_error(404, false)),
-            MoocAuthFailure::Other(Box::new(mooc::MoocClientError::NotAuthenticated)),
+            MoocAuthFailure::Other(Box::new(mooc::MoocClientError::NotAuthenticated {
+                detail: None,
+                meta: Default::default(),
+            })),
         ] {
             assert_eq!(CourseRefusalKind::of(&failure), None, "{failure:?}");
         }

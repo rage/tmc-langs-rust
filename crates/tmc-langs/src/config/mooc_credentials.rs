@@ -632,7 +632,9 @@ impl MoocCredentials {
             }
             // `refresh_after_401` already deleted the credentials.
             Ok(None) => Err(MoocAuthFailure::Permanent(err)),
-            // Transient twice in a row; credentials untouched, so a later call can retry.
+            // Transient twice in a row; credentials untouched, so a later call can retry. The
+            // refresh's own failure says why, where the 401 would read as being logged out.
+            Err(LangsError::MoocClient(refresh_err)) => Err(MoocAuthFailure::Other(refresh_err)),
             Err(_transient) => Err(MoocAuthFailure::Other(err)),
         }
     }
@@ -641,7 +643,7 @@ impl MoocCredentials {
 /// Whether a mooc client error indicates the token was rejected (401 or the
 /// dedicated `NotAuthenticated` variant).
 fn is_auth_rejection(err: &mooc::MoocClientError) -> bool {
-    matches!(err, mooc::MoocClientError::NotAuthenticated)
+    matches!(err, mooc::MoocClientError::NotAuthenticated { .. })
         || matches!(err, mooc::MoocClientError::HttpError { status, .. } if status.as_u16() == 401)
 }
 
@@ -725,12 +727,22 @@ fn read_stored_shared(
     let lock_path = lock_file_path(path);
     // `ReadCreate` can't stand in for this: on unix it opens without write
     // access, which fails and leaves the read unlocked.
-    std::fs::OpenOptions::new()
+    if let Err(e) = std::fs::OpenOptions::new()
         .write(true)
         .create(true)
         .truncate(false)
         .open(&lock_path)
-        .map_err(|e| FileError::FileCreate(lock_path.clone(), e))?;
+    {
+        // A read-only or full config folder must not block commands that only need the
+        // token; a refresh, which does need the lock, still fails.
+        log::warn!(
+            "reading {} unlocked: cannot create {}: {e}",
+            path.display(),
+            lock_path.display()
+        );
+        let stored = read_file_if_exists(path)?;
+        return Ok(stored.map(|bytes| deserialize::json_from_slice(&bytes)));
+    }
     let (bytes, pending) = file_util::with_file_lock_timeout(
         &lock_path,
         LockOptions::Read,

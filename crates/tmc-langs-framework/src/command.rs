@@ -4,7 +4,7 @@ use crate::{
     TmcError,
     error::CommandError,
     process_tree::ProcessTree,
-    tool_lookup::{self, ResolvedTool, resolve_tool},
+    tool_lookup::{self, ResolvedTool},
 };
 use std::{
     ffi::{OsStr, OsString},
@@ -41,7 +41,7 @@ pub struct TmcCommand {
 
 impl TmcCommand {
     /// Creates a new command. A bare program name is resolved to an absolute path first; see
-    /// [`resolve_tool`].
+    /// [`tool_lookup::resolve_tool`].
     pub fn new(cmd: impl Into<OsString>) -> Self {
         let program = cmd.into();
         let exec = match tool_lookup::resolve_tool(&program) {
