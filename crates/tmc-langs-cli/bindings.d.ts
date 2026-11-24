@@ -130,7 +130,20 @@ part: string,
 /**
  * The exercise directory's name.
  */
-name: string, }
+name: string,
+/**
+ * The language plugin that recognised the exercise, as `get-exercise-packaging-configuration`
+ * names it.
+ */
+plugin: string,
+/**
+ * How long the exercise's tests may run, with the repository's root config merged in.
+ */
+tests_timeout_ms: number,
+/**
+ * The files this command wrote into the exercise directory, relative to it.
+ */
+written_files: Array<string>, }
 
 export type TmcProjectYml = { 
 /**

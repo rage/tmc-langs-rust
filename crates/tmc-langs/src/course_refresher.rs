@@ -56,6 +56,13 @@ pub struct RepositoryExercise {
     pub part: String,
     /// The exercise directory's name.
     pub name: String,
+    /// The language plugin that recognised the exercise, as `get-exercise-packaging-configuration`
+    /// names it.
+    pub plugin: String,
+    /// How long the exercise's tests may run, with the repository's root config merged in.
+    pub tests_timeout_ms: u64,
+    /// The files this command wrote into the exercise directory, relative to it.
+    pub written_files: Vec<PathBuf>,
 }
 
 /// Finds the exercises in a course repository checkout by the rules [`refresh_course`] uses, and
@@ -85,9 +92,12 @@ pub fn prepare_exercise_repository(
         .into_iter()
         .map(|(relative, merged_tmcproject_yml)| {
             let path = repository.join(&relative);
+            let mut written_files = Vec::new();
             if let Some(merged) = merged_tmcproject_yml {
                 merged.save_to_dir(&path)?;
+                written_files.push(PathBuf::from(TmcProjectYml::FILE_NAME));
             }
+            let packaging = super::get_exercise_packaging_configuration(&path)?;
             let part = match relative.parent() {
                 Some(parent) if !parent.as_os_str().is_empty() => exercise_name(parent)?,
                 _ => String::new(),
@@ -97,7 +107,18 @@ pub fn prepare_exercise_repository(
                 .expect("exercise directories have names")
                 .to_string_lossy()
                 .into_owned();
-            Ok(RepositoryExercise { path, part, name })
+            Ok(RepositoryExercise {
+                path,
+                part,
+                name,
+                plugin: packaging
+                    .plugin
+                    .expect("the packaging configuration names its plugin"),
+                tests_timeout_ms: packaging
+                    .tests_timeout_ms
+                    .expect("the packaging configuration has a tests timeout"),
+                written_files,
+            })
         })
         .collect()
 }
@@ -509,6 +530,7 @@ mod test {
     use serde_yaml::Value;
     use std::io::Read;
     use tempfile::tempdir;
+    use tmc_langs_framework::DEFAULT_TESTS_TIMEOUT;
 
     fn init() {
         use log::*;
@@ -757,6 +779,13 @@ mod test {
             .collect::<Vec<_>>();
         assert_eq!(found, [("part01", "ex1"), ("part01-sub", "ex2")]);
         assert_eq!(exercises[0].path, repository.join("part01/ex1"));
+        assert_eq!(exercises[0].plugin, "python3");
+        assert_eq!(exercises[0].tests_timeout_ms, 2000);
+        assert_eq!(exercises[1].tests_timeout_ms, 1000);
+        assert_eq!(
+            exercises[0].written_files,
+            [PathBuf::from(".tmcproject.yml")]
+        );
 
         let ex1 = TmcProjectYml::load(&exercises[0].path).unwrap().unwrap();
         assert_eq!(ex1.tests_timeout_ms, Some(2000));
@@ -774,10 +803,16 @@ mod test {
         file_to(&temp, "part01/ex1/.tmcproject.yml", "# kept as written\n");
         file_to(&temp, "part01/ex2/setup.py", "");
 
-        prepare_exercise_repository(temp.path()).unwrap();
+        let exercises = prepare_exercise_repository(temp.path()).unwrap();
         let config = std::fs::read_to_string(temp.path().join("part01/ex1/.tmcproject.yml"));
         assert_eq!(config.unwrap(), "# kept as written\n");
         assert!(!temp.path().join("part01/ex2/.tmcproject.yml").exists());
+        assert!(exercises.iter().all(|e| e.written_files.is_empty()));
+        assert!(
+            exercises
+                .iter()
+                .all(|e| e.tests_timeout_ms == DEFAULT_TESTS_TIMEOUT.as_millis() as u64)
+        );
     }
 
     #[test]
