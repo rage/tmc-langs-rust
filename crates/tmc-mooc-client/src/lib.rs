@@ -17,7 +17,8 @@ pub use self::{
     error::{ConnectionFailure, MoocClientError, MoocClientResult, ResponseMeta},
     exercise::{
         BrowserTestRuntime, BrowserTestSpec, ChapterLockingStatus, ExerciseChapter, ExerciseType,
-        ModelSolutionSpec, PublicSpec, TMC_SERVICE_SLUG, TmcExerciseSlide, TmcExerciseTask,
+        ModelSolutionSpec, MoocDownloadFailure, PublicSpec, TMC_SERVICE_SLUG, TmcExerciseSlide,
+        TmcExerciseTask,
     },
     grading::{GradingTestResult, GradingTestRun, GradingTestRunStatus},
 };

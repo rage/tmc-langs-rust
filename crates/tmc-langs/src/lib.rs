@@ -26,9 +26,9 @@ pub use crate::{
     data::{
         CombinedCourseData, CombinedMoocCourseData, ConfigValue,
         DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocDownloadFailure,
-        MoocExerciseDownload, MoocOldSubmissionRestore, TmcDownloadFailure, TmcDownloadResult,
-        TmcExerciseDownload, TmcParams,
+        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocExerciseDownload,
+        MoocOldSubmissionRestore, TmcDownloadFailure, TmcDownloadResult, TmcExerciseDownload,
+        TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
@@ -62,8 +62,8 @@ use tmc_langs_plugins::{
 #[cfg(not(target_env = "musl"))]
 use tmc_langs_plugins::{AntPlugin, MavenPlugin};
 pub use tmc_langs_util::{FileError, file_util, notification_reporter, progress_reporter};
-pub use tmc_mooc_client as mooc;
 use tmc_mooc_client::MoocClient;
+pub use tmc_mooc_client::{self as mooc, MoocDownloadFailure};
 pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
 use url::Url;
@@ -1245,22 +1245,21 @@ impl TmcDownloadFailure {
     }
 }
 
-impl MoocDownloadFailure {
-    fn of(err: &LangsError) -> Self {
-        match err {
-            LangsError::MoocClient(err) => match err.as_ref() {
-                mooc::MoocClientError::FileNotFound { .. } => Self::FileMissing,
-                mooc::MoocClientError::ConnectionError(..) => Self::ConnectionError,
-                mooc::MoocClientError::HttpError { status, .. } if status.is_server_error() => {
-                    Self::ServerError
-                }
-                _ => Self::Other,
-            },
-            LangsError::Tmc(_) | LangsError::FileError(_) | LangsError::Plugin(_) => {
-                Self::ExtractFailed
+/// The [`MoocDownloadFailure`] of an error downloading or extracting a mooc exercise archive.
+fn mooc_download_failure(err: &LangsError) -> MoocDownloadFailure {
+    match err {
+        LangsError::MoocClient(err) => match err.as_ref() {
+            mooc::MoocClientError::FileNotFound { .. } => MoocDownloadFailure::FileMissing,
+            mooc::MoocClientError::ConnectionError(..) => MoocDownloadFailure::ConnectionError,
+            mooc::MoocClientError::HttpError { status, .. } if status.is_server_error() => {
+                MoocDownloadFailure::ServerError
             }
-            _ => Self::Other,
+            _ => MoocDownloadFailure::Other,
+        },
+        LangsError::Tmc(_) | LangsError::FileError(_) | LangsError::Plugin(_) => {
+            MoocDownloadFailure::ExtractFailed
         }
+        _ => MoocDownloadFailure::Other,
     }
 }
 
@@ -1516,47 +1515,33 @@ pub fn download_or_update_mooc_course_exercises(
             continue;
         };
 
-        if slide.has_several_editor_tasks() {
+        if let Some(failure) = slide.unsupported_reason() {
+            let reason = match failure {
+                MoocDownloadFailure::SeveralEditorTasks => {
+                    mooc::MoocClientError::SeveralEditorTasks { exercise_id }.to_string()
+                }
+                _ => format!(
+                    "Exercise {exercise_id} has no downloadable editor task \
+                     (browser exercises have no project archive)"
+                ),
+            };
             failed.push((
                 MoocExerciseDownload {
                     exercise_id,
                     path: projects_dir.join("mooc"),
                 },
-                vec![mooc::MoocClientError::SeveralEditorTasks { exercise_id }.to_string()],
-                MoocDownloadFailure::SeveralEditorTasks,
+                vec![reason],
+                failure,
             ));
             continue;
         }
-        let editor_task = slide.tasks.iter().find(|task| {
-            task.public_spec
-                .as_ref()
-                .and_then(|ps| ps.editor_stub_download_url())
-                .is_some()
-        });
-        let Some(task) = editor_task else {
-            failed.push((
-                MoocExerciseDownload {
-                    exercise_id,
-                    path: projects_dir.join("mooc"),
-                },
-                vec![format!(
-                    "Exercise {exercise_id} has no downloadable editor task \
-                     (browser exercises have no project archive)"
-                )],
-                MoocDownloadFailure::BrowserOnly,
-            ));
-            continue;
+        let (Some(task_id), Some(download_url)) =
+            (slide.editor_task_id(), slide.editor_stub_download_url())
+        else {
+            unreachable!("a slide with no unsupported reason has an editor task");
         };
-        let public_spec = task
-            .public_spec
-            .as_ref()
-            .expect("editor task guarantees a public spec");
-        let download_url = public_spec
-            .editor_stub_download_url()
-            .expect("editor task guarantees a stub download url")
-            .to_string();
-        let task_id = task.task_id;
-        let checksum = task.checksum.clone().unwrap_or_default();
+        let download_url = download_url.to_string();
+        let checksum = slide.editor_checksum().unwrap_or_default().to_string();
         let exercise_name = slide.exercise_name.clone();
 
         let course_config = projects_config.get_or_init_mooc_course_config(
@@ -1628,7 +1613,7 @@ pub fn download_or_update_mooc_course_exercises(
             }
             Err(err) => {
                 let err: LangsError = err.into();
-                let failure = MoocDownloadFailure::of(&err);
+                let failure = mooc_download_failure(&err);
                 failed.push((
                     MoocExerciseDownload {
                         exercise_id,

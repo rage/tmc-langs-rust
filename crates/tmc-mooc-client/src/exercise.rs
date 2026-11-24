@@ -29,6 +29,12 @@ pub struct TmcExerciseSlide {
     pub page_url: Option<String>,
     /// `None` for an exercise outside any chapter, or from a host that does not report it.
     pub chapter: Option<ExerciseChapter>,
+    /// Why the exercise cannot be downloaded to work on in an editor: `browser-only` or
+    /// `several-editor-tasks`, the failure `download-or-update-course-exercises` would report.
+    /// Absent when it can be downloaded, and from CLIs older than this field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts-rs", ts(optional))]
+    pub unsupported: Option<MoocDownloadFailure>,
 }
 
 /// The chapter an exercise belongs to, for grouping a course's exercises the way its material
@@ -85,6 +91,18 @@ impl ChapterLockingStatus {
 }
 
 impl TmcExerciseSlide {
+    /// Why the exercise cannot be downloaded into an editor, or `None` when it can; what
+    /// [`Self::unsupported`] reports.
+    pub fn unsupported_reason(&self) -> Option<MoocDownloadFailure> {
+        if self.has_several_editor_tasks() {
+            Some(MoocDownloadFailure::SeveralEditorTasks)
+        } else if self.editor_stub_download_url().is_none() {
+            Some(MoocDownloadFailure::BrowserOnly)
+        } else {
+            None
+        }
+    }
+
     /// Stub archive download URL for this slide's first editor task, if any.
     /// `None` for browser exercises, which expose no downloadable archive.
     pub fn editor_stub_download_url(&self) -> Option<&str> {
@@ -140,9 +158,35 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
                 .collect::<Result<_, _>>()?,
             page_url: value.page_url,
             chapter: value.chapter.map(Into::into),
+            unsupported: None,
         };
-        Ok(slide)
+        Ok(Self {
+            unsupported: slide.unsupported_reason(),
+            ..slide
+        })
     }
+}
+
+/// Why a mooc exercise could not be downloaded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum MoocDownloadFailure {
+    /// Not among the exercises of the course, the exam or any enrolled course.
+    NotFound,
+    /// Its chapter has not opened yet.
+    ClosedChapter,
+    /// It is answered in the browser and has no project to download.
+    BrowserOnly,
+    /// Its slide has more than one editor task; it is answered in the course material.
+    SeveralEditorTasks,
+    /// courses.mooc.fi's file store has no files for it.
+    FileMissing,
+    ServerError,
+    ConnectionError,
+    /// The download could not be unpacked or written into the exercise folder.
+    ExtractFailed,
+    Other,
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -405,6 +449,7 @@ mod test {
         assert!(slide.tasks[0].public_spec.is_none());
         assert!(slide.tasks[0].model_solution_spec.is_none());
         assert_eq!(slide.editor_task_id(), None);
+        assert_eq!(slide.unsupported, Some(MoocDownloadFailure::BrowserOnly));
     }
 
     #[test]
@@ -437,6 +482,10 @@ mod test {
         .unwrap();
         let slide: TmcExerciseSlide = slide.try_into().unwrap();
         assert!(slide.has_several_editor_tasks());
+        assert_eq!(
+            slide.unsupported,
+            Some(MoocDownloadFailure::SeveralEditorTasks)
+        );
     }
 
     #[test]
@@ -497,6 +546,7 @@ mod test {
             slide.editor_stub_download_url(),
             Some("http://example.com/e.tar.zst")
         );
+        assert_eq!(slide.unsupported, None);
         assert_eq!(
             slide.tasks[0]
                 .model_solution_spec

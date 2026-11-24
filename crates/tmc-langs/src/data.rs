@@ -8,7 +8,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     path::PathBuf,
 };
-use tmc_mooc_client as mooc;
+use tmc_mooc_client::{self as mooc, MoocDownloadFailure};
 use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
 use uuid::Uuid;
 
@@ -285,28 +285,6 @@ pub struct DownloadOrUpdateMoocCourseExercisesResult {
     /// Each failure with its error chain, outermost first, and why it failed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>, MoocDownloadFailure)>>,
-}
-
-/// Why a mooc exercise could not be downloaded.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
-#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub enum MoocDownloadFailure {
-    /// Not among the exercises of the course, the exam or any enrolled course.
-    NotFound,
-    /// Its chapter has not opened yet.
-    ClosedChapter,
-    /// It is answered in the browser and has no project to download.
-    BrowserOnly,
-    /// Its slide has more than one editor task; it is answered in the course material.
-    SeveralEditorTasks,
-    /// courses.mooc.fi's file store has no files for it.
-    FileMissing,
-    ServerError,
-    ConnectionError,
-    /// The download could not be unpacked or written into the exercise folder.
-    ExtractFailed,
-    Other,
 }
 
 /// Outcome of restoring a past mooc submission.

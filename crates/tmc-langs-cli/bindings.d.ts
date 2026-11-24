@@ -487,7 +487,13 @@ page_url: string | null,
 /**
  * `None` for an exercise outside any chapter, or from a host that does not report it.
  */
-chapter: ExerciseChapter | null, }
+chapter: ExerciseChapter | null,
+/**
+ * Why the exercise cannot be downloaded to work on in an editor: `browser-only` or
+ * `several-editor-tasks`, the failure `download-or-update-course-exercises` would report.
+ * Absent when it can be downloaded, and from CLIs older than this field.
+ */
+unsupported?: MoocDownloadFailure, }
 
 export type ExerciseChapter = { id: string, name: string,
 /**
