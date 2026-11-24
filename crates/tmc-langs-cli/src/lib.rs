@@ -1931,10 +1931,15 @@ fn run_settings(settings: Settings) -> Result<CliOutput> {
             CliOutput::finished("migrated exercise")
         }
 
-        SettingsCommand::MoveProjectsDir { dir } => {
+        SettingsCommand::MoveProjectsDir { dir, check } => {
             let tmc_config = TmcConfig::load(client_name)?;
-            tmc_langs::move_projects_dir(tmc_config, dir)?;
-            CliOutput::finished("moved project directory")
+            if check {
+                tmc_langs::check_move_projects_dir(&tmc_config, &dir)?;
+                CliOutput::finished("the projects directory can be moved")
+            } else {
+                tmc_langs::move_projects_dir(tmc_config, dir)?;
+                CliOutput::finished("moved project directory")
+            }
         }
 
         SettingsCommand::SetProjectsAside { dir } => {

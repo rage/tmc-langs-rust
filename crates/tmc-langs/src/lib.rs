@@ -18,9 +18,9 @@ use crate::{
 pub use crate::{
     config::{
         Credentials, MoocAuth, MoocAuthFailure, MoocCredentials, ProjectsConfig,
-        ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, list_local_exercises,
-        list_local_mooc_course_exercises, list_local_tmc_course_exercises, migrate_exercise,
-        move_projects_dir, restore_projects, set_projects_aside,
+        ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, check_move_projects_dir,
+        list_local_exercises, list_local_mooc_course_exercises, list_local_tmc_course_exercises,
+        migrate_exercise, move_projects_dir, restore_projects, set_projects_aside,
     },
     course_refresher::{
         RefreshData, RefreshExercise, RepositoryExercise, prepare_exercise_repository,
@@ -29,9 +29,9 @@ pub use crate::{
     data::{
         CombinedCourseData, CombinedMoocCourseData, ConfigValue,
         DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocExerciseDownload,
-        MoocOldSubmissionRestore, TmcDownloadFailure, TmcDownloadResult, TmcExerciseDownload,
-        TmcParams,
+        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocExerciseClosedChapter,
+        MoocExerciseDownload, MoocOldSubmissionRestore, TmcDownloadFailure, TmcDownloadResult,
+        TmcExerciseDownload, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
@@ -1249,6 +1249,7 @@ pub fn update_mooc_exercises(
         downloaded,
         skipped: vec![],
         failed: (!failed.is_empty()).then_some(failed),
+        closed_chapters: Vec::new(),
     })
 }
 
@@ -1453,7 +1454,7 @@ pub fn download_or_update_mooc_course_exercises(
     let requested: HashSet<Uuid> = exercise_ids.iter().copied().collect();
     let mut resolved: HashMap<Uuid, (StoredCourse, mooc::TmcExerciseSlide)> = HashMap::new();
     // Requested exercises of a chapter that has not opened yet, with why they cannot be downloaded.
-    let mut closed: HashMap<Uuid, String> = HashMap::new();
+    let mut closed: HashMap<Uuid, (String, MoocExerciseClosedChapter)> = HashMap::new();
     if !requested.is_empty() {
         match source {
             MoocExerciseSource::Course(course_id) => {
@@ -1468,16 +1469,20 @@ pub fn download_or_update_mooc_course_exercises(
                     for chapter in progress.closed_chapters {
                         for exercise in &chapter.exercises {
                             if requested.contains(&exercise.exercise_id) {
-                                closed.insert(
+                                let reason = format!(
+                                    "Exercise {} is in chapter {} \"{}\", which opens at {}",
                                     exercise.exercise_id,
-                                    format!(
-                                        "Exercise {} is in chapter {} \"{}\", which opens at {}",
-                                        exercise.exercise_id,
-                                        chapter.chapter_number,
-                                        chapter.name,
-                                        chapter.opens_at
-                                    ),
+                                    chapter.chapter_number,
+                                    chapter.name,
+                                    chapter.opens_at
                                 );
+                                let detail = MoocExerciseClosedChapter {
+                                    exercise_id: exercise.exercise_id,
+                                    chapter_name: chapter.name.clone(),
+                                    chapter_number: chapter.chapter_number,
+                                    opens_at: chapter.opens_at,
+                                };
+                                closed.insert(exercise.exercise_id, (reason, detail));
                             }
                         }
                     }
@@ -1521,6 +1526,7 @@ pub fn download_or_update_mooc_course_exercises(
     let mut downloaded = Vec::new();
     let mut skipped = Vec::new();
     let mut failed: Vec<(MoocExerciseDownload, Vec<String>, MoocDownloadFailure)> = Vec::new();
+    let mut closed_chapters = Vec::new();
 
     let total_steps = u32::try_from(exercise_ids.len())
         .unwrap_or(u32::MAX)
@@ -1549,7 +1555,10 @@ pub fn download_or_update_mooc_course_exercises(
         }
         let Some((course, slide)) = resolved.get(&exercise_id) else {
             let (reason, failure) = match closed.remove(&exercise_id) {
-                Some(reason) => (reason, MoocDownloadFailure::ClosedChapter),
+                Some((reason, detail)) => {
+                    closed_chapters.push(detail);
+                    (reason, MoocDownloadFailure::ClosedChapter)
+                }
                 None => (
                     format!(
                         "Exercise {exercise_id} was not found in any of the user's enrolled \
@@ -1692,6 +1701,7 @@ pub fn download_or_update_mooc_course_exercises(
         } else {
             Some(failed)
         },
+        closed_chapters,
     })
 }
 
@@ -4752,6 +4762,15 @@ directory = "skip-me"
         assert_eq!(failed.len(), 1);
         assert_eq!(failed[0].0.exercise_id, closed_id);
         assert_eq!(failed[0].2, MoocDownloadFailure::ClosedChapter);
+        assert_eq!(
+            result.closed_chapters,
+            vec![MoocExerciseClosedChapter {
+                exercise_id: closed_id,
+                chapter_name: "Later".to_string(),
+                chapter_number: 2,
+                opens_at: "2030-01-01T00:00:00Z".parse().unwrap(),
+            }]
+        );
         assert_eq!(
             failed[0].1,
             vec![format!(

@@ -758,6 +758,9 @@ pub enum SettingsCommand {
     MoveProjectsDir {
         /// The directory where the projects should be moved.
         dir: PathBuf,
+        /// Only validate the move, failing with the error it would, and move nothing.
+        #[clap(long)]
+        check: bool,
     },
     /// Resets the settings file to the defaults
     Reset,
@@ -1368,6 +1371,7 @@ mod settings_test {
     #[test]
     fn move_projects_dir() {
         get_matches_settings(&["move-projects-dir", "path"]);
+        get_matches_settings(&["move-projects-dir", "--check", "path"]);
     }
 
     #[test]
@@ -1624,6 +1628,7 @@ mod test {
             tmc_langs::DownloadOrUpdateMoocCourseExercisesResult,
             tmc_langs::TmcExerciseDownload,
             tmc_langs::MoocExerciseDownload,
+            tmc_langs::MoocExerciseClosedChapter,
             // getCourseData
             tmc_langs::CombinedCourseData,
             // getCourseDetails

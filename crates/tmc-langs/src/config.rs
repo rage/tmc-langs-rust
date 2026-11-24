@@ -187,13 +187,23 @@ pub fn migrate_exercise(
     })
 }
 
+/// Fails with the error [`move_projects_dir`] would, without moving anything, so a caller can
+/// refuse before it closes editors.
+pub fn check_move_projects_dir(tmc_config: &TmcConfig, target: &Path) -> Result<(), LangsError> {
+    if target.is_file() {
+        return Err(FileError::UnexpectedFile(target.to_path_buf()).into());
+    }
+    if tmc_config.projects_dir.is_dir() {
+        ensure_outside_projects_dir(&tmc_config.projects_dir, target)?;
+    }
+    Ok(())
+}
+
 /// Moves the projects directory from its current location to the target, taking all of the contained exercises with it.
 pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(), LangsError> {
     log::debug!("moving projects dir to {}", target.display());
 
-    if target.is_file() {
-        return Err(FileError::UnexpectedFile(target).into());
-    }
+    check_move_projects_dir(&tmc_config, &target)?;
 
     if !tmc_config.projects_dir.is_dir() {
         // The only way out of `ProjectsDirUnreachable`: there is nothing left to move.
@@ -202,7 +212,6 @@ pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(
         return tmc_config.save();
     }
 
-    ensure_outside_projects_dir(&tmc_config.projects_dir, &target)?;
     file_util::create_dir_all(&target)?;
 
     let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
@@ -242,10 +251,15 @@ pub fn set_projects_aside(tmc_config: &TmcConfig, target: &Path) -> Result<(), L
 /// directory and deletes `source`. Fails with [`LangsError::RestoreConflict`], moving nothing,
 /// unless the projects directory holds nothing but OS metadata files such as `.DS_Store`, since
 /// courses merged with another account's would be submitted as that account's. A metadata file
-/// in both is kept from the projects directory.
+/// in both is kept from the projects directory. A missing projects directory whose parent exists
+/// is created, since it held nothing to conflict with.
 pub fn restore_projects(tmc_config: &TmcConfig, source: &Path) -> Result<(), LangsError> {
     log::debug!("restoring the projects set aside in {}", source.display());
 
+    let projects_dir = tmc_config.get_projects_dir();
+    if !projects_dir.exists() && projects_dir.parent().is_some_and(Path::is_dir) {
+        file_util::create_dir_all(projects_dir)?;
+    }
     let projects_dir = reachable_projects_dir(tmc_config)?;
 
     let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
@@ -832,6 +846,60 @@ mod test {
 
         let saved = TmcConfig::load_from("client", location).unwrap();
         assert_eq!(saved.projects_dir, target_dir.path());
+    }
+
+    #[test]
+    fn a_restore_creates_a_missing_projects_dir_with_an_existing_parent() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let parent = tempfile::tempdir().unwrap();
+        let projects_dir = parent.path().join("projects");
+        let config = config_with_projects_dir(&projects_dir);
+        let aside = tempfile::tempdir().unwrap();
+        file_to(aside.path(), "course/file", "contents");
+
+        restore_projects(&config, aside.path()).unwrap();
+
+        assert!(projects_dir.join("course/file").exists());
+    }
+
+    #[test]
+    fn a_restore_still_fails_when_the_parent_is_missing_too() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let parent = tempfile::tempdir().unwrap();
+        let unplugged = parent.path().join("drive/projects");
+        let config = config_with_projects_dir(&unplugged);
+        let aside = tempfile::tempdir().unwrap();
+        file_to(aside.path(), "course/file", "contents");
+
+        let err = restore_projects(&config, aside.path()).unwrap_err();
+
+        assert!(matches!(err, LangsError::ProjectsDirUnreachable(path) if path == unplugged));
+        assert!(!unplugged.exists());
+    }
+
+    #[test]
+    fn the_move_check_refuses_like_the_move_and_moves_nothing() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let config = config_with_projects_dir(projects_dir.path());
+        file_to(projects_dir.path(), "course/file", "");
+
+        let into_itself = projects_dir.path().join("inside");
+        assert!(matches!(
+            check_move_projects_dir(&config, &into_itself),
+            Err(LangsError::MovingProjectsDirIntoItself)
+        ));
+        assert!(matches!(
+            check_move_projects_dir(&config, projects_dir.path()),
+            Err(LangsError::MovingProjectsDirToItself)
+        ));
+        let elsewhere = tempfile::tempdir().unwrap();
+        check_move_projects_dir(&config, &elsewhere.path().join("new")).unwrap();
+        assert!(!elsewhere.path().join("new").exists());
+        assert!(projects_dir.path().join("course/file").exists());
     }
 
     #[test]

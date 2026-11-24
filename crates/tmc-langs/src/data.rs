@@ -285,6 +285,21 @@ pub struct DownloadOrUpdateMoocCourseExercisesResult {
     /// Each failure with its error chain, outermost first, and why it failed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>, MoocDownloadFailure)>>,
+    /// The chapter of each `failed` entry whose failure is `closed-chapter`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub closed_chapters: Vec<MoocExerciseClosedChapter>,
+}
+
+/// The chapter that has not opened yet and holds a requested mooc exercise.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct MoocExerciseClosedChapter {
+    pub exercise_id: Uuid,
+    pub chapter_name: String,
+    /// The chapter's position in the course, from 1.
+    pub chapter_number: i32,
+    pub opens_at: chrono::DateTime<chrono::Utc>,
 }
 
 /// Outcome of restoring a past mooc submission.

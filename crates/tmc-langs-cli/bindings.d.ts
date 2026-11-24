@@ -278,7 +278,11 @@ export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<Mooc
 /**
  * Each failure with its error chain, outermost first, and why it failed.
  */
-failed?: Array<[MoocExerciseDownload, Array<string>, MoocDownloadFailure]>, }
+failed?: Array<[MoocExerciseDownload, Array<string>, MoocDownloadFailure]>,
+/**
+ * The chapter of each `failed` entry whose failure is `closed-chapter`.
+ */
+closed_chapters: Array<MoocExerciseClosedChapter>, }
 
 export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
 
@@ -288,6 +292,12 @@ export type MoocExerciseDownload = {
  * can match each download/skip/failure to the exercise.
  */
 "exercise-id": string, path: string, }
+
+export type MoocExerciseClosedChapter = { "exercise-id": string, "chapter-name": string,
+/**
+ * The chapter's position in the course, from 1.
+ */
+"chapter-number": number, "opens-at": string, }
 
 export type CombinedCourseData = { details: CourseDetails, exercises: Array<CourseExercise>, settings: CourseData, }
 
