@@ -88,10 +88,9 @@ impl TmcExerciseSlide {
     /// Stub archive download URL for this slide's first editor task, if any.
     /// `None` for browser exercises, which expose no downloadable archive.
     pub fn editor_stub_download_url(&self) -> Option<&str> {
-        self.tasks
-            .iter()
-            .filter_map(|task| task.public_spec.as_ref())
-            .find_map(|spec| spec.editor_stub_download_url())
+        self.editor_task()
+            .and_then(|task| task.public_spec.as_ref())
+            .and_then(PublicSpec::editor_stub_download_url)
     }
 
     /// Task id of this slide's first editor task (the submit target), if any.
@@ -102,11 +101,7 @@ impl TmcExerciseSlide {
     /// Whether the slide has more than one editor task. A submission answers one task, so such
     /// a slide can only be answered in the course material.
     pub fn has_several_editor_tasks(&self) -> bool {
-        self.tasks
-            .iter()
-            .filter(|task| task.public_spec.as_ref().is_some_and(PublicSpec::is_editor))
-            .count()
-            > 1
+        self.editor_tasks().nth(1).is_some()
     }
 
     /// Checksum of this slide's first editor task, if any; compared with the
@@ -117,12 +112,13 @@ impl TmcExerciseSlide {
 
     /// This slide's first editor task, the one a native client works on. Browser tasks do not count.
     fn editor_task(&self) -> Option<&TmcExerciseTask> {
-        self.tasks.iter().find(|task| {
-            task.public_spec
-                .as_ref()
-                .and_then(|spec| spec.editor_stub_download_url())
-                .is_some()
-        })
+        self.editor_tasks().next()
+    }
+
+    fn editor_tasks(&self) -> impl Iterator<Item = &TmcExerciseTask> {
+        self.tasks
+            .iter()
+            .filter(|task| task.public_spec.as_ref().is_some_and(PublicSpec::is_editor))
     }
 }
 

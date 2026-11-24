@@ -184,17 +184,9 @@ pub trait LanguagePlugin {
                 }
 
                 budget.admit_entry(&file.raw_name(), file.size())?;
-                let relative = match file_path.strip_prefix(&project_dir) {
-                    // A file at the project dir's own path would replace the whole target.
-                    Ok(relative) if relative.as_os_str().is_empty() && !file.is_dir() => {
-                        log::warn!("skip {}, a file at the project root", file_path.display());
-                        return Ok(Continue(()));
-                    }
-                    Ok(relative) => relative,
-                    _ => {
-                        log::trace!("skip {}, not in project dir", file_path.display());
-                        return Ok(Continue(()));
-                    }
+                let Some(relative) = relative_in_project(&file_path, &project_dir, file.is_dir())
+                else {
+                    return Ok(Continue(()));
                 };
                 let path_in_target = target_location.join(relative);
                 log::trace!("processing {file_path:?} -> {path_in_target:?}");
@@ -301,17 +293,9 @@ pub trait LanguagePlugin {
                 // get the path where the file should be extracted
                 let file_path = file.path()?;
                 budget.admit_entry(&file.raw_name(), file.size())?;
-                let relative = match file_path.strip_prefix(&project_dir) {
-                    // A file at the project dir's own path would replace the whole target.
-                    Ok(relative) if relative.as_os_str().is_empty() && !file.is_dir() => {
-                        log::warn!("skip {}, a file at the project root", file_path.display());
-                        return Ok(Continue(()));
-                    }
-                    Ok(relative) => relative,
-                    _ => {
-                        log::trace!("skip {}, not in project dir", file_path.display());
-                        return Ok(Continue(()));
-                    }
+                let Some(relative) = relative_in_project(&file_path, &project_dir, file.is_dir())
+                else {
+                    return Ok(Continue(()));
                 };
                 let path_in_target = target_location.join(relative);
                 log::trace!("processing {file_path:?} -> {path_in_target:?}");
@@ -576,38 +560,55 @@ pub trait LanguagePlugin {
 /// Whether the target filesystems tmc-langs runs on usually treat paths differing only by case as one.
 const IS_FILESYSTEM_CASE_INSENSITIVE: bool = cfg!(any(windows, target_os = "macos"));
 
+/// `file_path` relative to the archive's `project_dir`, or `None` for an entry to skip: one
+/// outside the project, or a non-directory at its root, which would replace the whole target.
+fn relative_in_project<'a>(
+    file_path: &'a Path,
+    project_dir: &Path,
+    is_dir: bool,
+) -> Option<&'a Path> {
+    let Ok(relative) = file_path.strip_prefix(project_dir) else {
+        log::trace!("skip {}, not in project dir", file_path.display());
+        return None;
+    };
+    if relative.as_os_str().is_empty() && !is_dir {
+        log::warn!("skip {}, a file at the project root", file_path.display());
+        return None;
+    }
+    Some(relative)
+}
+
 /// The paths an archive extracted. On a case-insensitive filesystem a path matches an extracted
 /// one that differs only by case, since writing the one overwrote the other's file.
 struct ArchivePaths {
-    exact: HashSet<PathBuf>,
-    folded: Option<HashSet<String>>,
+    paths: HashSet<PathBuf>,
+    is_case_insensitive: bool,
 }
 
 impl ArchivePaths {
     fn new(is_case_insensitive: bool) -> Self {
         Self {
-            exact: HashSet::new(),
-            folded: is_case_insensitive.then(HashSet::new),
+            paths: HashSet::new(),
+            is_case_insensitive,
+        }
+    }
+
+    fn key(&self, path: &Path) -> PathBuf {
+        if self.is_case_insensitive {
+            PathBuf::from(path.to_string_lossy().to_lowercase())
+        } else {
+            path.to_path_buf()
         }
     }
 
     fn insert(&mut self, path: PathBuf) {
-        if let Some(folded) = &mut self.folded {
-            folded.insert(fold_case(&path));
-        }
-        self.exact.insert(path);
+        let key = self.key(&path);
+        self.paths.insert(key);
     }
 
     fn contains(&self, path: &Path) -> bool {
-        match &self.folded {
-            Some(folded) => folded.contains(&fold_case(path)),
-            None => self.exact.contains(path),
-        }
+        self.paths.contains(&self.key(path))
     }
-}
-
-fn fold_case(path: &Path) -> String {
-    path.to_string_lossy().to_lowercase()
 }
 
 fn is_in_hidden_top_level_entry(relative: &Path) -> bool {

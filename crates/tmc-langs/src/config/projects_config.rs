@@ -219,13 +219,8 @@ impl ProjectsConfig {
         let course_dir_name = entry.file_name().to_str().ok_or_else(|| {
             LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
         })?;
-        match read_course_config(&course_config_path) {
-            Ok(course_config) => Ok(Some((course_dir_name.to_string(), course_config))),
-            Err(err) => {
-                log::warn!("Skipping {}: {err}", course_config_path.display());
-                Ok(None)
-            }
-        }
+        Ok(read_course_config(&course_config_path)
+            .map(|course_config| (course_dir_name.to_string(), course_config)))
     }
 
     fn is_reserved_dir_name(name: &str) -> bool {
@@ -294,12 +289,9 @@ impl ProjectsConfig {
         if !course_config_path.is_file() {
             return Ok(None);
         }
-        let mut course_config = match read_course_config::<MoocCourseConfig>(&course_config_path) {
-            Ok(course_config) => course_config,
-            Err(err) => {
-                log::warn!("Skipping {}: {err}", course_config_path.display());
-                return Ok(None);
-            }
+        let Some(mut course_config) = read_course_config::<MoocCourseConfig>(&course_config_path)
+        else {
+            return Ok(None);
         };
         let relative_dir = course_dir
             .strip_prefix(mooc_projects_dir)
@@ -454,9 +446,15 @@ pub(crate) fn unique_directory_name<'a>(
         .expect("an unbounded range always yields a free suffix")
 }
 
-fn read_course_config<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T, LangsError> {
-    let file = file_util::read_file_to_string(path)?;
-    Ok(deserialize::toml_from_str(&file)?)
+/// The course config at `path`, or `None` with a warning when it is unreadable, so one broken
+/// file does not hide every other course.
+fn read_course_config<T: serde::de::DeserializeOwned>(path: &Path) -> Option<T> {
+    let parsed = file_util::read_file_to_string(path)
+        .map_err(LangsError::from)
+        .and_then(|file| Ok(deserialize::toml_from_str(&file)?));
+    parsed
+        .inspect_err(|err| log::warn!("Skipping {}: {err}", path.display()))
+        .ok()
 }
 
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.

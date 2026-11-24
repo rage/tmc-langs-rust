@@ -52,25 +52,26 @@ pub fn compress_student_files(
             log::warn!("not packing symbolic link {}", entry.path().display());
             continue;
         }
+        if !policy.is_student_file(relative) {
+            continue;
+        }
         if entry.file_type().is_file() && is_sync_conflict_copy(entry.path()) {
             log::warn!("not packing sync conflict copy {}", entry.path().display());
             continue;
         }
-        if policy.is_student_file(relative) {
-            let path = root_directory
-                .parent()
-                .map(|p| {
-                    entry
-                        .path()
-                        .strip_prefix(p)
-                        .expect("entries are inside root_directory")
-                })
-                .unwrap_or_else(|| entry.path());
-            if entry.file_type().is_dir() {
-                writer.add_directory(entry.path(), path)?;
-            } else {
-                writer.add_file(entry.path(), path)?;
-            }
+        let path = root_directory
+            .parent()
+            .map(|p| {
+                entry
+                    .path()
+                    .strip_prefix(p)
+                    .expect("entries are inside root_directory")
+            })
+            .unwrap_or_else(|| entry.path());
+        if entry.file_type().is_dir() {
+            writer.add_directory(entry.path(), path)?;
+        } else {
+            writer.add_file(entry.path(), path)?;
         }
     }
     let (cursor, hash) = writer.finish()?;

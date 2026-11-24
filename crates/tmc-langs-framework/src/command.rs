@@ -177,9 +177,7 @@ impl TmcCommand {
                     kill_process_tree(&popen, &tree)
                         .map_err(|e| CommandError::Terminate(cmd.clone(), e))?;
                     let _ = popen.wait_timeout(KILL_REAP_TIMEOUT);
-                    let drain_deadline = Instant::now() + OUTPUT_DRAIN_GRACE;
-                    let stdout = stdout_reader.collect(drain_deadline);
-                    let stderr = stderr_reader.collect(drain_deadline);
+                    let (stdout, stderr) = collect_output(stdout_reader, stderr_reader);
                     return Err(TmcError::Command(CommandError::TimeOut {
                         command: cmd,
                         timeout,
@@ -199,9 +197,7 @@ impl TmcCommand {
         stdin_handle
             .join()
             .expect("the thread should not be able to panic");
-        let drain_deadline = Instant::now() + OUTPUT_DRAIN_GRACE;
-        let stdout = stdout_reader.collect(drain_deadline);
-        let stderr = stderr_reader.collect(drain_deadline);
+        let (stdout, stderr) = collect_output(stdout_reader, stderr_reader);
 
         // on success, log stdout trace and stderr debug
         // on failure if checked, log warn
@@ -322,6 +318,12 @@ impl PipeReader {
                 .unwrap_or_else(|poisoned| poisoned.into_inner()),
         )
     }
+}
+
+/// The output of an ended command, waiting at most [`OUTPUT_DRAIN_GRACE`] for both pipes.
+fn collect_output(stdout: PipeReader, stderr: PipeReader) -> (Vec<u8>, Vec<u8>) {
+    let deadline = Instant::now() + OUTPUT_DRAIN_GRACE;
+    (stdout.collect(deadline), stderr.collect(deadline))
 }
 
 /// Kills the command and everything it started.

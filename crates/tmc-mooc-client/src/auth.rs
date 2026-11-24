@@ -228,20 +228,10 @@ pub fn revoke_refresh_token(
                 e.without_url(),
             ))
         })?;
-    let status = response.status();
-    if status.is_success() {
+    if response.status().is_success() {
         return Ok(());
     }
-    let meta = ResponseMeta::of(response.headers());
-    let body = read_text(response, &url)?;
-    Err(Box::new(MoocClientError::HttpError {
-        url,
-        status,
-        error: body,
-        obsolete_client: status == StatusCode::UPGRADE_REQUIRED,
-        message_key: None,
-        meta,
-    }))
+    Err(http_error(response, url))
 }
 
 /// Redeems a refresh token for a fresh token pair (OAuth2 refresh grant).

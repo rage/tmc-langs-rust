@@ -225,13 +225,31 @@ pub fn persist_temp_file(temp: NamedTempFile, path: &Path) -> Result<(), FileErr
 /// Writes `contents` to `path` through a temp file in the same directory, so a crash or full
 /// disk leaves the previous contents intact. Callers needing mutual exclusion take a lock.
 pub fn write_atomically(path: &Path, contents: impl AsRef<[u8]>) -> Result<(), FileError> {
+    write_atomically_with(path, contents.as_ref(), false)
+}
+
+/// [`write_atomically`] for secrets: on Unix the file is readable by its owner only.
+pub fn write_atomically_private(path: &Path, contents: impl AsRef<[u8]>) -> Result<(), FileError> {
+    write_atomically_with(path, contents.as_ref(), true)
+}
+
+fn write_atomically_with(path: &Path, contents: &[u8], is_private: bool) -> Result<(), FileError> {
     let parent = match path.parent() {
         Some(parent) if !parent.as_os_str().is_empty() => parent,
         _ => Path::new("."),
     };
     create_dir_all(parent)?;
     let mut temp = named_temp_file_in(parent)?;
-    temp.write_all(contents.as_ref())
+    #[cfg(unix)]
+    if is_private {
+        use std::os::unix::fs::PermissionsExt;
+        temp.as_file()
+            .set_permissions(std::fs::Permissions::from_mode(0o600))
+            .map_err(|e| FileError::FileWrite(temp.path().to_path_buf(), e))?;
+    }
+    #[cfg(not(unix))]
+    let _ = is_private;
+    temp.write_all(contents)
         .and_then(|()| temp.flush())
         .map_err(|e| FileError::FileWrite(temp.path().to_path_buf(), e))?;
     persist_temp_file(temp, path)

@@ -44,7 +44,10 @@ use std::{
     ffi::OsString,
     io::Cursor,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicUsize, Ordering as AtomicOrdering},
+    },
 };
 use tmc_langs_framework::Archive;
 pub use tmc_langs_framework::{
@@ -1035,52 +1038,47 @@ fn download_mooc_archives_in_parallel(
     auth: &MoocAuth,
     planned: &[PlannedMoocDownload],
 ) -> Vec<Result<(), DownloadArchiveError>> {
-    let next = std::sync::atomic::AtomicUsize::new(0);
-    let results: Vec<std::sync::Mutex<Option<Result<(), DownloadArchiveError>>>> = planned
-        .iter()
-        .map(|_| std::sync::Mutex::new(None))
-        .collect();
-    std::thread::scope(|scope| {
-        for _ in 0..MOOC_DOWNLOAD_THREADS.min(planned.len()) {
-            scope.spawn(|| {
-                loop {
-                    let index = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                    let Some(plan) = planned.get(index) else {
-                        break;
-                    };
-                    progress_reporter::progress_stage::<mooc::MoocClientUpdateData>(
-                        format!(
-                            "Downloading exercise {} to '{}'",
-                            plan.exercise_id,
-                            plan.target.display()
-                        ),
-                        Some(mooc::MoocClientUpdateData::ExerciseDownload {
-                            id: plan.exercise_id,
-                            path: plan.target.clone(),
-                        }),
-                    );
-                    let result = download_and_extract_mooc_archive(
-                        client,
-                        auth,
-                        &plan.download_url,
-                        &plan.target,
-                    );
-                    *results[index]
-                        .lock()
-                        .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(result);
-                }
-            });
-        }
+    let next = AtomicUsize::new(0);
+    let mut results: Vec<(usize, Result<(), DownloadArchiveError>)> = std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..MOOC_DOWNLOAD_THREADS.min(planned.len()))
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut results = vec![];
+                    loop {
+                        let index = next.fetch_add(1, AtomicOrdering::Relaxed);
+                        let Some(plan) = planned.get(index) else {
+                            break;
+                        };
+                        progress_reporter::progress_stage::<mooc::MoocClientUpdateData>(
+                            format!(
+                                "Downloading exercise {} to '{}'",
+                                plan.exercise_id,
+                                plan.target.display()
+                            ),
+                            Some(mooc::MoocClientUpdateData::ExerciseDownload {
+                                id: plan.exercise_id,
+                                path: plan.target.clone(),
+                            }),
+                        );
+                        let result = download_and_extract_mooc_archive(
+                            client,
+                            auth,
+                            &plan.download_url,
+                            &plan.target,
+                        );
+                        results.push((index, result));
+                    }
+                    results
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .flat_map(|worker| worker.join().expect("download workers do not panic"))
+            .collect()
     });
-    results
-        .into_iter()
-        .map(|result| {
-            result
-                .into_inner()
-                .unwrap_or_else(|poisoned| poisoned.into_inner())
-                .expect("every planned download is attempted")
-        })
-        .collect()
+    results.sort_by_key(|(index, _)| *index);
+    results.into_iter().map(|(_, result)| result).collect()
 }
 
 /// Where [`download_or_update_mooc_course_exercises`] looks the requested exercises up.
@@ -1865,17 +1863,20 @@ fn sweep_stale_staging_dirs(dir: &Path, min_age: std::time::Duration) {
         return;
     };
     for entry in entries.flatten() {
-        let is_staging = entry
+        if !entry
             .file_name()
             .to_string_lossy()
-            .starts_with(STAGING_DIR_PREFIX);
+            .starts_with(STAGING_DIR_PREFIX)
+        {
+            continue;
+        }
         let is_stale = entry
             .metadata()
             .and_then(|m| m.modified())
             .ok()
             .and_then(|modified| modified.elapsed().ok())
             .is_some_and(|age| age >= min_age);
-        if is_staging && is_stale && entry.file_type().is_ok_and(|t| t.is_dir()) {
+        if is_stale && entry.file_type().is_ok_and(|t| t.is_dir()) {
             log::warn!(
                 "deleting abandoned staging directory {}",
                 entry.path().display()

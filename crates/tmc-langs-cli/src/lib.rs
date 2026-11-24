@@ -197,12 +197,16 @@ fn connection_failure_kind(failure: mooc::ConnectionFailure) -> Kind {
 
 /// The kind of a failure on this computer rather than at a server.
 fn local_error_kind(cause: &(dyn std::error::Error + 'static)) -> Option<Kind> {
-    if let Some(err) = cause.downcast_ref::<CommandError>() {
-        match err {
-            CommandError::NotFound { .. } => return Some(Kind::ToolchainMissing),
-            CommandError::ExecutableBlocked { .. } => return Some(Kind::ExecutableBlocked),
-            _ => {}
-        }
+    let command_error_kind = |err: &CommandError| match err {
+        CommandError::NotFound { .. } => Some(Kind::ToolchainMissing),
+        CommandError::ExecutableBlocked { .. } => Some(Kind::ExecutableBlocked),
+        _ => None,
+    };
+    if let Some(kind) = cause
+        .downcast_ref::<CommandError>()
+        .and_then(command_error_kind)
+    {
+        return Some(kind);
     }
     if let Some(err) = cause.downcast_ref::<tmc_langs::TmcError>() {
         match err {
@@ -210,11 +214,10 @@ fn local_error_kind(cause: &(dyn std::error::Error + 'static)) -> Option<Kind> {
             | tmc_langs::TmcError::ArchiveExtractionLimitExceeded { .. } => {
                 return Some(Kind::ArchiveTooLarge);
             }
-            tmc_langs::TmcError::Command(CommandError::NotFound { .. }) => {
-                return Some(Kind::ToolchainMissing);
-            }
-            tmc_langs::TmcError::Command(CommandError::ExecutableBlocked { .. }) => {
-                return Some(Kind::ExecutableBlocked);
+            tmc_langs::TmcError::Command(err) => {
+                if let Some(kind) = command_error_kind(err) {
+                    return Some(kind);
+                }
             }
             _ => {}
         }
@@ -825,12 +828,7 @@ fn tmc_logout(client_name: &str) -> Result<CliOutput> {
     if let Some(credentials) = tmc_langs::Credentials::load(client_name)? {
         credentials.remove()?;
     }
-    Ok(CliOutput::OutputData(Box::new(OutputData {
-        status: Status::Finished,
-        message: "logged out".to_string(),
-        result: OutputResult::LoggedOut,
-        data: None,
-    })))
+    Ok(CliOutput::logged_out())
 }
 
 fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
@@ -1467,12 +1465,7 @@ fn mooc_logout(client_name: &str, root_url: &url::Url, client_id: &str) -> Resul
         }
         credentials.remove()?;
     }
-    Ok(CliOutput::OutputData(Box::new(OutputData {
-        status: Status::Finished,
-        message: "logged out".to_string(),
-        result: OutputResult::LoggedOut,
-        data: None,
-    })))
+    Ok(CliOutput::logged_out())
 }
 
 fn run_mooc_inner(

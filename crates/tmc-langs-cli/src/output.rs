@@ -54,6 +54,15 @@ impl CliOutput {
             data: None,
         }))
     }
+
+    pub fn logged_out() -> Self {
+        Self::OutputData(Box::new(OutputData {
+            status: Status::Finished,
+            message: "logged out".to_string(),
+            result: OutputResult::LoggedOut,
+            data: None,
+        }))
+    }
 }
 
 #[derive(Debug, Serialize, JsonSchema)]

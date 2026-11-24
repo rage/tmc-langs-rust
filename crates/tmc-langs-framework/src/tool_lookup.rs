@@ -24,8 +24,8 @@ pub fn resolve_tool(program: &OsStr) -> Option<ResolvedTool> {
     if !is_bare_name(program) {
         return None;
     }
-    let tool = program.to_string_lossy().to_lowercase();
-    let tool = tool.strip_suffix(".exe").unwrap_or(&tool);
+    let tool = normalized_tool_name(&program.to_string_lossy());
+    let tool = tool.as_str();
     let names = candidate_names(tool, cfg!(windows));
     let extensions = executable_extensions(cfg!(windows), std::env::var_os("PATHEXT"));
 
@@ -51,6 +51,12 @@ pub fn resolve_tool(program: &OsStr) -> Option<ResolvedTool> {
         path,
         child_path: Some(merge_path_dirs(&path_var, &extra_dirs)),
     })
+}
+
+/// `tool` lowercased without an `.exe` suffix, as Windows matches names.
+fn normalized_tool_name(tool: &str) -> String {
+    let lower = tool.to_lowercase();
+    lower.strip_suffix(".exe").unwrap_or(&lower).to_string()
 }
 
 fn is_bare_name(program: &OsStr) -> bool {
@@ -162,9 +168,7 @@ fn known_install_dirs(tool: &str, env: &dyn Fn(&str) -> Option<OsString>) -> Vec
                 }
             }
             for pf in &program_files {
-                for dir in newest_first_subdirs(&pf.join("Python")) {
-                    dirs.push(dir);
-                }
+                dirs.extend(newest_first_subdirs(&pf.join("Python")));
             }
             if let Some(profile) = env("USERPROFILE") {
                 for conda in ["anaconda3", "miniconda3"] {
@@ -249,9 +253,7 @@ fn simplify_verbatim_path(path: &Path) -> PathBuf {
 
 /// What to tell a user whose `tool` was not found.
 pub fn missing_tool_hint(tool: &str) -> String {
-    let tool_lower = tool.to_lowercase();
-    let tool_lower = tool_lower.strip_suffix(".exe").unwrap_or(&tool_lower);
-    let install = match tool_lower {
+    let install = match normalized_tool_name(tool).as_str() {
         "java" | "javac" | "mvn" | "mvn.cmd" | "ant" | "ant.bat" => {
             "Install a JDK (Java 11 or newer) and make sure JAVA_HOME points to it or java is on PATH."
         }

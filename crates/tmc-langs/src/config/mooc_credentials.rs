@@ -799,33 +799,10 @@ fn remove_if_exists(path: &Path) -> Result<(), FileError> {
     }
 }
 
-/// Atomic write of the wrapper JSON, creating the config directory if needed.
-///
-/// Writes a temp file and renames it over the target, so readers never see a
-/// torn file and a crash can't leave it empty. On unix the file is `0600` since it
-/// holds a refresh token. The caller must hold the exclusive lock on
-/// [`lock_file_path`].
+/// Atomic, owner-only write of the wrapper JSON, creating the config directory if needed. The
+/// caller must hold the exclusive lock on [`lock_file_path`].
 fn write_stored(path: &Path, stored: &StoredCredentials) -> Result<(), LangsError> {
-    use std::io::Write;
-
-    let parent = path.parent().unwrap_or_else(|| Path::new("."));
-    file_util::create_dir_all(parent)?;
-    let bytes = serde_json::to_vec(stored)?;
-
-    // Same directory, so the rename stays on one filesystem and is atomic.
-    let mut temp = file_util::named_temp_file_in(parent)?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        temp.as_file()
-            .set_permissions(std::fs::Permissions::from_mode(0o600))
-            .map_err(|e| tmc_langs_util::FileError::FileWrite(temp.path().to_path_buf(), e))?;
-    }
-    temp.write_all(&bytes)
-        .map_err(|e| tmc_langs_util::FileError::FileWrite(temp.path().to_path_buf(), e))?;
-    temp.flush()
-        .map_err(|e| tmc_langs_util::FileError::FileWrite(temp.path().to_path_buf(), e))?;
-    file_util::persist_temp_file(temp, path)?;
+    file_util::write_atomically_private(path, serde_json::to_vec(stored)?)?;
     remove_if_exists(&pending_file_path(path))?;
     Ok(())
 }
