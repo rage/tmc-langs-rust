@@ -808,4 +808,28 @@ mod test {
         assert_eq!(conts, "another file");
         assert!(target.path().join("dir/some dir").is_dir());
     }
+
+    #[test]
+    #[cfg(windows)]
+    fn rename_waits_out_a_briefly_held_file() {
+        use std::os::windows::fs::OpenOptionsExt;
+
+        let dir = tempfile::tempdir().unwrap();
+        let from = dir.path().join("from");
+        let to = dir.path().join("to");
+        std::fs::write(&from, "contents").unwrap();
+        // No sharing at all, like an antivirus scan or an indexer holding the file.
+        let held = std::fs::OpenOptions::new()
+            .read(true)
+            .share_mode(0)
+            .open(&from)
+            .unwrap();
+        let releaser = std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            drop(held);
+        });
+        rename(&from, &to).unwrap();
+        releaser.join().unwrap();
+        assert_eq!(read_file_to_string(&to).unwrap(), "contents");
+    }
 }

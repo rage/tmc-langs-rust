@@ -84,6 +84,20 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install ant --version 1.10.18 --no-progress -y
 
+      - name: Install R
+        if: runner.os == 'Windows'
+        uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          r-version: "4.4"
+      - name: Install the R test runner
+        if: runner.os == 'Windows'
+        run: |
+          Rscript -e "install.packages(c('testthat', 'jsonlite', 'R.utils'), repos = 'https://cloud.r-project.org')"
+          R CMD INSTALL crates/plugins/r/tests/tmcRtestrunner
+
+      # The make plugin's tests need the `check` C library and valgrind, which have no Windows
+      # builds the plugin supports, so they run on Linux only.
+
       - name: Install C#
         if: runner.os == 'Windows'
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
