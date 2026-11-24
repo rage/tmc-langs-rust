@@ -74,7 +74,18 @@ student_file_paths: Array<string>,
 /**
  * Exercise folders or files which are copied from exercise template or clone.
  */
-exercise_file_paths: Array<string>, }
+exercise_file_paths: Array<string>,
+/**
+ * How long the exercise's tests may run: its `.tmcproject.yml`'s `tests_timeout_ms`, else
+ * [`DEFAULT_TESTS_TIMEOUT`]. Absent only from CLIs older than this field.
+ */
+tests_timeout_ms?: number,
+/**
+ * The language plugin that recognised the exercise: `python3`, `apache-maven`,
+ * `apache-ant`, `csharp`, `make`, `r` or `No-Tests`. Absent only from CLIs older than this
+ * field.
+ */
+plugin?: string, }
 
 export type LocalExercise = { "backend": "tmc" } & LocalTmcExercise | { "backend": "mooc" } & LocalMoocExercise;
 

@@ -158,18 +158,17 @@ pub struct ExercisePackagingConfiguration {
     pub student_file_paths: HashSet<PathBuf>,
     /// Exercise folders or files which are copied from exercise template or clone.
     pub exercise_file_paths: HashSet<PathBuf>,
-}
-
-impl ExercisePackagingConfiguration {
-    pub fn new(
-        student_file_paths: HashSet<PathBuf>,
-        exercise_file_paths: HashSet<PathBuf>,
-    ) -> Self {
-        Self {
-            student_file_paths,
-            exercise_file_paths,
-        }
-    }
+    /// How long the exercise's tests may run: its `.tmcproject.yml`'s `tests_timeout_ms`, else
+    /// [`DEFAULT_TESTS_TIMEOUT`]. Absent only from CLIs older than this field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts-rs", ts(optional))]
+    pub tests_timeout_ms: Option<u64>,
+    /// The language plugin that recognised the exercise: `python3`, `apache-maven`,
+    /// `apache-ant`, `csharp`, `make`, `r` or `No-Tests`. Absent only from CLIs older than this
+    /// field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts-rs", ts(optional))]
+    pub plugin: Option<String>,
 }
 
 /// Determines how style errors are handled.

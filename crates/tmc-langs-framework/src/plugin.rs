@@ -426,6 +426,11 @@ pub trait LanguagePlugin {
         let mut config = ExercisePackagingConfiguration {
             student_file_paths: HashSet::new(),
             exercise_file_paths: HashSet::new(),
+            tests_timeout_ms: Some(
+                u64::try_from(tests_timeout(policy.get_project_config()).as_millis())
+                    .unwrap_or(u64::MAX),
+            ),
+            plugin: Some(Self::PLUGIN_NAME.to_string()),
         };
         for entry in WalkDir::new(path).min_depth(1) {
             let entry = entry?;
@@ -806,6 +811,24 @@ extra_exercise_files:
                 .exercise_file_paths
                 .contains(Path::new("InBothLists.java"))
         );
+    }
+
+    #[test]
+    fn packaging_configuration_names_the_plugin_and_the_effective_tests_timeout() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "src/main.c", "");
+        let conf = MockPlugin::get_exercise_packaging_configuration(temp.path()).unwrap();
+        assert_eq!(conf.plugin.as_deref(), Some(MockPlugin::PLUGIN_NAME));
+        assert_eq!(
+            conf.tests_timeout_ms.map(u128::from),
+            Some(DEFAULT_TESTS_TIMEOUT.as_millis())
+        );
+
+        file_to(&temp, ".tmcproject.yml", "tests_timeout_ms: 1234\n");
+        let conf = MockPlugin::get_exercise_packaging_configuration(temp.path()).unwrap();
+        assert_eq!(conf.tests_timeout_ms, Some(1234));
     }
 
     #[test]
