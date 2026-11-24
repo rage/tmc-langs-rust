@@ -146,7 +146,8 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           DYLIBS=$(otool -L ./target/aarch64-apple-darwin/debug/tmc-langs-cli)
-          EXPECTED=6
+          # SystemConfiguration.framework is reqwest's system-proxy lookup
+          EXPECTED=7
           ACTUAL=$(echo "$DYLIBS" | wc -l)
           if [ $ACTUAL -ne $EXPECTED ]; then
             echo "::error title=unexpected-dynamic-libraries::Expected $EXPECTED dynamic libraries, found $ACTUAL ($DYLIBS)"
