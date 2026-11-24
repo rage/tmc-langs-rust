@@ -229,6 +229,10 @@ fn local_error_kind(cause: &(dyn std::error::Error + 'static)) -> Option<Kind> {
             | LangsError::DeserializeYaml(..)
             | LangsError::TomlDeserialize(..) => return Some(Kind::LocalConfigCorrupt),
             LangsError::ProjectsDirUnreachable(_) => return Some(Kind::ProjectsDirUnreachable),
+            LangsError::MovingProjectsDirToItself => return Some(Kind::ProjectsDirMoveToItself),
+            LangsError::MovingProjectsDirIntoItself => {
+                return Some(Kind::ProjectsDirMoveIntoItself);
+            }
             _ => {}
         }
     }
@@ -2048,6 +2052,23 @@ mod test {
             ),
         ] {
             assert_eq!(names_one_exercise(&url.parse().unwrap()), expected, "{url}");
+        }
+    }
+
+    #[test]
+    fn moving_the_projects_dir_onto_itself_has_its_own_kinds() {
+        for (error, kind) in [
+            (
+                LangsError::MovingProjectsDirToItself,
+                "projects-dir-move-to-itself",
+            ),
+            (
+                LangsError::MovingProjectsDirIntoItself,
+                "projects-dir-move-into-itself",
+            ),
+        ] {
+            let kind_of_error = solve_error_kind(&anyhow::Error::from(error));
+            assert_eq!(serde_json::to_value(kind_of_error).unwrap(), kind);
         }
     }
 
