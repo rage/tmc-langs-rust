@@ -226,19 +226,20 @@ fn onedrive_original_candidates(name: &str) -> Vec<String> {
         Some(dot) if dot > 0 => (&name[..dot], &name[dot..]),
         _ => (name, ""),
     };
-    // Windows names machines like `DESKTOP-AB12CD3`. Requiring a digit or a dash keeps real
-    // student files such as `main-OLD.c` or `input-V2.txt` out of the match.
+    // Only Windows' default machine names such as `DESKTOP-AB12CD3` count: a looser match drops
+    // real student files such as `data-ABC1.csv` or `Lab-CS101.java` from the submission.
     let is_hostname = |host: &str| {
-        let last_part = host.rsplit('-').next().unwrap_or_default();
-        host.len() >= 3
-            && host.bytes().any(|b| b.is_ascii_uppercase())
+        let Some((prefix, suffix)) = host.rsplit_once('-') else {
+            return false;
+        };
+        !prefix.is_empty()
+            && suffix.len() >= 5
             && host
                 .bytes()
                 .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'-')
-            && !host.starts_with('-')
-            && !last_part.is_empty()
-            && !last_part.bytes().all(|b| b.is_ascii_digit())
-            && host.bytes().any(|b| b.is_ascii_digit() || b == b'-')
+            && prefix.bytes().any(|b| b.is_ascii_uppercase())
+            && suffix.bytes().any(|b| b.is_ascii_digit())
+            && suffix.bytes().any(|b| b.is_ascii_uppercase())
     };
     stem.match_indices('-')
         .map(|(i, _)| i)
@@ -415,13 +416,16 @@ mod test {
     fn onedrive_candidates_need_a_machine_like_host() {
         assert_eq!(
             onedrive_original_candidates("Main-DESKTOP-AB12CD3.java"),
-            ["Main.java", "Main-DESKTOP.java"]
+            ["Main.java"]
         );
         assert_eq!(
             onedrive_original_candidates("Main-DESKTOP-AB12CD3-1.java"),
-            ["Main.java", "Main-DESKTOP.java"]
+            ["Main.java"]
         );
-        assert_eq!(onedrive_original_candidates("Main-PC7.java"), ["Main.java"]);
+        assert_eq!(
+            onedrive_original_candidates("Main-LAPTOP-9F8E7D6C.java"),
+            ["Main.java"]
+        );
         for name in [
             "my-file.py",
             "Main.java",
@@ -431,6 +435,10 @@ mod test {
             "main-OLD-2.c",
             "input-V2.txt",
             "Main-LAPTOP.java",
+            "Main-PC7.java",
+            "data-ABC1.csv",
+            "Lab-CS101.java",
+            "Lab-CS-101.java",
         ] {
             assert!(onedrive_original_candidates(name).is_empty(), "{name}");
         }

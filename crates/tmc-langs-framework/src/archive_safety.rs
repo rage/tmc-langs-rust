@@ -145,6 +145,14 @@ pub fn validate_entry_name(raw: &str, style: EntryNameStyle) -> Result<PathBuf, 
 const RESERVED_DEVICE_NAMES: [&str; 6] = ["CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"];
 
 fn check_component(component: &str) -> Result<(), &'static str> {
+    if component.contains('\0') {
+        return Err("contains a NUL character");
+    }
+    // Names valid elsewhere, such as a macOS `Icon\r` or `notes:v2.txt`, must still extract
+    // where they are valid, or the whole submission becomes ungradable.
+    if !cfg!(windows) {
+        return Ok(());
+    }
     if component
         .chars()
         .any(|c| c.is_control() || matches!(c, '<' | '>' | ':' | '"' | '|' | '?' | '*'))
@@ -203,10 +211,19 @@ mod test {
     #[test]
     fn rejects_unsafe_names_in_every_style() {
         for style in [EntryNameStyle::Tar, EntryNameStyle::Zip] {
+            for name in ["../x", "a/../../x", "/abs", "a\0b"] {
+                assert!(
+                    validate_entry_name(name, style).is_err(),
+                    "{style:?} {name}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_names_invalid_on_windows_only_there() {
+        for style in [EntryNameStyle::Tar, EntryNameStyle::Zip] {
             for name in [
-                "../x",
-                "a/../../x",
-                "/abs",
                 "C:/x",
                 "C:x",
                 "CON",
@@ -227,8 +244,9 @@ mod test {
                 "a\"b",
                 "a\u{1}b",
             ] {
-                assert!(
+                assert_eq!(
                     validate_entry_name(name, style).is_err(),
+                    cfg!(windows),
                     "{style:?} {name}"
                 );
             }
@@ -249,12 +267,16 @@ mod test {
                 "{name}"
             );
         }
-        for name in ["C:\\x", "a\\..\\..\\x", "..\\x", "\\\\server\\share\\x"] {
+        for name in ["a\\..\\..\\x", "..\\x", "\\\\server\\share\\x"] {
             assert!(
                 validate_entry_name(name, EntryNameStyle::Zip).is_err(),
                 "{name}"
             );
         }
+        assert_eq!(
+            validate_entry_name("C:\\x", EntryNameStyle::Zip).is_err(),
+            cfg!(windows)
+        );
         assert_eq!(
             validate_entry_name("a\\b", EntryNameStyle::Zip).unwrap(),
             PathBuf::from("a").join("b")

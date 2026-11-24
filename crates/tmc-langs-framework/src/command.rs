@@ -346,8 +346,12 @@ const WINDOWS_ACCESS_DENIED: i32 = 5;
 const WINDOWS_VIRUS_ERRORS: [i32; 2] = [225, 226];
 
 /// Whether a failure to start `program` looks like antivirus software blocked or removed it:
-/// the OS said so, or an executable named by path is gone or denied right after being built.
+/// the OS said so, or on Windows an executable named by path is gone or denied right after being
+/// built. Elsewhere a missing path is a missing tool or shebang interpreter.
 fn is_blocked_executable(program: &OsStr, err: &io::Error) -> bool {
+    if !cfg!(windows) {
+        return false;
+    }
     if err
         .raw_os_error()
         .is_some_and(|code| WINDOWS_VIRUS_ERRORS.contains(&code))
@@ -357,7 +361,7 @@ fn is_blocked_executable(program: &OsStr, err: &io::Error) -> bool {
     let is_path = Path::new(program).components().count() > 1;
     match err.kind() {
         io::ErrorKind::NotFound => is_path,
-        _ => cfg!(windows) && err.raw_os_error() == Some(WINDOWS_ACCESS_DENIED),
+        _ => err.raw_os_error() == Some(WINDOWS_ACCESS_DENIED),
     }
 }
 
@@ -589,15 +593,27 @@ mod test {
     #[test]
     fn blocked_executable_classification() {
         let virus = io::Error::from_raw_os_error(225);
-        assert!(is_blocked_executable(OsStr::new("make"), &virus));
+        assert_eq!(
+            is_blocked_executable(OsStr::new("make"), &virus),
+            cfg!(windows)
+        );
         let gone = io::Error::from(io::ErrorKind::NotFound);
-        assert!(is_blocked_executable(OsStr::new("/build/test"), &gone));
+        assert_eq!(
+            is_blocked_executable(OsStr::new("/build/test"), &gone),
+            cfg!(windows)
+        );
         assert!(!is_blocked_executable(OsStr::new("make"), &gone));
         let denied = io::Error::from(io::ErrorKind::PermissionDenied);
         assert!(!is_blocked_executable(OsStr::new("/build/test"), &denied));
-        let message =
-            popen_to_tmc_err("/build/test".into(), OsStr::new("/build/test"), gone).to_string();
-        assert!(message.contains("Failed to run command"), "{message}");
+        let error = popen_to_tmc_err("/build/test".into(), OsStr::new("/build/test"), gone);
+        assert_eq!(
+            matches!(
+                error,
+                TmcError::Command(CommandError::ExecutableBlocked { .. })
+            ),
+            cfg!(windows),
+            "{error}"
+        );
     }
 
     #[test]

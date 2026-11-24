@@ -256,7 +256,8 @@ fn io_error_kind(err: &io::Error) -> Option<Kind> {
         io::ErrorKind::StorageFull
         | io::ErrorKind::QuotaExceeded
         | io::ErrorKind::ReadOnlyFilesystem => Some(Kind::DiskFull),
-        io::ErrorKind::InvalidFilename => Some(Kind::PathTooLong),
+        // Only ENAMETOOLONG elsewhere; Windows also reports reserved characters with this kind.
+        io::ErrorKind::InvalidFilename if cfg!(not(windows)) => Some(Kind::PathTooLong),
         _ => None,
     }
 }
@@ -860,9 +861,9 @@ fn tmc_logout(client_name: &str) -> Result<CliOutput> {
 }
 
 fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
-    let client_name = &tmc.client_name;
+    let client_name = tmc.client_name.clone();
     let client_version = &tmc.client_version;
-    mooc::set_frontend(client_name, Some(client_version));
+    mooc::set_frontend(&client_name, Some(client_version));
     let root_url = env::var("TMC_LANGS_TMC_ROOT_URL")
         .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
         .parse()
@@ -870,13 +871,13 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
     if matches!(tmc.command, TestMyCodeCommand::Logout) {
         // Building the client could refresh the mooc token over the network, which an
         // offline logout must not depend on.
-        return tmc_logout(client_name);
+        return tmc_logout(&client_name);
     }
     let mooc_root_url = mooc_root_url()?;
     let mooc_client_id = mooc_client_id();
     let (mut client, mut auth) = tmc_langs::init_testmycode_client_with_credentials(
         root_url,
-        client_name,
+        &client_name,
         client_version,
         &mooc_root_url,
         &mooc_client_id,
@@ -890,16 +891,17 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
                     downcast_through_box::<TestMyCodeClientError>(cause)
                 {
                     if status.as_u16() == 401 {
-                        // A rejected mooc token is kept: tmc-server may just not accept
-                        // mooc tokens yet, which says nothing about its validity. That case
-                        // falls through to the plain 401 mapping (`not-logged-in`).
                         if let Some(credentials) = auth.take_stored_tmc() {
                             log::error!("Received HTTP 401 error, deleting TMC credentials");
                             credentials.remove()?;
                             return Err(InvalidTokenError { source: error }.into());
                         }
-                        // The token was fresh from courses.mooc.fi, so the login has not ended.
-                        if matches!(auth, tmc_langs::TestMyCodeAuth::Mooc(_)) {
+                        // An unexpired mooc token may still have been revoked; only when
+                        // courses.mooc.fi accepts it is the login intact. Otherwise this is
+                        // the plain 401 mapping (`not-logged-in`).
+                        if matches!(auth, tmc_langs::TestMyCodeAuth::Mooc(_))
+                            && mooc_login_is_accepted(&client_name, &mooc_root_url, &mooc_client_id)
+                        {
                             return Err(TmcLoginNotAcceptedError { source: error }.into());
                         }
                     }
@@ -908,6 +910,17 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
             Err(error)
         }
         output => output,
+    }
+}
+
+fn mooc_login_is_accepted(client_name: &str, mooc_root_url: &url::Url, client_id: &str) -> bool {
+    match tmc_langs::init_mooc_client_with_credentials(
+        mooc_root_url.clone(),
+        client_name,
+        client_id,
+    ) {
+        Ok((client, Some(_))) => client.current_user().is_ok(),
+        _ => false,
     }
 }
 

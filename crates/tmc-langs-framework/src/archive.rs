@@ -762,16 +762,12 @@ mod test {
 
     #[test]
     fn extraction_rejects_unsafe_entries() {
-        for name in [
-            "../x",
-            "/abs",
-            "C:\\x",
-            "a\\..\\..\\x",
-            "CON",
-            "aux.txt",
-            "x:stream",
-            "name.",
-        ] {
+        let windows_only = ["C:\\x", "CON", "aux.txt", "x:stream", "name."];
+        let everywhere = ["../x", "/abs", "a\\..\\..\\x"];
+        let names = everywhere
+            .into_iter()
+            .chain(windows_only.into_iter().filter(|_| cfg!(windows)));
+        for name in names {
             for (compression, bytes) in archives_with_entry(name, b"data") {
                 let temp = tempfile::tempdir().unwrap();
                 let target = temp.path().join("target");
@@ -785,6 +781,21 @@ mod test {
                 );
                 assert!(err.to_string().contains(name), "{err}");
                 assert!(!temp.path().join("x").exists());
+            }
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn extraction_keeps_names_only_windows_rejects() {
+        for name in ["notes:v2.txt", "Icon\r"] {
+            for (compression, bytes) in archives_with_entry(name, b"data") {
+                let temp = tempfile::tempdir().unwrap();
+                Archive::new(Cursor::new(bytes), compression)
+                    .unwrap()
+                    .extract(temp.path())
+                    .unwrap_or_else(|e| panic!("{compression} {name}: {e}"));
+                assert!(temp.path().join(name).exists(), "{compression} {name}");
             }
         }
     }

@@ -1106,7 +1106,8 @@ impl StoredCourse {
     }
 }
 
-/// Updates the mooc exercises in the local projects directory.
+/// Updates the mooc exercises in the local projects directory. The exercises of a course
+/// courses.mooc.fi refuses land in `failed` and the other courses are still updated.
 pub fn update_mooc_exercises(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1144,6 +1145,7 @@ pub fn update_mooc_exercises(
         .collect();
 
     let mut downloaded = Vec::new();
+    let mut failed = Vec::new();
     if !locals.is_empty() {
         // One exercise list request per course, not one per exercise.
         let mut server_exercises: Vec<mooc::TmcExerciseSlide> = Vec::new();
@@ -1151,13 +1153,36 @@ pub fn update_mooc_exercises(
             match stored_course_exercises(client, auth, course_config) {
                 Ok(slides) => server_exercises.extend(slides),
                 // An exam stops being served once it ends; that must not block the other courses.
-                Err(err) if CourseRefusalKind::of(&err).is_some() => {
+                Err(err) => {
+                    let Some(kind) = CourseRefusalKind::of(&err) else {
+                        return Err(err.into());
+                    };
                     log::warn!(
                         "skipping the update of course {}: {err}",
                         course_config.course_id
                     );
+                    let failure = match kind {
+                        CourseRefusalKind::NotFound => MoocDownloadFailure::NotFound,
+                        CourseRefusalKind::Forbidden | CourseRefusalKind::InsufficientScope => {
+                            MoocDownloadFailure::Other
+                        }
+                    };
+                    let reason = error_chain(&LangsError::from(err));
+                    for (exercise_id, exercise) in &course_config.exercises {
+                        failed.push((
+                            MoocExerciseDownload {
+                                exercise_id: *exercise_id,
+                                path: ProjectsConfig::get_mooc_exercise_download_target(
+                                    projects_dir,
+                                    &course_config.directory,
+                                    &exercise.directory,
+                                ),
+                            },
+                            reason.clone(),
+                            failure,
+                        ));
+                    }
                 }
-                Err(err) => return Err(err.into()),
             }
         }
         for slide in server_exercises {
@@ -1220,7 +1245,7 @@ pub fn update_mooc_exercises(
     Ok(DownloadOrUpdateMoocCourseExercisesResult {
         downloaded,
         skipped: vec![],
-        failed: None,
+        failed: (!failed.is_empty()).then_some(failed),
     })
 }
 
@@ -1506,7 +1531,12 @@ pub fn download_or_update_mooc_course_exercises(
     let mut planned = Vec::new();
     // Directories given to exercises earlier in this batch, which are not in the config yet.
     let mut reserved_directories: HashMap<Uuid, HashSet<String>> = HashMap::new();
+    let mut seen_exercise_ids = HashSet::new();
     for &exercise_id in exercise_ids {
+        // A repeat would be planned into a second directory and extracted in parallel.
+        if !seen_exercise_ids.insert(exercise_id) {
+            continue;
+        }
         let Some((course, slide)) = resolved.get(&exercise_id) else {
             let (reason, failure) = match closed.remove(&exercise_id) {
                 Some(reason) => (reason, MoocDownloadFailure::ClosedChapter),
@@ -3751,6 +3781,11 @@ checksum = 'new checksum'
         let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
 
         assert!(result.downloaded.is_empty());
+        let failed = result
+            .failed
+            .expect("the unserved course's exercise is reported");
+        assert_eq!(failed.len(), 1);
+        assert_eq!(failed[0].2, MoocDownloadFailure::NotFound);
     }
 
     #[test]

@@ -423,16 +423,22 @@ pub(crate) fn directory_name(name: &str) -> String {
 /// Whether a stored directory name is a single, harmless path component. Names stored by
 /// versions before [`directory_name`] may not be.
 pub(crate) fn is_safe_directory_name(directory: &str) -> bool {
-    directory == directory_name(directory)
-        || (!directory.is_empty()
-            && directory != "."
-            && directory != ".."
-            && !directory.ends_with(['.', ' '])
-            && !is_windows_device_name(directory.split('.').next().unwrap_or_default())
-            && directory.chars().all(|c| {
-                !c.is_control()
-                    && !matches!(c, '/' | '\\' | ':' | '<' | '>' | '"' | '|' | '?' | '*')
-            }))
+    if directory == directory_name(directory) {
+        return true;
+    }
+    let is_one_component = !directory.is_empty()
+        && directory != "."
+        && directory != ".."
+        && !directory.contains(['/', '\\', '\0']);
+    // Older versions kept characters such as ':' that only Windows rejects, and those
+    // directories exist and hold work everywhere else.
+    is_one_component
+        && (!cfg!(windows)
+            || (!directory.ends_with(['.', ' '])
+                && !is_windows_device_name(directory.split('.').next().unwrap_or_default())
+                && directory.chars().all(|c| {
+                    !c.is_control() && !matches!(c, ':' | '<' | '>' | '"' | '|' | '?' | '*')
+                })))
 }
 
 fn is_windows_device_name(name: &str) -> bool {
@@ -1041,11 +1047,18 @@ checksum = "defg4567"
 
     #[test]
     fn stored_directory_names_with_path_syntax_are_unsafe() {
-        for unsafe_name in ["..", ".", "", "a/b", "a\\b", "c:", "nul", "aux.txt", "dot."] {
+        for unsafe_name in ["..", ".", "", "a/b", "a\\b"] {
             assert!(!is_safe_directory_name(unsafe_name), "{unsafe_name}");
         }
         for safe_name in ["exercise-1", "My Exercise", "ex.1"] {
             assert!(is_safe_directory_name(safe_name), "{safe_name}");
+        }
+        for windows_invalid_name in ["c:", "nul", "aux.txt", "dot.", "part-1:-hello-world"] {
+            assert_eq!(
+                is_safe_directory_name(windows_invalid_name),
+                !cfg!(windows),
+                "{windows_invalid_name}"
+            );
         }
     }
 

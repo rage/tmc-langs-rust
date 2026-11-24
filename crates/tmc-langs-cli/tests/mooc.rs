@@ -1556,6 +1556,8 @@ directory = "skip-me"
             &ex_new.to_string(),
             &ex_browser.to_string(),
             &ex_missing.to_string(),
+            // a repeat must not be downloaded into a second directory
+            &ex_new.to_string(),
         ],
         config_dir.path(),
         projects_root.path(),
@@ -1567,6 +1569,9 @@ directory = "skip-me"
             assert_eq!(result.downloaded.len(), 1, "one downloaded");
             // results are keyed by the requested exercise id, not the editor task id
             assert_eq!(result.downloaded[0].exercise_id, ex_new);
+            let downloaded = &result.downloaded[0].path;
+            assert!(downloaded.ends_with("new-exercise"), "{downloaded:?}");
+            assert!(!downloaded.with_file_name("new-exercise-1").exists());
             assert_eq!(result.skipped.len(), 1, "one skipped");
             assert_eq!(result.skipped[0].exercise_id, ex_skip);
             assert_eq!(
