@@ -840,6 +840,58 @@ mod test {
     }
 
     #[test]
+    fn extraction_creates_no_links() {
+        let outside = tempfile::tempdir().unwrap();
+        let mut tar = Builder::new(Vec::new());
+        for (entry_type, name) in [
+            (tar::EntryType::Symlink, "symlink"),
+            (tar::EntryType::Link, "hardlink"),
+        ] {
+            let mut header = tar::Header::new_gnu();
+            header.set_entry_type(entry_type);
+            header.set_size(0);
+            header.set_cksum();
+            tar.append_link(&mut header, name, outside.path()).unwrap();
+            let mut header = tar::Header::new_gnu();
+            header.set_size(4);
+            tar.append_data(&mut header, format!("{name}/file"), &b"data"[..])
+                .unwrap();
+        }
+        let tar = tar.into_inner().unwrap();
+        let mut zip = ZipWriter::new(Cursor::new(vec![]));
+        zip.add_symlink(
+            "symlink",
+            outside.path().to_string_lossy(),
+            SimpleFileOptions::default(),
+        )
+        .unwrap();
+        zip.start_file("symlink/file", SimpleFileOptions::default())
+            .unwrap();
+        zip.write_all(b"data").unwrap();
+        let zip = zip.finish().unwrap().into_inner();
+        let zstd = zstd::encode_all(Cursor::new(tar.clone()), 0).unwrap();
+
+        for (compression, bytes) in [
+            (Compression::Tar, tar),
+            (Compression::TarZstd, zstd),
+            (Compression::Zip, zip),
+        ] {
+            let temp = tempfile::tempdir().unwrap();
+            Archive::new(Cursor::new(bytes), compression)
+                .unwrap()
+                .extract(temp.path())
+                .unwrap();
+            for name in ["symlink", "hardlink"] {
+                assert!(!temp.path().join(name).is_symlink(), "{compression} {name}");
+            }
+            assert!(
+                std::fs::read_dir(outside.path()).unwrap().next().is_none(),
+                "{compression} wrote through a link"
+            );
+        }
+    }
+
+    #[test]
     fn extraction_writes_safe_entries() {
         for (compression, bytes) in archives_with_entry("dir/Makefile", b"all:") {
             let temp = tempfile::tempdir().unwrap();
