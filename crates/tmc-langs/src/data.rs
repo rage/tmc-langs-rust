@@ -40,8 +40,8 @@ pub struct LocalTmcExercise {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalMoocExercise {
-    /// The course's on-disk directory name. Mooc courses have no server-side
-    /// slug; this is the kebab-cased course name, deduplicated locally.
+    /// The course's on-disk directory name, derived from the course name and unique among the
+    /// local courses. Not the course's server-side `slug`.
     pub course_slug: String,
     pub course_id: Uuid,
     /// The exercise's on-disk directory name, used as its slug (mirrors the TMC

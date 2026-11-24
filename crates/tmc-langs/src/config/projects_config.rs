@@ -27,7 +27,7 @@ pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
     // slug => course
     pub tmc_courses: HashMap<String, TmcCourseConfig>,
-    // instance_id => course
+    // course_id => course
     pub mooc_courses: HashMap<Uuid, MoocCourseConfig>,
 }
 
@@ -61,7 +61,7 @@ impl ProjectsConfig {
                 if let Some(course_config) =
                     Self::read_mooc_course_config(&mooc_projects_dir, entry.path())?
                 {
-                    mooc_course_configs.insert(course_config.instance_id, course_config);
+                    mooc_course_configs.insert(course_config.course_id, course_config);
                     continue;
                 }
                 // Versions that kept a '/' in course names wrote the config one level deeper.
@@ -80,7 +80,7 @@ impl ProjectsConfig {
                     unexpected_entries.push(entry);
                 }
                 for course_config in nested_configs {
-                    mooc_course_configs.insert(course_config.instance_id, course_config);
+                    mooc_course_configs.insert(course_config.course_id, course_config);
                 }
             }
         }
@@ -335,11 +335,11 @@ impl ProjectsConfig {
 
     pub fn get_mooc_exercise(
         &self,
-        instance_id: Uuid,
+        course_id: Uuid,
         exercise_id: Uuid,
     ) -> Option<&ProjectsDirMoocExercise> {
         self.mooc_courses
-            .get(&instance_id)
+            .get(&course_id)
             .and_then(|c| c.exercises.get(&exercise_id))
     }
 
@@ -364,7 +364,6 @@ impl ProjectsConfig {
     /// Note: does not save the config on initialization.
     pub fn get_or_init_mooc_course_config(
         &mut self,
-        instance_id: Uuid,
         course_id: Uuid,
         course_name: String,
         is_exam: bool,
@@ -374,12 +373,11 @@ impl ProjectsConfig {
             self.mooc_courses.values().map(|mc| mc.directory.as_str()),
         );
         self.mooc_courses
-            .entry(instance_id)
+            .entry(course_id)
             .or_insert(MoocCourseConfig {
                 course: course_name,
                 exercises: BTreeMap::new(),
                 course_id,
-                instance_id,
                 directory,
                 is_exam,
             })
@@ -534,8 +532,8 @@ impl TmcCourseConfig {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MoocCourseConfig {
     /// The exam's id when `is_exam`.
+    /// Older files also have an `instance_id`, always equal to this; it is ignored.
     pub course_id: Uuid,
-    pub instance_id: Uuid,
     /// The course's name.
     pub course: String,
     pub directory: String,
@@ -1033,7 +1031,6 @@ checksum = "defg4567"
     fn names_equal_up_to_case_or_spacing_get_distinct_directories() {
         let mut course = MoocCourseConfig {
             course_id: Uuid::new_v4(),
-            instance_id: Uuid::new_v4(),
             course: "c".to_string(),
             directory: "c".to_string(),
             is_exam: false,
@@ -1073,7 +1070,6 @@ checksum = "defg4567"
         let temp = tempfile::TempDir::new().unwrap();
 
         let course_id = Uuid::new_v4();
-        let instance_id = Uuid::new_v4();
         let task_id = Uuid::new_v4();
         let exercise_id = Uuid::new_v4();
 
@@ -1089,7 +1085,6 @@ checksum = "defg4567"
         );
         let course_config = MoocCourseConfig {
             course_id,
-            instance_id,
             course: "My MOOC Course".to_string(),
             directory: "my-mooc-course".to_string(),
             is_exam: false,
@@ -1113,7 +1108,7 @@ checksum = "defg4567"
 
         let pc = ProjectsConfig::load(temp.path()).unwrap();
         assert_eq!(pc.mooc_courses.len(), 1);
-        let cc = pc.mooc_courses.get(&instance_id).unwrap();
+        let cc = pc.mooc_courses.get(&course_id).unwrap();
         assert_eq!(cc.course, "My MOOC Course");
         assert_eq!(cc.directory, "my-mooc-course");
         assert_eq!(cc.course_id, course_id);

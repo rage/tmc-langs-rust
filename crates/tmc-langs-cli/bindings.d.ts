@@ -90,8 +90,8 @@ export type LocalTmcExercise = {
 
 export type LocalMoocExercise = { 
 /**
- * The course's on-disk directory name. Mooc courses have no server-side
- * slug; this is the kebab-cased course name, deduplicated locally.
+ * The course's on-disk directory name, derived from the course name and unique among the
+ * local courses. Not the course's server-side `slug`.
  */
 "course-slug": string, "course-id": string,
 /**

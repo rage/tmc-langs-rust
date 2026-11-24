@@ -571,17 +571,6 @@ impl MoocClient {
         Ok(res.into())
     }
 
-    /// Fetches each exercise by its exercise id, one slide per id. Each slide
-    /// carries `exercise_id` so callers can correlate results back to requests.
-    pub fn get_exercises(&self, exercise_ids: &[Uuid]) -> MoocClientResult<Vec<TmcExerciseSlide>> {
-        // todo: implement in a single request...
-        let mut slides = Vec::new();
-        for exercise_id in exercise_ids {
-            slides.push(self.exercise(*exercise_id)?);
-        }
-        Ok(slides)
-    }
-
     /// Returns the current user's past submissions and snapshots of an exercise, newest first.
     /// Each item's `id` is the value passed to [`MoocClient::download_submission_files`] and
     /// [`MoocClient::share_submission`].
@@ -1310,15 +1299,6 @@ impl From<api::Exam> for Exam {
             answerable_until: value.answerable_until,
         }
     }
-}
-
-#[derive(Debug, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts-rs", derive(TS))]
-pub struct CourseInfo {
-    pub id: Uuid,
-    pub slug: String,
-    pub name: String,
-    pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
@@ -2237,7 +2217,7 @@ mod test {
     }
 
     #[test]
-    fn gets_exercises_batched() {
+    fn gets_an_exercise_with_its_editor_task() {
         // Exercises the typed editor PublicSpec path and checksum derivation.
         init();
         let mut server = Server::new();
@@ -2274,10 +2254,9 @@ mod test {
                 .to_string(),
             )
             .create();
-        let slides = client
-            .get_exercises(&[Uuid::parse_str(exercise_id).unwrap()])
-            .unwrap();
-        assert_eq!(slides.len(), 1);
+        let slides = [client
+            .exercise(Uuid::parse_str(exercise_id).unwrap())
+            .unwrap()];
         assert_eq!(slides[0].exercise_id, Uuid::parse_str(exercise_id).unwrap());
         assert_eq!(slides[0].tasks.len(), 1);
         assert_eq!(

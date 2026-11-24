@@ -1048,7 +1048,7 @@ pub fn update_mooc_exercises(
     // Owned snapshot keyed by exercise id (not the editor task id), so
     // `projects_config` can be mutated below.
     struct LocalMoocExerciseInfo {
-        instance_id: Uuid,
+        course_id: Uuid,
         course_directory: String,
         exercise_directory: String,
         exercise_name: String,
@@ -1057,12 +1057,12 @@ pub fn update_mooc_exercises(
     let locals: HashMap<Uuid, LocalMoocExerciseInfo> = projects_config
         .mooc_courses
         .iter()
-        .flat_map(|(instance_id, cc)| {
+        .flat_map(|(course_id, cc)| {
             cc.exercises.iter().map(move |(id, e)| {
                 (
                     *id,
                     LocalMoocExerciseInfo {
-                        instance_id: *instance_id,
+                        course_id: *course_id,
                         course_directory: cc.directory.clone(),
                         exercise_directory: e.directory.clone(),
                         exercise_name: e.name.clone(),
@@ -1114,12 +1114,12 @@ pub fn update_mooc_exercises(
                 .or_else(|| {
                     projects_config
                         .mooc_courses
-                        .get(&local.instance_id)
+                        .get(&local.course_id)
                         .and_then(|cc| cc.exercises.get(&slide.exercise_id))
                         .map(|e| e.task_id)
                 })
                 .unwrap_or_else(Uuid::nil);
-            if let Some(course_config) = projects_config.mooc_courses.get_mut(&local.instance_id) {
+            if let Some(course_config) = projects_config.mooc_courses.get_mut(&local.course_id) {
                 course_config.add_exercise(
                     slide.exercise_id,
                     local.exercise_name.clone(),
@@ -1456,7 +1456,6 @@ pub fn download_or_update_mooc_course_exercises(
         let exercise_name = slide.exercise_name.clone();
 
         let course_config = projects_config.get_or_init_mooc_course_config(
-            course.id,
             course.id,
             course.name.clone(),
             course.is_exam,
@@ -2288,12 +2287,11 @@ mod test {
     }
 
     /// Writes a mooc course config with one exercise and creates its directory so
-    /// the loader doesn't prune it. Returns (instance_id, exercise_id, task_id).
+    /// the loader doesn't prune it. Returns (course_id, exercise_id, task_id).
     fn write_mooc_course_config(
         projects_dir: &std::path::Path,
         local_checksum: &str,
     ) -> (Uuid, Uuid, Uuid) {
-        let instance_id = Uuid::new_v4();
         let course_id = Uuid::new_v4();
         let exercise_id = Uuid::new_v4();
         let task_id = Uuid::new_v4();
@@ -2303,7 +2301,6 @@ mod test {
             format!(
                 r#"
 course_id = "{course_id}"
-instance_id = "{instance_id}"
 course = "My Course"
 directory = "my-course"
 
@@ -2317,7 +2314,7 @@ directory = "ex-1"
         );
         // the exercise dir must exist or the loader prunes it from the config
         std::fs::create_dir_all(projects_dir.join("mooc/my-course/ex-1")).unwrap();
-        (instance_id, exercise_id, task_id)
+        (course_id, exercise_id, task_id)
     }
 
     /// JSON for a single exercise slide carrying one editor task with a public
@@ -3207,7 +3204,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
         // The check must batch via the course-exercises route; only it is mocked,
@@ -3357,7 +3354,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
         let removed_id = add_second_mooc_exercise(projects_dir.path());
 
@@ -3408,7 +3405,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "same checksum");
         let closed_id = add_second_mooc_exercise(projects_dir.path());
 
@@ -3458,7 +3455,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "same checksum");
         let closed_id = add_second_mooc_exercise(projects_dir.path());
 
@@ -3501,7 +3498,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "same checksum");
 
         let _m = server
@@ -3537,7 +3534,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
         let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
@@ -3579,7 +3576,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
         let exercise_dir = projects_dir.path().join("mooc/my-course/ex-1");
         file_to(&exercise_dir, "build.xml", "<project/>");
@@ -3638,7 +3635,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
         let exercise_dir = projects_dir.path().join("mooc/my-course/ex-1");
         file_to(&exercise_dir, "src/old.py", "student work");
@@ -3694,7 +3691,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
         let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
