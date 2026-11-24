@@ -508,7 +508,12 @@ locking_status: ChapterLockingStatus | null, }
 
 export type ChapterLockingStatus = "Unlocked" | "CompletedAndLocked" | "NotUnlockedYet";
 
-export type TmcExerciseTask = { task_id: string, order_number: number, assignment: unknown, public_spec: PublicSpec | null, model_solution_spec: ModelSolutionSpec | null, checksum: string | null,
+export type TmcExerciseTask = { task_id: string, order_number: number, assignment: unknown,
+/**
+ * The plain text of `assignment`, one entry per block that has text, nested blocks after
+ * their parent. Absent when it has none, and from CLIs older than this field.
+ */
+instructions_text?: Array<string>, public_spec: PublicSpec | null, model_solution_spec: ModelSolutionSpec | null, checksum: string | null,
 /**
  * The exercise service that owns the task. Specs are read only for [`TMC_SERVICE_SLUG`];
  * any other service's task has neither spec.

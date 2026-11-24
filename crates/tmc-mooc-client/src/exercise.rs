@@ -195,6 +195,11 @@ pub struct TmcExerciseTask {
     pub task_id: Uuid,
     pub order_number: i32,
     pub assignment: serde_json::Value,
+    /// The plain text of `assignment`, one entry per block that has text, nested blocks after
+    /// their parent. Absent when it has none, and from CLIs older than this field.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "ts-rs", ts(as = "Option<Vec<String>>", optional))]
+    pub instructions_text: Vec<String>,
     pub public_spec: Option<PublicSpec>,
     pub model_solution_spec: Option<ModelSolutionSpec>,
     pub checksum: Option<String>,
@@ -219,6 +224,7 @@ impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
         let task = Self {
             task_id: value.task_id,
             order_number: value.order_number,
+            instructions_text: block_texts(&value.assignment),
             assignment: value.assignment,
             checksum: public_spec.as_ref().map(|ps| ps.checksum.clone()),
             public_spec,
@@ -230,6 +236,89 @@ impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
             exercise_service_slug: value.exercise_service_slug,
         };
         Ok(task)
+    }
+}
+
+/// The text of Gutenberg blocks, as courses.mooc.fi stores an assignment: each block's
+/// `attributes.content` HTML as plain text, then its `innerBlocks`'.
+fn block_texts(blocks: &serde_json::Value) -> Vec<String> {
+    let Some(blocks) = blocks.as_array() else {
+        return vec![];
+    };
+    let mut texts = vec![];
+    for block in blocks {
+        let text = block
+            .pointer("/attributes/content")
+            .and_then(serde_json::Value::as_str)
+            .map(html_to_text)
+            .unwrap_or_default();
+        if !text.is_empty() {
+            texts.push(text);
+        }
+        if let Some(inner_blocks) = block.get("innerBlocks") {
+            texts.extend(block_texts(inner_blocks));
+        }
+    }
+    texts
+}
+
+/// Inline HTML as plain text: `<br>` becomes a line break, other tags are dropped and character
+/// references decoded.
+fn html_to_text(html: &str) -> String {
+    let mut text = String::with_capacity(html.len());
+    let mut rest = html;
+    while let Some(start) = rest.find(['<', '&']) {
+        text.push_str(&rest[..start]);
+        rest = &rest[start..];
+        if rest.starts_with('<') {
+            let Some(end) = rest.find('>') else {
+                text.push_str(rest);
+                rest = "";
+                break;
+            };
+            let tag = rest[1..end].trim().to_ascii_lowercase();
+            if tag == "br" || tag.starts_with("br ") || tag.starts_with("br/") {
+                text.push('\n');
+            }
+            rest = &rest[end + 1..];
+        } else {
+            let decoded = rest
+                .find(';')
+                .filter(|&end| end <= 10)
+                .and_then(|end| Some((decode_character_reference(&rest[1..end])?, end)));
+            match decoded {
+                Some((c, end)) => {
+                    text.push(c);
+                    rest = &rest[end + 1..];
+                }
+                None => {
+                    text.push('&');
+                    rest = &rest[1..];
+                }
+            }
+        }
+    }
+    text.push_str(rest);
+    text.trim().to_string()
+}
+
+/// The character `&name;` stands for, given `name`.
+fn decode_character_reference(name: &str) -> Option<char> {
+    if let Some(number) = name.strip_prefix('#') {
+        let code = match number.strip_prefix(['x', 'X']) {
+            Some(hex) => u32::from_str_radix(hex, 16).ok()?,
+            None => number.parse().ok()?,
+        };
+        return char::from_u32(code);
+    }
+    match name {
+        "amp" => Some('&'),
+        "lt" => Some('<'),
+        "gt" => Some('>'),
+        "quot" => Some('"'),
+        "apos" => Some('\''),
+        "nbsp" => Some('\u{a0}'),
+        _ => None,
     }
 }
 
@@ -450,6 +539,35 @@ mod test {
         assert!(slide.tasks[0].model_solution_spec.is_none());
         assert_eq!(slide.editor_task_id(), None);
         assert_eq!(slide.unsupported, Some(MoocDownloadFailure::BrowserOnly));
+    }
+
+    #[test]
+    fn instructions_text_is_the_plain_text_of_the_assignment_blocks() {
+        let assignment = serde_json::json!([
+            {
+                "name": "core/paragraph",
+                "attributes": { "content": "Write a <b>loop</b> &amp; print &lt;3 &#39;x&#x27;." },
+                "innerBlocks": []
+            },
+            {
+                "name": "core/list",
+                "attributes": {},
+                "innerBlocks": [
+                    { "name": "core/list-item", "attributes": { "content": "First<br>Second" } },
+                    { "name": "core/list-item", "attributes": { "content": "  " } }
+                ]
+            },
+            { "name": "core/paragraph", "attributes": { "content": "a & b <unclosed" } }
+        ]);
+        assert_eq!(
+            block_texts(&assignment),
+            [
+                "Write a loop & print <3 'x'.",
+                "First\nSecond",
+                "a & b <unclosed"
+            ]
+        );
+        assert!(block_texts(&serde_json::Value::Null).is_empty());
     }
 
     #[test]
