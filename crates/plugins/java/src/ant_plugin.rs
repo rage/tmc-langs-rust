@@ -448,8 +448,7 @@ mod test {
         let plugin = AntPlugin::new().unwrap();
         let cp = plugin.get_project_class_path(&test_path).unwrap();
 
-        // get_project_class_path, do the same here to avoid mismatches in windows CI
-        let test_path = file_util::canonicalize(&test_path).unwrap();
+        let test_path = absolute_tool_path(&test_path).unwrap();
         let sep = std::path::MAIN_SEPARATOR;
         let expected_junit = format!("{0}{1}lib{1}junit-4.13.2.jar", test_path.display(), sep);
         assert!(
