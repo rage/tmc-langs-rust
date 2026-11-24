@@ -6,6 +6,7 @@ use std::{
     collections::{BTreeMap, HashMap, HashSet, btree_map, hash_map::Entry},
     path::{Path, PathBuf},
 };
+use tmc_langs_framework::{is_valid_windows_file_name, is_windows_device_name};
 use tmc_langs_util::{
     FileError, deserialize,
     file_util::{self, Lock, LockOptions},
@@ -432,21 +433,7 @@ pub(crate) fn is_safe_directory_name(directory: &str) -> bool {
         && !directory.contains(['/', '\\', '\0']);
     // Older versions kept characters such as ':' that only Windows rejects, and those
     // directories exist and hold work everywhere else.
-    is_one_component
-        && (!cfg!(windows)
-            || (!directory.ends_with(['.', ' '])
-                && !is_windows_device_name(directory.split('.').next().unwrap_or_default())
-                && directory.chars().all(|c| {
-                    !c.is_control() && !matches!(c, ':' | '<' | '>' | '"' | '|' | '?' | '*')
-                })))
-}
-
-fn is_windows_device_name(name: &str) -> bool {
-    let name = name.to_ascii_uppercase();
-    matches!(name.as_str(), "CON" | "PRN" | "AUX" | "NUL")
-        || ((name.starts_with("COM") || name.starts_with("LPT"))
-            && name.len() == 4
-            && name[3..].chars().all(|c| c.is_ascii_digit()))
+    is_one_component && (!cfg!(windows) || is_valid_windows_file_name(directory))
 }
 
 /// [`directory_name`] of `name`, suffixed to differ from every `taken` name. Compared without

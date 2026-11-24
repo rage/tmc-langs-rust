@@ -19,7 +19,10 @@ mod test_helpers;
 
 pub use self::{
     archive::{Archive, ArchiveBuilder, Compression, Entry, entry_name},
-    archive_safety::{EntryNameStyle, ExtractionBudget, ExtractionLimits, validate_entry_name},
+    archive_safety::{
+        EntryNameStyle, ExtractionBudget, ExtractionLimits, is_valid_windows_file_name,
+        is_windows_device_name, validate_entry_name,
+    },
     command::{
         BUILD_TIMEOUT, ExitStatus, Output, TmcCommand, batch_command_line,
         output_shows_blocked_executable,

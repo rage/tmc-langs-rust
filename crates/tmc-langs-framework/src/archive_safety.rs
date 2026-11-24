@@ -153,17 +153,34 @@ fn check_component(component: &str) -> Result<(), &'static str> {
     if !cfg!(windows) {
         return Ok(());
     }
-    if component
+    windows_file_name_problem(component).map_or(Ok(()), Err)
+}
+
+/// Whether `name` is a valid file name on Windows, checked on every OS.
+pub fn is_valid_windows_file_name(name: &str) -> bool {
+    windows_file_name_problem(name).is_none()
+}
+
+fn windows_file_name_problem(name: &str) -> Option<&'static str> {
+    if name
         .chars()
         .any(|c| c.is_control() || matches!(c, '<' | '>' | ':' | '"' | '|' | '?' | '*'))
     {
-        return Err("contains a character that is invalid in Windows file names");
+        return Some("contains a character that is invalid in Windows file names");
     }
-    if component.ends_with('.') || component.ends_with(' ') {
-        return Err("ends with a dot or a space");
+    if name.ends_with('.') || name.ends_with(' ') {
+        return Some("ends with a dot or a space");
     }
+    if is_windows_device_name(name) {
+        return Some("is a reserved Windows device name");
+    }
+    None
+}
+
+/// Whether Windows reads the file name `name` as a device, such as `CON` or `aux.txt`.
+pub fn is_windows_device_name(name: &str) -> bool {
     // Windows ignores the extension and trailing spaces when matching device names
-    let stem = component
+    let stem = name
         .split('.')
         .next()
         .unwrap_or_default()
@@ -171,15 +188,11 @@ fn check_component(component: &str) -> Result<(), &'static str> {
         .to_ascii_uppercase();
     let is_numbered_device = |prefix: &str| {
         stem.strip_prefix(prefix)
-            .is_some_and(|n| matches!(n.as_bytes(), [b'1'..=b'9']))
+            .is_some_and(|n| matches!(n, "¹" | "²" | "³") || matches!(n.as_bytes(), [b'0'..=b'9']))
     };
-    if RESERVED_DEVICE_NAMES.contains(&stem.as_str())
+    RESERVED_DEVICE_NAMES.contains(&stem.as_str())
         || is_numbered_device("COM")
         || is_numbered_device("LPT")
-    {
-        return Err("is a reserved Windows device name");
-    }
-    Ok(())
 }
 
 #[cfg(test)]

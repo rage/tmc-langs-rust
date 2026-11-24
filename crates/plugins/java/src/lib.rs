@@ -21,7 +21,6 @@ use serde::Deserialize;
 use std::{
     ffi::OsString,
     fmt::Display,
-    io::Write,
     path::{Path, PathBuf},
     sync::Mutex,
     time::Duration,
@@ -173,21 +172,16 @@ fn ensure_cached_file(path: &Path, bytes: &[u8]) -> Result<(), JavaError> {
     }
 
     log::debug!("writing {}", path.display());
-    let mut temp = file_util::named_temp_file_in(dir)?;
-    temp.write_all(bytes)
-        .and_then(|()| temp.flush())
-        .map_err(|e| JavaError::JarWrite(path.to_path_buf(), e))?;
-    match temp.persist(path) {
-        Ok(_) => Ok(()),
+    match file_util::write_atomically(path, bytes) {
+        Ok(()) => Ok(()),
         Err(err) if path.exists() => {
             log::warn!(
-                "could not replace {}, keeping the existing file: {}",
+                "could not replace {}, keeping the existing file: {err}",
                 path.display(),
-                err.error
             );
             Ok(())
         }
-        Err(err) => Err(JavaError::JarWrite(path.to_path_buf(), err.error)),
+        Err(err) => Err(err.into()),
     }
 }
 

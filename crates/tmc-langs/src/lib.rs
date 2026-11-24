@@ -1150,6 +1150,9 @@ pub fn update_mooc_exercises(
         // One exercise list request per course, not one per exercise.
         let mut server_exercises: Vec<mooc::TmcExerciseSlide> = Vec::new();
         for course_config in projects_config.mooc_courses.values() {
+            if course_config.exercises.is_empty() {
+                continue;
+            }
             match stored_course_exercises(client, auth, course_config) {
                 Ok(slides) => server_exercises.extend(slides),
                 // An exam stops being served once it ends; that must not block the other courses.
@@ -1532,6 +1535,13 @@ pub fn download_or_update_mooc_course_exercises(
     // Directories given to exercises earlier in this batch, which are not in the config yet.
     let mut reserved_directories: HashMap<Uuid, HashSet<String>> = HashMap::new();
     let mut seen_exercise_ids = HashSet::new();
+    let unplanned = |exercise_id, reason, failure| {
+        let download = MoocExerciseDownload {
+            exercise_id,
+            path: projects_dir.join("mooc"),
+        };
+        (download, reason, failure)
+    };
     for &exercise_id in exercise_ids {
         // A repeat would be planned into a second directory and extracted in parallel.
         if !seen_exercise_ids.insert(exercise_id) {
@@ -1548,14 +1558,7 @@ pub fn download_or_update_mooc_course_exercises(
                     MoocDownloadFailure::NotFound,
                 ),
             };
-            failed.push((
-                MoocExerciseDownload {
-                    exercise_id,
-                    path: projects_dir.join("mooc"),
-                },
-                vec![reason],
-                failure,
-            ));
+            failed.push(unplanned(exercise_id, vec![reason], failure));
             continue;
         };
 
@@ -1563,11 +1566,8 @@ pub fn download_or_update_mooc_course_exercises(
             Ok(editor_download) => editor_download,
             Err(err) => {
                 let err = LangsError::from(err);
-                failed.push((
-                    MoocExerciseDownload {
-                        exercise_id,
-                        path: projects_dir.join("mooc"),
-                    },
+                failed.push(unplanned(
+                    exercise_id,
                     error_chain(&err),
                     mooc_download_failure(&err),
                 ));

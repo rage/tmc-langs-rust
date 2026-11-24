@@ -290,9 +290,7 @@ fn reachable_projects_dir(tmc_config: &TmcConfig) -> Result<&Path, LangsError> {
 /// `projects_dir`.
 fn ensure_outside_projects_dir(projects_dir: &Path, dir: &Path) -> Result<(), LangsError> {
     let dir_canon = canonicalize_maybe_missing(dir)?;
-    let projects_dir_canon = projects_dir
-        .canonicalize()
-        .map_err(|e| LangsError::Canonicalize(projects_dir.to_path_buf(), e))?;
+    let projects_dir_canon = file_util::canonicalize(projects_dir)?;
     if dir_canon == projects_dir_canon {
         return Err(LangsError::MovingProjectsDirToItself);
     }
@@ -310,9 +308,7 @@ fn canonicalize_maybe_missing(path: &Path) -> Result<PathBuf, LangsError> {
         .ancestors()
         .find(|ancestor| ancestor.exists())
         .unwrap_or(&absolute);
-    let canon = existing
-        .canonicalize()
-        .map_err(|e| LangsError::Canonicalize(existing.to_path_buf(), e))?;
+    let canon = file_util::canonicalize(existing)?;
     match absolute.strip_prefix(existing) {
         Ok(missing) if !missing.as_os_str().is_empty() => Ok(canon.join(missing)),
         _ => Ok(canon),
