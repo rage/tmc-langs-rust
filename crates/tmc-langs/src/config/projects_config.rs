@@ -547,19 +547,26 @@ pub struct MoocCourseConfig {
 
 impl MoocCourseConfig {
     /// The directory an exercise is or will be stored in: the stored one when it is safe, else
-    /// one derived from `name` that no other exercise of the course uses.
-    pub fn exercise_directory(&self, exercise_id: Uuid, name: &str) -> String {
-        if let Some(existing) = self.exercises.get(&exercise_id) {
-            if is_safe_directory_name(&existing.directory) {
-                return existing.directory.clone();
-            }
+    /// one derived from `name` that no other exercise of the course, and none of `reserved`,
+    /// uses.
+    pub fn exercise_directory<'a>(
+        &'a self,
+        exercise_id: Uuid,
+        name: &str,
+        reserved: impl IntoIterator<Item = &'a String>,
+    ) -> String {
+        if let Some(existing) = self.exercises.get(&exercise_id)
+            && is_safe_directory_name(&existing.directory)
+        {
+            return existing.directory.clone();
         }
         unique_directory_name(
             name,
             self.exercises
                 .iter()
                 .filter(|(id, _)| **id != exercise_id)
-                .map(|(_, exercise)| exercise.directory.as_str()),
+                .map(|(_, exercise)| exercise.directory.as_str())
+                .chain(reserved.into_iter().map(String::as_str)),
         )
     }
 
@@ -1039,7 +1046,7 @@ checksum = "defg4567"
         let mut directories = Vec::new();
         for name in ["U15 Dup", "u15 dup", "u15-dup"] {
             let id = Uuid::new_v4();
-            let directory = course.exercise_directory(id, name);
+            let directory = course.exercise_directory(id, name, []);
             course.add_exercise(id, name.to_string(), id, String::new(), directory.clone());
             directories.push(directory);
         }

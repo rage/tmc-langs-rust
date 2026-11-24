@@ -1008,6 +1008,75 @@ pub fn update_tmc_exercises(
     })
 }
 
+/// One exercise [`download_or_update_mooc_course_exercises`] downloads.
+struct PlannedMoocDownload {
+    exercise_id: Uuid,
+    course_id: Uuid,
+    exercise_name: String,
+    task_id: Uuid,
+    checksum: String,
+    exercise_directory: String,
+    download_url: String,
+    target: PathBuf,
+}
+
+/// Mirrors the TMC path's download thread count.
+const MOOC_DOWNLOAD_THREADS: usize = 4;
+
+/// Downloads and extracts each planned exercise, a few at a time; results are in plan order.
+fn download_mooc_archives_in_parallel(
+    client: &MoocClient,
+    auth: &MoocAuth,
+    planned: &[PlannedMoocDownload],
+) -> Vec<Result<(), DownloadArchiveError>> {
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let results: Vec<std::sync::Mutex<Option<Result<(), DownloadArchiveError>>>> = planned
+        .iter()
+        .map(|_| std::sync::Mutex::new(None))
+        .collect();
+    std::thread::scope(|scope| {
+        for _ in 0..MOOC_DOWNLOAD_THREADS.min(planned.len()) {
+            scope.spawn(|| {
+                loop {
+                    let index = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let Some(plan) = planned.get(index) else {
+                        break;
+                    };
+                    progress_reporter::progress_stage::<mooc::MoocClientUpdateData>(
+                        format!(
+                            "Downloading exercise {} to '{}'",
+                            plan.exercise_id,
+                            plan.target.display()
+                        ),
+                        Some(mooc::MoocClientUpdateData::ExerciseDownload {
+                            id: plan.exercise_id,
+                            path: plan.target.clone(),
+                        }),
+                    );
+                    let result = download_and_extract_mooc_archive(
+                        client,
+                        auth,
+                        &plan.download_url,
+                        &plan.target,
+                    );
+                    *results[index]
+                        .lock()
+                        .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(result);
+                }
+            });
+        }
+    });
+    results
+        .into_iter()
+        .map(|result| {
+            result
+                .into_inner()
+                .unwrap_or_else(|poisoned| poisoned.into_inner())
+                .expect("every planned download is attempted")
+        })
+        .collect()
+}
+
 /// Where [`download_or_update_mooc_course_exercises`] looks the requested exercises up.
 #[derive(Debug, Clone, Copy)]
 pub enum MoocExerciseSource {
@@ -1389,6 +1458,9 @@ pub fn download_or_update_mooc_course_exercises(
         None,
     );
 
+    let mut planned = Vec::new();
+    // Directories given to exercises earlier in this batch, which are not in the config yet.
+    let mut reserved_directories: HashMap<Uuid, HashSet<String>> = HashMap::new();
     for &exercise_id in exercise_ids {
         let Some((course, slide)) = resolved.get(&exercise_id) else {
             let (reason, failure) = match closed.remove(&exercise_id) {
@@ -1461,7 +1533,9 @@ pub fn download_or_update_mooc_course_exercises(
             course.is_exam,
         );
 
-        let exercise_directory = course_config.exercise_directory(exercise_id, &exercise_name);
+        let reserved = reserved_directories.entry(course.id).or_default();
+        let exercise_directory =
+            course_config.exercise_directory(exercise_id, &exercise_name, reserved.iter());
         let target = ProjectsConfig::get_mooc_exercise_download_target(
             projects_dir,
             &course_config.directory,
@@ -1479,48 +1553,46 @@ pub fn download_or_update_mooc_course_exercises(
             }
         }
 
-        progress_reporter::progress_stage::<mooc::MoocClientUpdateData>(
-            format!(
-                "Downloading exercise {exercise_id} to '{}'",
-                target.display()
-            ),
-            Some(mooc::MoocClientUpdateData::ExerciseDownload {
-                id: exercise_id,
-                path: target.clone(),
-            }),
-        );
+        reserved.insert(exercise_directory.clone());
+        planned.push(PlannedMoocDownload {
+            exercise_id,
+            course_id: course.id,
+            exercise_name,
+            task_id,
+            checksum,
+            exercise_directory,
+            download_url,
+            target,
+        });
+    }
 
-        match download_and_extract_mooc_archive(client, auth, &download_url, &target) {
+    let results = download_mooc_archives_in_parallel(client, auth, &planned);
+    let mut permanent_auth_failure = None;
+    let mut changed_courses = HashSet::new();
+    for (plan, result) in planned.into_iter().zip(results) {
+        let exercise_id = plan.exercise_id;
+        match result {
             Ok(()) => {
-                course_config.add_exercise(
-                    exercise_id,
-                    exercise_name,
-                    task_id,
-                    checksum,
-                    exercise_directory,
-                );
-                course_config.save_to_projects_dir(projects_dir)?;
+                if let Some(course_config) = projects_config.mooc_courses.get_mut(&plan.course_id) {
+                    course_config.add_exercise(
+                        exercise_id,
+                        plan.exercise_name,
+                        plan.task_id,
+                        plan.checksum,
+                        plan.exercise_directory,
+                    );
+                    changed_courses.insert(plan.course_id);
+                }
                 downloaded.push(MoocExerciseDownload {
                     exercise_id,
-                    path: target,
+                    path: plan.target,
                 });
             }
-            // No session left, so every remaining item would fail the same way:
-            // surface the auth failure instead of a partial result. Exercises
-            // already downloaded stay on disk and are skipped on retry.
+            // No session left, so the other downloads failed the same way: surface the auth
+            // failure instead of a partial result. Finished downloads are still recorded below
+            // and skipped on retry.
             Err(DownloadArchiveError::Auth(auth_err)) if auth_err.is_permanent() => {
-                progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
-                    "Stopped downloading mooc exercises: not logged in".to_string(),
-                    None,
-                );
-                log::error!(
-                    "mooc auth permanently failed while downloading exercise {exercise_id} \
-                     ({} of {} exercises downloaded, {} skipped): {auth_err}",
-                    downloaded.len(),
-                    exercise_ids.len(),
-                    skipped.len(),
-                );
-                return Err(auth_err.into());
+                permanent_auth_failure.get_or_insert(auth_err);
             }
             Err(err) => {
                 let err: LangsError = err.into();
@@ -1528,13 +1600,32 @@ pub fn download_or_update_mooc_course_exercises(
                 failed.push((
                     MoocExerciseDownload {
                         exercise_id,
-                        path: target,
+                        path: plan.target,
                     },
                     error_chain(&err),
                     failure,
                 ));
             }
         }
+    }
+    for course_id in changed_courses {
+        if let Some(course_config) = projects_config.mooc_courses.get(&course_id) {
+            course_config.save_to_projects_dir(projects_dir)?;
+        }
+    }
+    if let Some(auth_err) = permanent_auth_failure {
+        progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
+            "Stopped downloading mooc exercises: not logged in".to_string(),
+            None,
+        );
+        log::error!(
+            "mooc auth permanently failed while downloading exercises ({} of {} downloaded, {} \
+             skipped): {auth_err}",
+            downloaded.len(),
+            exercise_ids.len(),
+            skipped.len(),
+        );
+        return Err(auth_err.into());
     }
 
     progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
@@ -4457,6 +4548,83 @@ directory = "skip-me"
                 "Exercise {closed_id} is in chapter 2 \"Later\", which opens at 2030-01-01 00:00:00 UTC"
             )]
         );
+    }
+
+    #[test]
+    fn a_batch_of_same_named_exercises_gets_one_folder_each() {
+        init();
+        let mut server = Server::new();
+        let course_id = Uuid::new_v4();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let exercise_ids: Vec<Uuid> = (0..6).map(|_| Uuid::new_v4()).collect();
+        let stub_url = format!("{}/files/stub.tar.zst", server.url());
+
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "id": course_id, "slug": "course", "name": "../Course",
+                    "description": null, "organization_name": "org",
+                })
+                .to_string(),
+            )
+            .create();
+        let slides: Vec<_> = exercise_ids
+            .iter()
+            .enumerate()
+            .map(|(i, id)| {
+                serde_json::json!({
+                    "slide_id": Uuid::new_v4(), "exercise_id": id, "course_id": course_id,
+                    "exercise_name": if i % 2 == 0 { "U15 Dup" } else { "u15-dup" },
+                    "exercise_order_number": i,
+                    "tasks": [{
+                        "task_id": Uuid::new_v4(), "order_number": 0, "assignment": [],
+                        "public_spec": {
+                            "type": "editor", "archive_name": "s.tar.zst",
+                            "stub_download_url": stub_url,
+                            "student_file_paths": ["src/main.py"], "checksum": "sum"
+                        },
+                        "model_solution_spec": null, "exercise_service_slug": "tmc"
+                    }],
+                })
+            })
+            .collect();
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+            )
+            .with_body(serde_json::Value::Array(slides).to_string())
+            .create();
+        server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(make_tar_zst(&[("src/main.py", b"print(1)")]))
+            .expect(6)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = download_or_update_mooc_course_exercises(
+            &client,
+            &auth,
+            projects_dir.path(),
+            &exercise_ids,
+            MoocExerciseSource::Course(course_id),
+        )
+        .unwrap();
+
+        assert_eq!(result.downloaded.len(), 6, "{result:?}");
+        let folders: HashSet<_> = result.downloaded.iter().map(|d| d.path.clone()).collect();
+        assert_eq!(folders.len(), 6);
+        for folder in &folders {
+            assert!(folder.starts_with(projects_dir.path().join("mooc/course")));
+            assert!(folder.join("src/main.py").is_file());
+        }
+        let reloaded = ProjectsConfig::load(projects_dir.path()).unwrap();
+        assert_eq!(reloaded.mooc_courses[&course_id].exercises.len(), 6);
     }
 
     /// Serializes the env-dependent auth tests with the crate's other
