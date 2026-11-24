@@ -1060,14 +1060,14 @@ checksum = "defg4567"
         let id = Uuid::new_v4();
         file_to(
             &temp,
-            "mooc/ohjelmointi:-osa-1/2/course_config.toml",
+            "mooc/Ohjelmointi osa 1/2/course_config.toml",
             format!(
                 "course_id = \"{id}\"\ninstance_id = \"{id}\"\ncourse = \"c\"\n\
                  directory = \"../../elsewhere\"\n"
             ),
         );
         let pc = ProjectsConfig::load(temp.path()).unwrap();
-        assert_eq!(pc.mooc_courses[&id].directory, "ohjelmointi:-osa-1/2");
+        assert_eq!(pc.mooc_courses[&id].directory, "Ohjelmointi osa 1/2");
     }
 
     #[test]
