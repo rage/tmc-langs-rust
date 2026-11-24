@@ -49,6 +49,32 @@ use uuid::Uuid;
 /// obsolete clients with `426 Upgrade Required`.
 const CLIENT_VERSION_HEADER: &str = "X-Client-Version";
 
+static USER_AGENT: RwLock<Option<String>> = RwLock::new(None);
+
+/// Names the program driving this client (e.g. `vscode_plugin` and its version) in the
+/// `User-Agent` of requests made after this, so courses.mooc.fi can tell frontend releases
+/// apart, as the langs version in [`CLIENT_VERSION_HEADER`] cannot.
+pub fn set_frontend(name: &str, version: Option<&str>) {
+    let frontend = match version {
+        Some(version) => format!("{name}/{version}"),
+        None => name.to_string(),
+    };
+    *USER_AGENT
+        .write()
+        .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(format!(
+        "{frontend} tmc-langs/{}",
+        env!("CARGO_PKG_VERSION")
+    ));
+}
+
+pub(crate) fn user_agent() -> String {
+    USER_AGENT
+        .read()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .clone()
+        .unwrap_or_else(|| format!("tmc-langs/{}", env!("CARGO_PKG_VERSION")))
+}
+
 /// Env knob (`=1`) that also trusts `localhost`/`127.0.0.1` as bearer-token
 /// destinations. Off by default so production never sends the token to a local
 /// host; tests and local development opt in.
@@ -142,6 +168,7 @@ impl MoocClient {
         }
 
         let client = Client::builder()
+            .user_agent(user_agent())
             .timeout(REQUEST_TIMEOUT)
             .connect_timeout(REQUEST_TIMEOUT)
             .build()

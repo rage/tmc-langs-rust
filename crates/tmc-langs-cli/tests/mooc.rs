@@ -4190,3 +4190,28 @@ fn wait_for_grading_stops_at_a_definitive_refusal() {
     );
     assert_error_kind(error, "not-found");
 }
+
+#[test]
+fn requests_name_the_frontend_and_its_version() {
+    let mut server = mockito::Server::new();
+    let courses = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .match_header(
+            "user-agent",
+            mockito::Matcher::Regex(r"^test/4\.0\.0 tmc-langs/\S+$".to_string()),
+        )
+        .with_body("[]")
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    run_mooc_in(
+        &server,
+        &["--client-version", "4.0.0", "courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    )
+    .unwrap();
+    courses.assert();
+}

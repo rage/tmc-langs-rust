@@ -539,6 +539,9 @@ pub struct Mooc {
     /// Name used to differentiate between different frontends (e.g. the VSCode extension).
     #[clap(long, short)]
     pub client_name: String,
+    /// The frontend's own version, sent to courses.mooc.fi with `client_name`.
+    #[clap(long, short = 'v')]
+    pub client_version: Option<String>,
     #[clap(subcommand)]
     pub command: MoocCommand,
 }

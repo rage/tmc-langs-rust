@@ -832,6 +832,7 @@ fn tmc_logout(client_name: &str) -> Result<CliOutput> {
 fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
     let client_name = &tmc.client_name;
     let client_version = &tmc.client_version;
+    mooc::set_frontend(client_name, Some(client_version));
     let root_url = env::var("TMC_LANGS_TMC_ROOT_URL")
         .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
         .parse()
@@ -1283,6 +1284,7 @@ fn mooc_root_url() -> Result<url::Url> {
 }
 
 fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
+    mooc::set_frontend(&mooc.client_name, mooc.client_version.as_deref());
     let root_url = mooc_root_url()?;
     let client_id = mooc_client_id();
     let client_name = mooc.client_name.clone();

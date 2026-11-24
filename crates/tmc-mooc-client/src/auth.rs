@@ -39,6 +39,7 @@ pub const AUTH_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 /// Panics if the client cannot be built, like `reqwest::blocking::Client::new()`.
 fn auth_client() -> Client {
     Client::builder()
+        .user_agent(crate::user_agent())
         .timeout(AUTH_REQUEST_TIMEOUT)
         .build()
         .expect("failed to build auth HTTP client")
