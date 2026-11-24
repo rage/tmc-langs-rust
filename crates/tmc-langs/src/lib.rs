@@ -27,8 +27,8 @@ pub use crate::{
         CombinedCourseData, CombinedMoocCourseData, ConfigValue,
         DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
         LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocDownloadFailure,
-        MoocExerciseDownload, MoocOldSubmissionRestore, TmcDownloadResult, TmcExerciseDownload,
-        TmcParams,
+        MoocExerciseDownload, MoocOldSubmissionRestore, TmcDownloadFailure, TmcDownloadResult,
+        TmcExerciseDownload, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
@@ -716,17 +716,11 @@ pub fn download_or_update_course_exercises(
     // return information about the downloads
     let downloaded = successful.into_iter().map(|t| t.target).collect();
     if !failed.is_empty() {
-        // add an error trace to each failed download
         let failed = failed
             .into_iter()
             .map(|(target, err)| {
-                let mut error = &err as &dyn std::error::Error;
-                let mut chain = vec![error.to_string()];
-                while let Some(source) = error.source() {
-                    chain.push(source.to_string());
-                    error = source;
-                }
-                (target.target, chain)
+                let failure = TmcDownloadFailure::of(&err);
+                (target.target, error_chain(&err), failure)
             })
             .collect();
         return Ok(TmcDownloadResult::Failure {
@@ -1225,6 +1219,30 @@ pub fn update_mooc_exercises(
         skipped: vec![],
         failed: None,
     })
+}
+
+impl TmcDownloadFailure {
+    fn of(err: &LangsError) -> Self {
+        match err {
+            LangsError::TestMyCodeClient(err) => match err.as_ref() {
+                tmc::TestMyCodeClientError::HttpError { status, .. } if status.as_u16() == 404 => {
+                    Self::NotFound
+                }
+                tmc::TestMyCodeClientError::HttpError { status, .. }
+                    if status.is_server_error() =>
+                {
+                    Self::ServerError
+                }
+                tmc::TestMyCodeClientError::ConnectionError(..) => Self::ConnectionError,
+                _ => Self::Other,
+            },
+            LangsError::Tmc(_)
+            | LangsError::FileError(_)
+            | LangsError::Plugin(_)
+            | LangsError::Zip(_) => Self::ExtractFailed,
+            _ => Self::Other,
+        }
+    }
 }
 
 impl MoocDownloadFailure {
@@ -2866,6 +2884,72 @@ checksum = 'old checksum'
         download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
         let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
         assert_eq!(s, "file contents");
+    }
+
+    #[test]
+    fn failed_tmc_downloads_say_why_they_failed() {
+        init();
+        let mut server = Server::new();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let client = mock_testmycode_client(&server);
+
+        let details = |id: u32| ExercisesDetails {
+            id,
+            checksum: "checksum".to_string(),
+            course_name: "course".to_string(),
+            exercise_name: format!("exercise{id}"),
+            hide_submission_results: false,
+        };
+        let mut body = HashMap::new();
+        body.insert("exercises", vec![details(1), details(2), details(3)]);
+        let _details = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exercises/details".to_string()),
+            )
+            .with_body(serde_json::to_string(&body).unwrap())
+            .create();
+        let _missing = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("core/exercises/1/download".to_string()),
+            )
+            .with_status(404)
+            .create();
+        let _server_error = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("core/exercises/2/download".to_string()),
+            )
+            .with_status(500)
+            .create();
+        let _broken = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("core/exercises/3/download".to_string()),
+            )
+            .with_body("not a zip")
+            .create();
+
+        let TmcDownloadResult::Failure { mut failed, .. } =
+            download_or_update_course_exercises(&client, projects_dir.path(), &[1, 2, 3], true)
+                .unwrap()
+        else {
+            panic!("the downloads should have failed");
+        };
+        failed.sort_by_key(|(download, ..)| download.id);
+        let failures = failed
+            .iter()
+            .map(|(download, _, failure)| (download.id, *failure))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            failures,
+            [
+                (1, TmcDownloadFailure::NotFound),
+                (2, TmcDownloadFailure::ServerError),
+                (3, TmcDownloadFailure::ExtractFailed),
+            ]
+        );
     }
 
     #[test]

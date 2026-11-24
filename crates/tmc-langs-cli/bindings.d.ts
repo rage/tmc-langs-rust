@@ -240,7 +240,11 @@ export type UncheckedMoocCourse = { course_id: string, kind: CourseRefusalKind, 
 
 export type CourseRefusalKind = "insufficient-scope" | "forbidden" | "not-found";
 
-export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
+export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>,
+/**
+ * Each failure with its error chain, outermost first, and why it failed.
+ */
+failed?: Array<[TmcExerciseDownload, Array<string>, TmcDownloadFailure]>, }
 
 export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>,
 /**
@@ -704,6 +708,8 @@ export type MoocClientUpdateData = { "client-update-data-kind": "exercise-downlo
 export type MoocOldSubmissionRestore = "restored" | "nothing-to-download";
 
 export type MoocDownloadFailure = "not-found" | "closed-chapter" | "browser-only" | "several-editor-tasks" | "file-missing" | "server-error" | "connection-error" | "extract-failed" | "other";
+
+export type TmcDownloadFailure = "not-found" | "server-error" | "connection-error" | "extract-failed" | "other";
 
 export type CombinedMoocCourseData = { course: MoocCourse, slides: Array<TmcExerciseSlide>, progress: CourseProgress, }
 

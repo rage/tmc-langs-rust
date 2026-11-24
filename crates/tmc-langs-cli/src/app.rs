@@ -1662,6 +1662,7 @@ mod test {
             tmc_langs::mooc::MoocClientUpdateData,
             tmc_langs::MoocOldSubmissionRestore,
             tmc_langs::MoocDownloadFailure,
+            tmc_langs::TmcDownloadFailure,
             tmc_langs::CombinedMoocCourseData,
         )
         .unwrap();

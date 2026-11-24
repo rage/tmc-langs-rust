@@ -189,7 +189,7 @@ pub enum TmcDownloadResult {
     Failure {
         downloaded: Vec<TmcExerciseDownload>,
         skipped: Vec<TmcExerciseDownload>,
-        failed: Vec<(TmcExerciseDownload, Vec<String>)>,
+        failed: Vec<(TmcExerciseDownload, Vec<String>, TmcDownloadFailure)>,
     },
 }
 
@@ -247,8 +247,23 @@ pub struct CombinedMoocCourseData {
 pub struct DownloadOrUpdateTmcCourseExercisesResult {
     pub downloaded: Vec<TmcExerciseDownload>,
     pub skipped: Vec<TmcExerciseDownload>,
+    /// Each failure with its error chain, outermost first, and why it failed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub failed: Option<Vec<(TmcExerciseDownload, Vec<String>)>>,
+    pub failed: Option<Vec<(TmcExerciseDownload, Vec<String>, TmcDownloadFailure)>>,
+}
+
+/// Why a TMC exercise could not be downloaded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum TmcDownloadFailure {
+    /// tmc.mooc.fi has no such exercise, or not for this user.
+    NotFound,
+    ServerError,
+    ConnectionError,
+    /// The download could not be unpacked or written into the exercise folder.
+    ExtractFailed,
+    Other,
 }
 
 /// A setting in a TmcConfig file.

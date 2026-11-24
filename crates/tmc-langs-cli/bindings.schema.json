@@ -1571,14 +1571,15 @@
           }
         },
         "failed": {
+          "description": "Each failure with its error chain, outermost first, and why it failed.",
           "type": [
             "array",
             "null"
           ],
           "items": {
             "type": "array",
-            "maxItems": 2,
-            "minItems": 2,
+            "maxItems": 3,
+            "minItems": 3,
             "prefixItems": [
               {
                 "$ref": "#/$defs/TmcExerciseDownload"
@@ -1588,6 +1589,9 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              {
+                "$ref": "#/$defs/TmcDownloadFailure"
               }
             ]
           }
@@ -4500,6 +4504,29 @@
       },
       "required": [
         "projects_dir"
+      ]
+    },
+    "TmcDownloadFailure": {
+      "description": "Why a TMC exercise could not be downloaded.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "server-error",
+            "connection-error",
+            "other"
+          ]
+        },
+        {
+          "description": "tmc.mooc.fi has no such exercise, or not for this user.",
+          "type": "string",
+          "const": "not-found"
+        },
+        {
+          "description": "The download could not be unpacked or written into the exercise folder.",
+          "type": "string",
+          "const": "extract-failed"
+        }
       ]
     },
     "TmcExerciseDownload": {
