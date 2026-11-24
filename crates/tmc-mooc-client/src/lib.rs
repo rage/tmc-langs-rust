@@ -75,9 +75,9 @@ pub(crate) fn user_agent() -> String {
         .unwrap_or_else(|| format!("tmc-langs/{}", env!("CARGO_PKG_VERSION")))
 }
 
-/// Env knob (`=1`) that also trusts `localhost`/`127.0.0.1` as bearer-token
-/// destinations. Off by default so production never sends the token to a local
-/// host; tests and local development opt in.
+/// Env knob (`=1`) that also trusts `localhost`, `127.0.0.1` and the local development host
+/// `project-331.local` as bearer-token destinations, over any scheme. Off by default so
+/// production never sends the token to a local host; tests and local development opt in.
 pub const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
 
 /// Public because the same access token is also accepted by tmc-server, so the
@@ -184,16 +184,7 @@ impl MoocClient {
     fn request(&self, method: Method, url: Url) -> MoocRequest {
         log::debug!("building a request to {}", redact_query(url.as_str()));
 
-        // Attach the bearer only to trusted hosts, so a (possibly attacker-controlled)
-        // URL never receives it. `host_str` rather than `domain` so IP literals count.
-        let trusted_domains = &["courses.mooc.fi", "project-331.local"];
-        let is_trusted_domain = url
-            .host_str()
-            .map(|h| {
-                trusted_domains.contains(&h)
-                    || (trust_localhost() && (h == "localhost" || h == "127.0.0.1"))
-            })
-            .unwrap_or_default();
+        let is_trusted_domain = may_carry_bearer(&url);
         let mut builder = self
             .0
             .client
@@ -632,6 +623,17 @@ impl MoocClient {
             .request(Method::POST, url)
             .send_expect_json::<api::PasteResult>()?;
         Ok(res.into())
+    }
+}
+
+/// Whether a request to `url` may carry the bearer token. Server-supplied URLs (file downloads)
+/// may point anywhere, so only courses.mooc.fi over https qualifies, plus local development
+/// hosts under [`TRUST_LOCALHOST_VAR`]. `host_str` rather than `domain` so IP literals count.
+fn may_carry_bearer(url: &Url) -> bool {
+    match url.host_str() {
+        Some("courses.mooc.fi") => url.scheme() == "https",
+        Some("localhost" | "127.0.0.1" | "project-331.local") => trust_localhost(),
+        _ => false,
     }
 }
 
@@ -3170,6 +3172,24 @@ mod test {
         unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
         res.unwrap();
         with_auth.assert();
+    }
+
+    #[test]
+    fn the_bearer_needs_https_and_dev_hosts_need_the_trust_knob() {
+        let _guard = env_lock();
+        let url = |s: &str| -> Url { s.parse().unwrap() };
+        // SAFETY: serialized by ENV_LOCK.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+        assert!(may_carry_bearer(&url("https://courses.mooc.fi/f")));
+        assert!(!may_carry_bearer(&url("http://courses.mooc.fi/f")));
+        assert!(!may_carry_bearer(&url("http://project-331.local/f")));
+        assert!(!may_carry_bearer(&url("https://evil.example/f")));
+        // SAFETY: serialized by ENV_LOCK.
+        unsafe { std::env::set_var(TRUST_LOCALHOST_VAR, "1") };
+        let is_trusted = may_carry_bearer(&url("http://project-331.local/f"));
+        // SAFETY: serialized by ENV_LOCK.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+        assert!(is_trusted);
     }
 
     #[test]
