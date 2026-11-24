@@ -73,10 +73,42 @@ fn resolve_default_locks_dir(
 
     // keyed per user: /tmp is shared, so an unkeyed dir would let whichever OS user gets
     // there first own (or block) every other user's locks
-    let dir = temp_dir.join(format!("tmc-langs-locks-{}", user_key()));
+    let locks_dir_name = format!("locks-{}", user_key());
+    // tmc-langs 0.42 and earlier lock in `tmc-langs/locks-<user>`; staying there keeps an older
+    // CLI running beside this one excluded, unless another user controls `tmc-langs`
+    let legacy_parent = temp_dir.join("tmc-langs");
+    let dir = if is_usable_legacy_parent(&legacy_parent) {
+        legacy_parent.join(locks_dir_name)
+    } else {
+        temp_dir.join(format!("tmc-langs-{locks_dir_name}"))
+    };
     create_private_dir(&dir)?;
     prune_stale_locks_once(&dir);
     Ok(dir)
+}
+
+/// Whether `dir` exists or could be created, belonging to this user and not writable by others.
+/// Group write is tolerated: older versions created it with the default umask, which on systems
+/// with per-user groups is 002.
+#[cfg(unix)]
+fn is_usable_legacy_parent(dir: &Path) -> bool {
+    use std::os::unix::fs::{DirBuilderExt, MetadataExt};
+
+    if let Err(err) = std::fs::DirBuilder::new().mode(0o700).create(dir)
+        && err.kind() != std::io::ErrorKind::AlreadyExists
+    {
+        return false;
+    }
+    std::fs::symlink_metadata(dir).is_ok_and(|metadata| {
+        metadata.is_dir()
+            && metadata.uid() == nix::unistd::geteuid().as_raw()
+            && metadata.mode() & 0o002 == 0
+    })
+}
+
+#[cfg(not(unix))]
+fn is_usable_legacy_parent(dir: &Path) -> bool {
+    super::create_dir_all(dir).is_ok()
 }
 
 /// Creates `dir` readable only by this user, or accepts an existing one only if this user owns
@@ -452,12 +484,46 @@ mod test {
         use std::os::unix::fs::PermissionsExt;
 
         let temp_dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir(temp_dir.path().join("tmc-langs")).unwrap();
         let planted = temp_dir
             .path()
-            .join(format!("tmc-langs-locks-{}", user_key()));
+            .join("tmc-langs")
+            .join(format!("locks-{}", user_key()));
         std::fs::create_dir(&planted).unwrap();
         std::fs::set_permissions(&planted, std::fs::Permissions::from_mode(0o777)).unwrap();
         assert!(resolve_default_locks_dir(None, temp_dir.path().to_path_buf()).is_err());
+    }
+
+    // tmc-langs 0.42 locks there, and a CLI of each version may run at once
+    #[test]
+    fn temp_dir_fallback_shares_the_directory_older_versions_lock_in() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let dir = resolve_default_locks_dir(None, temp_dir.path().to_path_buf()).unwrap();
+        assert_eq!(
+            dir,
+            temp_dir
+                .path()
+                .join("tmc-langs")
+                .join(format!("locks-{}", user_key()))
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn temp_dir_fallback_avoids_a_shared_parent_others_can_write_to() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let shared = temp_dir.path().join("tmc-langs");
+        std::fs::create_dir(&shared).unwrap();
+        std::fs::set_permissions(&shared, std::fs::Permissions::from_mode(0o777)).unwrap();
+        let dir = resolve_default_locks_dir(None, temp_dir.path().to_path_buf()).unwrap();
+        assert_eq!(
+            dir,
+            temp_dir
+                .path()
+                .join(format!("tmc-langs-locks-{}", user_key()))
+        );
     }
 
     #[test]
