@@ -225,14 +225,19 @@ fn onedrive_original_candidates(name: &str) -> Vec<String> {
         Some(dot) if dot > 0 => (&name[..dot], &name[dot..]),
         _ => (name, ""),
     };
+    // Windows names machines like `DESKTOP-AB12CD3`. Requiring a digit or a dash keeps real
+    // student files such as `main-OLD.c` or `input-V2.txt` out of the match.
     let is_hostname = |host: &str| {
-        host.len() >= 2
+        let last_part = host.rsplit('-').next().unwrap_or_default();
+        host.len() >= 3
             && host.bytes().any(|b| b.is_ascii_uppercase())
             && host
                 .bytes()
                 .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'-')
             && !host.starts_with('-')
-            && !host.ends_with('-')
+            && !last_part.is_empty()
+            && !last_part.bytes().all(|b| b.is_ascii_digit())
+            && host.bytes().any(|b| b.is_ascii_digit() || b == b'-')
     };
     stem.match_indices('-')
         .map(|(i, _)| i)
@@ -406,29 +411,34 @@ mod test {
     }
 
     #[test]
-    fn onedrive_candidates_need_an_uppercase_host() {
-        assert_eq!(
-            onedrive_original_candidates("Main-LAPTOP.java"),
-            ["Main.java"]
-        );
-        assert_eq!(
-            onedrive_original_candidates("Main-LAPTOP-1.java"),
-            ["Main.java"]
-        );
+    fn onedrive_candidates_need_a_machine_like_host() {
         assert_eq!(
             onedrive_original_candidates("Main-DESKTOP-AB12CD3.java"),
             ["Main.java", "Main-DESKTOP.java"]
         );
-        assert!(onedrive_original_candidates("my-file.py").is_empty());
-        assert!(onedrive_original_candidates("Main.java").is_empty());
-        assert!(onedrive_original_candidates("-LAPTOP.java").is_empty());
-        assert!(onedrive_original_candidates("a-1.py").is_empty());
+        assert_eq!(
+            onedrive_original_candidates("Main-DESKTOP-AB12CD3-1.java"),
+            ["Main.java", "Main-DESKTOP.java"]
+        );
+        assert_eq!(onedrive_original_candidates("Main-PC7.java"), ["Main.java"]);
+        for name in [
+            "my-file.py",
+            "Main.java",
+            "-PC7.java",
+            "a-1.py",
+            "main-OLD.c",
+            "main-OLD-2.c",
+            "input-V2.txt",
+            "Main-LAPTOP.java",
+        ] {
+            assert!(onedrive_original_candidates(name).is_empty(), "{name}");
+        }
     }
 
     #[test]
     fn onedrive_copy_is_skipped_only_beside_its_original() {
         let temp = tempdir().unwrap();
-        let copy = temp.path().join("Main-LAPTOP-1.java");
+        let copy = temp.path().join("Main-DESKTOP-AB12CD3-1.java");
         File::create(&copy).unwrap();
         assert!(!is_sync_conflict_copy(&copy));
         File::create(temp.path().join("Main.java")).unwrap();
@@ -457,7 +467,8 @@ mod test {
         let root = temp.path().join("ex");
         for name in [
             "src/Main.java",
-            "src/Main-LAPTOP-1.java",
+            "src/Main-DESKTOP-AB12CD3-1.java",
+            "src/Main-OLD.java",
             "src/~$Main.java",
             "src/my-file.py",
             "src/Util.sync-conflict-20240131-101010-ABC.java",
@@ -467,9 +478,10 @@ mod test {
         let names = packed_names(&root, Compression::Zip);
         assert!(names.contains(&"ex/src/Main.java".to_string()));
         assert!(names.contains(&"ex/src/my-file.py".to_string()));
+        assert!(names.contains(&"ex/src/Main-OLD.java".to_string()));
         assert_eq!(
             names.iter().filter(|n| !n.ends_with('/')).count(),
-            2,
+            3,
             "{names:?}"
         );
     }

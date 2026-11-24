@@ -532,7 +532,7 @@ impl TmcCourseConfig {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MoocCourseConfig {
     /// The exam's id when `is_exam`.
-    /// Older files also have an `instance_id`, always equal to this; it is ignored.
+    /// The file also has an `instance_id`, always equal to this, for older CLIs; it is ignored.
     pub course_id: Uuid,
     /// The course's name.
     pub course: String,
@@ -599,7 +599,10 @@ impl MoocCourseConfig {
             file_util::create_dir_all(&course_dir)?;
         }
         let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
-        let s = toml::to_string_pretty(&self)?;
+        let mut table = toml::Table::try_from(self)?;
+        // Earlier releases require it and fail to load the whole projects directory without it.
+        table.insert("instance_id".into(), self.course_id.to_string().into());
+        let s = toml::to_string_pretty(&table)?;
         file_util::write_atomically(&target, &s)?;
         Ok(())
     }
@@ -1109,6 +1112,9 @@ checksum = "defg4567"
             "config should be saved under mooc/<directory>/, was not found at {}",
             expected_config_path.display()
         );
+        let saved: toml::Table =
+            toml::from_str(&std::fs::read_to_string(&expected_config_path).unwrap()).unwrap();
+        assert_eq!(saved["instance_id"].as_str(), Some(&*course_id.to_string()));
 
         // create the exercise dir so the load maintenance pass doesn't prune it
         dir_to(&temp, "mooc/my-mooc-course/exercise-1");

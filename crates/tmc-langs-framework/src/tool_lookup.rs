@@ -70,23 +70,23 @@ fn candidate_names(tool: &str, is_windows: bool) -> Vec<String> {
     names
 }
 
-/// Suffixes tried after a bare name. Empty string first so extension-less files (Unix
-/// executables, names already carrying an extension) match.
+/// Suffixes tried after a bare name. The empty one matches Unix executables and names that
+/// already carry an extension; on Windows it comes last, as an extensionless file there is
+/// typically a shell shim that cannot be started.
 fn executable_extensions(is_windows: bool, pathext: Option<OsString>) -> Vec<String> {
-    let mut extensions = vec![String::new()];
-    if is_windows {
-        let pathext = pathext
-            .map(|v| v.to_string_lossy().into_owned())
-            .filter(|v| !v.is_empty())
-            .unwrap_or_else(|| ".COM;.EXE;.BAT;.CMD".to_string());
-        extensions.extend(
-            pathext
-                .split(';')
-                .filter(|e| !e.is_empty())
-                .map(|e| e.to_lowercase()),
-        );
+    if !is_windows {
+        return vec![String::new()];
     }
-    extensions
+    let pathext = pathext
+        .map(|v| v.to_string_lossy().into_owned())
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| ".COM;.EXE;.BAT;.CMD".to_string());
+    pathext
+        .split(';')
+        .filter(|e| !e.is_empty())
+        .map(|e| e.to_lowercase())
+        .chain([String::new()])
+        .collect()
 }
 
 fn find_in_dirs(names: &[String], dirs: &[PathBuf], extensions: &[String]) -> Option<PathBuf> {
@@ -404,6 +404,22 @@ mod test {
             Some(temp.path().join("mingw32-make.exe"))
         );
         assert_eq!(candidate_names("make", false), vec!["make"]);
+    }
+
+    #[test]
+    fn prefers_an_executable_extension_over_an_extensionless_shim_on_windows() {
+        let temp = tempfile::tempdir().unwrap();
+        touch(&temp.path().join("python3"));
+        touch(&temp.path().join("python3.exe"));
+        let extensions = executable_extensions(true, Some(OsString::from(".EXE")));
+        assert_eq!(
+            find_in_dirs(
+                &["python3".to_string()],
+                &[temp.path().to_path_buf()],
+                &extensions
+            ),
+            Some(temp.path().join("python3.exe"))
+        );
     }
 
     #[test]

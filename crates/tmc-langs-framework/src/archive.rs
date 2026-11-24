@@ -79,6 +79,12 @@ impl<T: Read + Seek> Archive<T> {
                 } else if entry.is_file() {
                     file_util::remove_all(&target)?;
                     entry.write_to_file(&target, &mut budget)?;
+                    #[cfg(unix)]
+                    if entry.is_executable() {
+                        use std::os::unix::fs::PermissionsExt;
+                        std::fs::set_permissions(&target, std::fs::Permissions::from_mode(0o755))
+                            .map_err(|e| FileError::FileWrite(target.clone(), e))?;
+                    }
                 } else {
                     log::warn!("not extracting special archive entry {}", entry.raw_name());
                 }
@@ -258,14 +264,22 @@ pub enum Entry<'a, T: Read> {
 }
 
 impl<T: Read> Entry<'_, T> {
-    /// The validated relative path of the entry, see [`validate_entry_name`].
+    /// The validated relative path of the entry, see [`validate_entry_name`]. Empty only for a
+    /// directory entry naming the archive root.
     pub fn path(&self) -> Result<PathBuf, TmcError> {
-        match self {
-            Self::Tar(_) | Self::TarZstd(_) => {
-                validate_entry_name(&self.raw_name(), EntryNameStyle::Tar)
-            }
-            Self::Zip(_) => validate_entry_name(&self.raw_name(), EntryNameStyle::Zip),
+        let raw_name = self.raw_name();
+        let path = match self {
+            Self::Tar(_) | Self::TarZstd(_) => validate_entry_name(&raw_name, EntryNameStyle::Tar),
+            Self::Zip(_) => validate_entry_name(&raw_name, EntryNameStyle::Zip),
+        }?;
+        // Joined to the target, an empty path is the target itself, which extraction would delete.
+        if path.as_os_str().is_empty() && !self.is_dir() {
+            return Err(TmcError::UnsafeArchiveEntry {
+                entry: raw_name,
+                reason: "names the archive root but is not a directory",
+            });
         }
+        Ok(path)
     }
 
     /// The entry name as stored in the archive, for error messages.
@@ -319,6 +333,16 @@ impl<T: Read> Entry<'_, T> {
             }
             Self::Zip(entry) => entry.is_dir(),
         }
+    }
+
+    /// Whether the entry's Unix mode has an execute bit, e.g. a `gradlew` script.
+    pub fn is_executable(&self) -> bool {
+        let mode = match self {
+            Self::Tar(entry) => entry.header().mode().ok(),
+            Self::TarZstd(entry) => entry.header().mode().ok(),
+            Self::Zip(entry) => entry.unix_mode(),
+        };
+        mode.is_some_and(|mode| mode & 0o111 != 0)
     }
 
     pub fn is_file(&self) -> bool {
@@ -763,6 +787,45 @@ mod test {
                 assert!(!temp.path().join("x").exists());
             }
         }
+    }
+
+    #[test]
+    fn extraction_rejects_a_file_entry_naming_the_root() {
+        for (compression, bytes) in archives_with_entry(".", b"data") {
+            let temp = tempfile::tempdir().unwrap();
+            file_util::write_to_file(b"kept", temp.path().join("existing")).unwrap();
+            let result = Archive::new(Cursor::new(bytes), compression)
+                .unwrap()
+                .extract(temp.path());
+            assert!(
+                matches!(result, Err(TmcError::UnsafeArchiveEntry { .. })),
+                "{compression}: {result:?}"
+            );
+            assert!(temp.path().join("existing").exists(), "{compression}");
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn extraction_keeps_execute_bits() {
+        use std::os::unix::fs::PermissionsExt;
+        let mut header = tar::Header::new_gnu();
+        header.set_size(2);
+        header.set_mode(0o755);
+        header.set_entry_type(tar::EntryType::Regular);
+        header.set_path("gradlew").unwrap();
+        header.set_cksum();
+        let mut builder = Builder::new(Vec::new());
+        builder.append(&header, &b"sh"[..]).unwrap();
+        let tar = builder.into_inner().unwrap();
+
+        let temp = tempfile::tempdir().unwrap();
+        Archive::tar(Cursor::new(tar)).extract(temp.path()).unwrap();
+        let mode = std::fs::metadata(temp.path().join("gradlew"))
+            .unwrap()
+            .permissions()
+            .mode();
+        assert_ne!(mode & 0o111, 0, "{mode:o}");
     }
 
     #[test]

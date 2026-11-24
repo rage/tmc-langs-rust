@@ -196,13 +196,19 @@ pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(
         file_util::create_dir_all(&target)?;
     }
 
+    if !tmc_config.projects_dir.is_dir() {
+        // The only way out of `ProjectsDirUnreachable`: there is nothing left to move.
+        tmc_config.set_projects_dir(target)?;
+        return tmc_config.save();
+    }
+
     let target_canon = target
         .canonicalize()
         .map_err(|e| LangsError::Canonicalize(target.clone(), e))?;
     let prev_dir_canon = tmc_config
         .projects_dir
         .canonicalize()
-        .map_err(|e| LangsError::Canonicalize(target.clone(), e))?;
+        .map_err(|e| LangsError::Canonicalize(tmc_config.projects_dir.clone(), e))?;
     if target_canon == prev_dir_canon {
         return Err(LangsError::MovingProjectsDirToItself);
     }
@@ -564,6 +570,26 @@ mod test {
                 .exists()
         );
         assert!(!projects_dir.path().exists());
+    }
+
+    #[test]
+    fn moves_a_missing_projects_dir_by_repointing_the_config() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let config_dir = tempfile::tempdir().unwrap();
+        let location = config_dir.path().join("tmc_config.temp");
+        let target_dir = tempfile::tempdir().unwrap();
+        let tmc_config = TmcConfig {
+            location: location.clone(),
+            projects_dir: config_dir.path().join("unplugged"),
+            table: Table::new(),
+        };
+
+        move_projects_dir(tmc_config, target_dir.path().to_path_buf()).unwrap();
+
+        let saved = TmcConfig::load_from("client", location).unwrap();
+        assert_eq!(saved.projects_dir, target_dir.path());
     }
 
     #[test]

@@ -185,6 +185,11 @@ pub trait LanguagePlugin {
 
                 budget.admit_entry(&file.raw_name(), file.size())?;
                 let relative = match file_path.strip_prefix(&project_dir) {
+                    // A file at the project dir's own path would replace the whole target.
+                    Ok(relative) if relative.as_os_str().is_empty() && !file.is_dir() => {
+                        log::warn!("skip {}, a file at the project root", file_path.display());
+                        return Ok(Continue(()));
+                    }
                     Ok(relative) => relative,
                     _ => {
                         log::trace!("skip {}, not in project dir", file_path.display());
@@ -297,6 +302,11 @@ pub trait LanguagePlugin {
                 let file_path = file.path()?;
                 budget.admit_entry(&file.raw_name(), file.size())?;
                 let relative = match file_path.strip_prefix(&project_dir) {
+                    // A file at the project dir's own path would replace the whole target.
+                    Ok(relative) if relative.as_os_str().is_empty() && !file.is_dir() => {
+                        log::warn!("skip {}, a file at the project root", file_path.display());
+                        return Ok(Continue(()));
+                    }
                     Ok(relative) => relative,
                     _ => {
                         log::trace!("skip {}, not in project dir", file_path.display());

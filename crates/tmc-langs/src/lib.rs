@@ -1153,7 +1153,17 @@ pub fn update_mooc_exercises(
         // One exercise list request per course, not one per exercise.
         let mut server_exercises: Vec<mooc::TmcExerciseSlide> = Vec::new();
         for course_config in projects_config.mooc_courses.values() {
-            server_exercises.extend(stored_course_exercises(client, auth, course_config)?);
+            match stored_course_exercises(client, auth, course_config) {
+                Ok(slides) => server_exercises.extend(slides),
+                // An exam stops being served once it ends; that must not block the other courses.
+                Err(err) if CourseRefusalKind::of(&err).is_some() => {
+                    log::warn!(
+                        "skipping the update of course {}: {err}",
+                        course_config.course_id
+                    );
+                }
+                Err(err) => return Err(err.into()),
+            }
         }
         for slide in server_exercises {
             let Some(local) = locals.get(&slide.exercise_id) else {
@@ -1878,15 +1888,22 @@ fn sweep_stale_staging_dirs(dir: &Path, min_age: std::time::Duration) {
 }
 
 const STAGING_DIR_PREFIX: &str = ".tmc-staging-";
+const REPLACED_DIR_PREFIX: &str = ".tmc-replaced-";
 
-/// A temporary directory beside `path`, on its filesystem, for content to move into `path`
-/// by rename. Sweeps abandoned ones from earlier runs first.
-fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
+/// The existing parent of `path`, where its staging directories go.
+fn staging_parent(path: &Path) -> Result<&Path, LangsError> {
     let parent = match path.parent() {
         Some(parent) if !parent.as_os_str().is_empty() => parent,
         _ => Path::new("."),
     };
     file_util::create_dir_all(parent)?;
+    Ok(parent)
+}
+
+/// A temporary directory beside `path`, on its filesystem, for content to move into `path`
+/// by rename. Sweeps abandoned ones from earlier runs first.
+fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
+    let parent = staging_parent(path)?;
     sweep_stale_staging_dirs(parent, STALE_STAGING_AGE);
     let staging = tempfile::Builder::new()
         .prefix(STAGING_DIR_PREFIX)
@@ -1900,14 +1917,19 @@ fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
 /// track of it when the directory is replaced.
 ///
 /// Leaves `target` as it was on failure. If even that fails, the old entries are kept in a
-/// `.tmc-staging-*` directory beside `target` and the error names it.
+/// `.tmc-replaced-*` directory beside `target` and the error names it.
 fn replace_dir_contents(target: &Path, staged: &Path) -> Result<(), LangsError> {
     if !target.exists() {
         file_util::rename(staged, target)?;
         return Ok(());
     }
-    // Not a guard: dropping it would delete the student's old files when the rollback fails.
-    let replaced = staging_dir_beside(target)?.keep();
+    // Not a guard and never swept: it holds the student's only copy of the old files until
+    // they are moved back or the swap completes.
+    let replaced = tempfile::Builder::new()
+        .prefix(REPLACED_DIR_PREFIX)
+        .tempdir_in(staging_parent(target)?)
+        .map_err(FileError::TempFile)?
+        .keep();
 
     if let Err((moved_out, err)) = move_dir_entries(target, &replaced) {
         restore_dir_entries(&replaced, target, &moved_out, &err)?;
@@ -3611,6 +3633,31 @@ checksum = 'new checksum'
     }
 
     #[test]
+    fn update_mooc_exercises_skips_a_course_that_is_no_longer_served() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        write_mooc_course_config(projects_dir.path(), "old checksum");
+
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_status(404)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
+
+        assert!(result.downloaded.is_empty());
+    }
+
+    #[test]
     fn checks_mooc_exercise_updates_no_change() {
         init();
         let mut server = Server::new();
@@ -4010,7 +4057,10 @@ checksum = 'new checksum'
         dir_entry_names(parent)
             .unwrap()
             .into_iter()
-            .filter(|n| n.to_string_lossy().starts_with(STAGING_DIR_PREFIX))
+            .filter(|n| {
+                let n = n.to_string_lossy();
+                n.starts_with(STAGING_DIR_PREFIX) || n.starts_with(REPLACED_DIR_PREFIX)
+            })
             .collect()
     }
 
@@ -4077,6 +4127,7 @@ checksum = 'new checksum'
         init();
         let parent = tempfile::tempdir().unwrap();
         file_to(parent.path(), ".tmc-staging-abc/left", b"x");
+        file_to(parent.path(), ".tmc-replaced-abc/student", b"x");
         file_to(parent.path(), "exercise/file", b"x");
 
         sweep_stale_staging_dirs(parent.path(), std::time::Duration::from_secs(3600));
@@ -4084,6 +4135,7 @@ checksum = 'new checksum'
 
         sweep_stale_staging_dirs(parent.path(), std::time::Duration::ZERO);
         assert!(!parent.path().join(".tmc-staging-abc").exists());
+        assert!(parent.path().join(".tmc-replaced-abc/student").exists());
         assert!(parent.path().join("exercise/file").exists());
     }
 

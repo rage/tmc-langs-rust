@@ -106,34 +106,39 @@ impl JvmWrapper {
 ///
 /// On Windows it must be pure ASCII: j4rs hands the class path to `JNI_CreateJavaVM`, which reads
 /// it in the ANSI code page, so a non-ASCII profile name (`C:\Users\Mäkelä`) breaks every JVM
-/// start. Such profiles get a per-profile directory under the public folder instead.
+/// start. Such profiles get a directory under `ProgramData` instead.
 fn tmc_dir() -> Result<PathBuf, JavaError> {
     let cache_dir = dirs::cache_dir().ok_or(JavaError::HomeDir)?;
     let ascii_fallback_root = if cfg!(windows) {
-        std::env::var_os("PUBLIC")
-            .or_else(|| std::env::var_os("ProgramData"))
-            .map(PathBuf::from)
+        std::env::var_os("ProgramData").map(PathBuf::from)
     } else {
         None
     };
-    Ok(tmc_dir_in(&cache_dir, ascii_fallback_root.as_deref()))
+    tmc_dir_in(&cache_dir, ascii_fallback_root.as_deref())
 }
 
-fn tmc_dir_in(cache_dir: &Path, ascii_fallback_root: Option<&Path>) -> PathBuf {
+fn tmc_dir_in(cache_dir: &Path, ascii_fallback_root: Option<&Path>) -> Result<PathBuf, JavaError> {
     let dir = cache_dir.join("tmc");
-    match ascii_fallback_root {
-        Some(root) if !dir.to_string_lossy().is_ascii() => {
-            // FNV-1a: stable across Rust versions, so the directory is not abandoned on upgrade.
-            let hash = dir
-                .to_string_lossy()
-                .bytes()
-                .fold(0xcbf29ce484222325u64, |hash, byte| {
-                    (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
-                });
-            root.join(format!("tmc-{hash:016x}"))
+    let Some(root) = ascii_fallback_root.filter(|_| !dir.to_string_lossy().is_ascii()) else {
+        return Ok(dir);
+    };
+    // The fallback is shared by every user of the machine. A random name, created here and
+    // recorded in the user's own profile, stops another user from creating it first and
+    // planting a Maven in it; ProgramData lets only its creator write to a subdirectory.
+    let record = dir.join("ascii-cache-dir");
+    if let Ok(recorded) = file_util::read_file_to_string(&record) {
+        let recorded = PathBuf::from(recorded.trim());
+        if recorded.starts_with(root) && recorded.is_dir() {
+            return Ok(recorded);
         }
-        _ => dir,
     }
+    let created = tempfile::Builder::new()
+        .prefix("tmc-")
+        .tempdir_in(root)
+        .map_err(JavaError::TempDir)?
+        .keep();
+    file_util::write_atomically(&record, created.to_string_lossy().as_bytes())?;
+    Ok(created)
 }
 
 /// Serializes cache writes between threads; the file lock alone is per process on Unix.
@@ -426,31 +431,34 @@ mod test {
 
     #[test]
     fn tmc_dir_stays_in_cache_dir_when_ascii() {
-        let fallback = Path::new("C:\\Users\\Public");
+        let fallback = Path::new("C:\\ProgramData");
         assert_eq!(
-            tmc_dir_in(Path::new("/home/ada/.cache"), Some(fallback)),
+            tmc_dir_in(Path::new("/home/ada/.cache"), Some(fallback)).unwrap(),
             PathBuf::from("/home/ada/.cache/tmc")
         );
     }
 
     #[test]
-    fn tmc_dir_moves_to_ascii_root_for_non_ascii_profiles() {
-        let root = Path::new("/public");
-        let dir = tmc_dir_in(Path::new("/home/Mäkelä/.cache"), Some(root));
-        assert!(dir.starts_with(root));
-        assert!(dir.to_string_lossy().is_ascii());
-        assert_eq!(
-            dir,
-            tmc_dir_in(Path::new("/home/Mäkelä/.cache"), Some(root))
+    fn tmc_dir_moves_to_a_recorded_ascii_dir_for_non_ascii_profiles() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("public");
+        std::fs::create_dir(&root).unwrap();
+        let cache = temp.path().join("Mäkelä");
+
+        let dir = tmc_dir_in(&cache, Some(&root)).unwrap();
+        assert!(dir.starts_with(&root) && dir.is_dir());
+        assert!(
+            dir.strip_prefix(&root)
+                .unwrap()
+                .to_string_lossy()
+                .is_ascii()
         );
+        assert_eq!(dir, tmc_dir_in(&cache, Some(&root)).unwrap());
         assert_ne!(
             dir,
-            tmc_dir_in(Path::new("/home/Väisänen/.cache"), Some(root))
+            tmc_dir_in(&temp.path().join("Väisänen"), Some(&root)).unwrap()
         );
-        assert_eq!(
-            tmc_dir_in(Path::new("/home/Mäkelä/.cache"), None),
-            PathBuf::from("/home/Mäkelä/.cache/tmc")
-        );
+        assert_eq!(tmc_dir_in(&cache, None).unwrap(), cache.join("tmc"));
     }
 
     #[test]
