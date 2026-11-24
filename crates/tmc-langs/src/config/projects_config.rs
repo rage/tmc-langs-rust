@@ -457,12 +457,29 @@ pub(crate) fn unique_directory_name<'a>(
 /// The course config at `path`, or `None` with a warning when it is unreadable, so one broken
 /// file does not hide every other course.
 fn read_course_config<T: serde::de::DeserializeOwned>(path: &Path) -> Option<T> {
-    let parsed = file_util::read_file_to_string(path)
-        .map_err(LangsError::from)
-        .and_then(|file| Ok(deserialize::toml_from_str(&file)?));
-    parsed
+    parse_course_config::<T>(path)
         .inspect_err(|err| log::warn!("Skipping {}: {err}", path.display()))
         .ok()
+}
+
+fn parse_course_config<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T, LangsError> {
+    let file = file_util::read_file_to_string(path)?;
+    Ok(deserialize::toml_from_str(&file)?)
+}
+
+/// Writes a course config, refusing to replace one that cannot be read: [`ProjectsConfig::load`]
+/// skipped it, so the config being written lacks the exercises it lists.
+fn write_course_config<T: serde::de::DeserializeOwned>(
+    target: &Path,
+    contents: &str,
+) -> Result<(), LangsError> {
+    if target.exists() {
+        parse_course_config::<T>(target).map_err(|err| {
+            LangsError::UnreadableCourseConfig(target.to_path_buf(), Box::new(err))
+        })?;
+    }
+    file_util::write_atomically(target, contents)?;
+    Ok(())
 }
 
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
@@ -491,14 +508,14 @@ impl TmcCourseConfig {
         }
         let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
         let s = toml::to_string_pretty(&self)?;
-        file_util::write_atomically(&target, &s)?;
+        write_course_config::<Self>(&target, &s)?;
 
         // `load` merges a `tmc/` copy back in, so a stale one would revert this save.
         let split_layout_target =
             ProjectsConfig::split_layout_tmc_course_dir(projects_dir, &self.course)
                 .join(COURSE_CONFIG_FILE_NAME);
         if split_layout_target != target && split_layout_target.exists() {
-            file_util::write_atomically(&split_layout_target, &s)?;
+            write_course_config::<Self>(&split_layout_target, &s)?;
         }
         Ok(())
     }
@@ -609,7 +626,7 @@ impl MoocCourseConfig {
         // Earlier releases require it and fail to load the whole projects directory without it.
         table.insert("instance_id".into(), self.course_id.to_string().into());
         let s = toml::to_string_pretty(&table)?;
-        file_util::write_atomically(&target, &s)?;
+        write_course_config::<Self>(&target, &s)?;
         Ok(())
     }
 }
@@ -1235,5 +1252,48 @@ checksum = "defg4567"
         )
         .unwrap();
         assert!(saved.exercises.contains_key("ex1"));
+    }
+
+    #[test]
+    fn saving_does_not_replace_an_unreadable_course_config() {
+        init_logging();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        let broken = "course = \"unterminated";
+        file_to(&temp, "python/course_config.toml", broken);
+        file_to(&temp, "mooc/my-course/course_config.toml", broken);
+
+        let tmc_config = TmcCourseConfig {
+            course: "python".to_string(),
+            course_id: None,
+            exercises: BTreeMap::new(),
+        };
+        let tmc_result = tmc_config.save_to_projects_dir(temp.path());
+        assert!(
+            matches!(tmc_result, Err(LangsError::UnreadableCourseConfig(..))),
+            "{tmc_result:?}"
+        );
+        let mooc_config = MoocCourseConfig {
+            course: "My Course".to_string(),
+            course_id: Uuid::new_v4(),
+            directory: "my-course".to_string(),
+            is_exam: false,
+            exercises: BTreeMap::new(),
+        };
+        let mooc_result = mooc_config.save_to_projects_dir(temp.path());
+        assert!(
+            matches!(mooc_result, Err(LangsError::UnreadableCourseConfig(..))),
+            "{mooc_result:?}"
+        );
+
+        for path in [
+            "python/course_config.toml",
+            "mooc/my-course/course_config.toml",
+        ] {
+            assert_eq!(
+                std::fs::read_to_string(temp.path().join(path)).unwrap(),
+                broken
+            );
+        }
     }
 }

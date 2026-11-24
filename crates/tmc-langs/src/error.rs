@@ -60,6 +60,8 @@ pub enum LangsError {
         to: PathBuf,
         cause: String,
     },
+    #[error("Cannot read the course config {0}, so it was left unchanged")]
+    UnreadableCourseConfig(PathBuf, #[source] Box<Self>),
     #[error("Exercise in project-config not found")]
     NoProjectExercise,
     #[error("Decoded password was not valid UTF-8")]
