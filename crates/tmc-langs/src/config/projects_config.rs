@@ -215,6 +215,7 @@ impl ProjectsConfig {
 
     /// Exclusive lock for a download or update that reads, modifies and saves course configs.
     /// Keyed apart from the projects directory itself, which [`ProjectsConfig::load`] read-locks.
+    /// Take it before any lock on the projects directory, or two commands can deadlock.
     pub fn lock_course_config_updates(projects_dir: &Path) -> Result<Lock, LangsError> {
         Ok(Lock::dir(
             projects_dir.join(".course-config-updates"),

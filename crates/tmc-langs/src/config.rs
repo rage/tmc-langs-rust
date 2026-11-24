@@ -240,10 +240,10 @@ pub fn set_projects_aside(tmc_config: &TmcConfig, target: &Path) -> Result<(), L
         return Err(LangsError::NonEmptyDir(target.to_path_buf()));
     }
 
-    let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
-    let _guard = lock.lock()?;
     let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
     let _config_update_guard = config_update_lock.lock()?;
+    let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
+    let _guard = lock.lock()?;
     super::move_all_dir_entries(projects_dir, target)
 }
 
@@ -262,10 +262,10 @@ pub fn restore_projects(tmc_config: &TmcConfig, source: &Path) -> Result<(), Lan
     }
     let projects_dir = reachable_projects_dir(tmc_config)?;
 
-    let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
-    let _guard = lock.lock()?;
     let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
     let _config_update_guard = config_update_lock.lock()?;
+    let mut lock = Lock::dir(projects_dir, LockOptions::Write)?;
+    let _guard = lock.lock()?;
     ensure_outside_projects_dir(projects_dir, source)?;
     let mut present = super::dir_entry_names(projects_dir)?;
     present.sort();
@@ -720,6 +720,92 @@ mod test {
         let file = projects_dir.path().join("course/exercise/file");
         assert_eq!(std::fs::read_to_string(file).unwrap(), "contents");
         assert!(!target.exists());
+    }
+
+    /// Tells the child spawned by [`setting_projects_aside_takes_locks_in_the_download_order`]
+    /// which projects directory to lock and where to signal.
+    const HOLD_CONFIG_UPDATE_LOCK_VAR: &str = "TMC_TEST_HOLD_CONFIG_UPDATE_LOCK";
+    const SIGNAL_DIR_VAR: &str = "TMC_TEST_SIGNAL_DIR";
+
+    fn wait_for(path: &Path) {
+        let waiting_since = std::time::Instant::now();
+        while !path.exists() {
+            assert!(
+                waiting_since.elapsed() < std::time::Duration::from_secs(60),
+                "{} never appeared",
+                path.display()
+            );
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+    }
+
+    /// Plays a download in a separate process, since `fcntl` locks never contend within one:
+    /// holds the course config update lock, then reads the projects directory.
+    #[test]
+    fn child_process_holds_the_course_config_update_lock() {
+        let (Ok(projects_dir), Ok(signal_dir)) = (
+            env::var(HOLD_CONFIG_UPDATE_LOCK_VAR),
+            env::var(SIGNAL_DIR_VAR),
+        ) else {
+            return;
+        };
+        let (projects_dir, signal_dir) = (PathBuf::from(projects_dir), PathBuf::from(signal_dir));
+        let mut config_update_lock =
+            ProjectsConfig::lock_course_config_updates(&projects_dir).unwrap();
+        let _config_update_guard = config_update_lock.lock().unwrap();
+        std::fs::write(signal_dir.join("held"), "").unwrap();
+        wait_for(&signal_dir.join("go"));
+
+        let mut projects_lock = Lock::dir(&projects_dir, LockOptions::Read).unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
+        let outcome = loop {
+            if projects_lock.try_lock().unwrap().is_some() {
+                break "free";
+            }
+            if std::time::Instant::now() > deadline {
+                break "blocked";
+            }
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        };
+        std::fs::write(signal_dir.join("outcome"), outcome).unwrap();
+    }
+
+    #[test]
+    fn setting_projects_aside_takes_locks_in_the_download_order() {
+        init();
+        let locks_dir = crate::test_util::ensure_isolated_locks_dir();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let config = config_with_projects_dir(projects_dir.path());
+        file_to(projects_dir.path(), "course/exercise/file", "contents");
+        let aside = tempfile::tempdir().unwrap();
+        let target = aside.path().join("set-aside");
+        let signal_dir = tempfile::tempdir().unwrap();
+
+        let mut child = std::process::Command::new(env::current_exe().unwrap())
+            .args([
+                "config::test::child_process_holds_the_course_config_update_lock",
+                "--exact",
+            ])
+            .env(tmc_langs_util::file_util::LOCKS_DIR_ENV, locks_dir)
+            .env(HOLD_CONFIG_UPDATE_LOCK_VAR, projects_dir.path())
+            .env(SIGNAL_DIR_VAR, signal_dir.path())
+            .spawn()
+            .unwrap();
+        wait_for(&signal_dir.path().join("held"));
+
+        std::thread::scope(|scope| {
+            let set_aside = scope.spawn(|| set_projects_aside(&config, &target));
+            // lets the set-aside reach its locks before the child asks for the projects dir
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            std::fs::write(signal_dir.path().join("go"), "").unwrap();
+            wait_for(&signal_dir.path().join("outcome"));
+            assert!(child.wait().unwrap().success());
+            set_aside.join().unwrap().unwrap();
+        });
+
+        let outcome = std::fs::read_to_string(signal_dir.path().join("outcome")).unwrap();
+        assert_eq!(outcome, "free");
+        assert_eq!(entry_names(&target), ["course"]);
     }
 
     #[test]
