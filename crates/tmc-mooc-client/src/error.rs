@@ -125,6 +125,10 @@ pub enum MoocClientError {
          are solved in-browser and cannot be submitted from a native client"
     )]
     NoSubmittableExerciseTask { exercise_id: Uuid },
+    #[error(
+        "Exercise {exercise_id} has more than one editor task; answer it in the course material"
+    )]
+    SeveralEditorTasks { exercise_id: Uuid },
 }
 
 #[cfg(test)]

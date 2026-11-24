@@ -111,9 +111,10 @@ pub struct UncheckedMoocCourse {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum CourseRefusalKind {
-    /// A 403: the course is hidden or closed to the user, or the session lacks the
-    /// `exercise-services` scope, which courses.mooc.fi answers the same way.
+    /// A 403 `insufficient_scope`: the session lacks the `exercise-services` scope.
     InsufficientScope,
+    /// Any other 403: the user may not view the course, e.g. a draft.
+    Forbidden,
     /// A 404: the course does not exist, or not for this user.
     NotFound,
 }
@@ -128,13 +129,17 @@ impl CourseRefusalKind {
         let mooc::MoocClientError::HttpError {
             status,
             obsolete_client: false,
+            message_key,
             ..
         } = err.as_ref()
         else {
             return None;
         };
         match status.as_u16() {
-            403 => Some(Self::InsufficientScope),
+            403 if message_key.as_deref() == Some(mooc::INSUFFICIENT_SCOPE_MESSAGE_KEY) => {
+                Some(Self::InsufficientScope)
+            }
+            403 => Some(Self::Forbidden),
             404 => Some(Self::NotFound),
             _ => None,
         }
@@ -262,11 +267,11 @@ fn check_mooc_course_updates(
 ) -> Result<MoocExerciseUpdates, MoocAuthFailure> {
     let mut updates = MoocExerciseUpdates::default();
     // Keyed by exercise id: the stored `task_id` is the editor task's id, not an exercise key.
-    let server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = auth
-        .call(client, |c| c.course_exercises(course_config.course_id))?
-        .into_iter()
-        .map(|slide| (slide.exercise_id, slide))
-        .collect();
+    let server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> =
+        stored_course_exercises(client, auth, course_config)?
+            .into_iter()
+            .map(|slide| (slide.exercise_id, slide))
+            .collect();
     let mut missing = Vec::new();
     for (exercise_id, local_exercise) in &course_config.exercises {
         let Some(server_exercise) = server_exercises.get(exercise_id) else {
@@ -281,13 +286,26 @@ fn check_mooc_course_updates(
             updates.updated.push(*exercise_id);
         }
     }
-    if !missing.is_empty() {
+    if !missing.is_empty() && !course_config.is_exam {
         let closed = closed_chapter_exercise_ids(client, auth, course_config.course_id)?;
         updates
             .removed
             .extend(missing.into_iter().filter(|id| !closed.contains(id)));
     }
     Ok(updates)
+}
+
+/// The current exercise list of a course or exam stored in the projects directory.
+fn stored_course_exercises(
+    client: &MoocClient,
+    auth: &MoocAuth,
+    course_config: &MoocCourseConfig,
+) -> Result<Vec<mooc::TmcExerciseSlide>, MoocAuthFailure> {
+    if course_config.is_exam {
+        auth.call(client, |c| c.exam_exercises(course_config.course_id))
+    } else {
+        auth.call(client, |c| c.course_exercises(course_config.course_id))
+    }
 }
 
 /// The course's exercises that sit in chapters that have not opened yet. The course's exercise
@@ -994,6 +1012,34 @@ pub fn update_tmc_exercises(
     })
 }
 
+/// Where [`download_or_update_mooc_course_exercises`] looks the requested exercises up.
+#[derive(Debug, Clone, Copy)]
+pub enum MoocExerciseSource {
+    Course(Uuid),
+    /// An exam from [`mooc::MoocClient::exams`]; its exercises are stored like a course's.
+    Exam(Uuid),
+    /// Every course the user is enrolled on, in turn.
+    EnrolledCourses,
+}
+
+/// The course or exam an exercise is stored under.
+#[derive(Debug, Clone)]
+struct StoredCourse {
+    id: Uuid,
+    name: String,
+    is_exam: bool,
+}
+
+impl StoredCourse {
+    fn of_course(course: &mooc::Course) -> Self {
+        Self {
+            id: course.id,
+            name: course.name.clone(),
+            is_exam: false,
+        }
+    }
+}
+
 /// Updates the mooc exercises in the local projects directory.
 pub fn update_mooc_exercises(
     client: &MoocClient,
@@ -1031,16 +1077,10 @@ pub fn update_mooc_exercises(
 
     let mut downloaded = Vec::new();
     if !locals.is_empty() {
-        // One `course_exercises` request per course, not one per exercise.
-        // `instance_id` and `course_id` coincide for mooc courses.
-        let course_ids: HashSet<Uuid> = projects_config
-            .mooc_courses
-            .values()
-            .map(|cc| cc.course_id)
-            .collect();
+        // One exercise list request per course, not one per exercise.
         let mut server_exercises: Vec<mooc::TmcExerciseSlide> = Vec::new();
-        for course_id in course_ids {
-            server_exercises.extend(auth.call(client, |c| c.course_exercises(course_id))?);
+        for course_config in projects_config.mooc_courses.values() {
+            server_exercises.extend(stored_course_exercises(client, auth, course_config)?);
         }
         for slide in server_exercises {
             let Some(local) = locals.get(&slide.exercise_id) else {
@@ -1239,7 +1279,7 @@ pub fn download_or_update_mooc_course_exercises(
     auth: &MoocAuth,
     projects_dir: &Path,
     exercise_ids: &[Uuid],
-    course_id: Option<Uuid>,
+    source: MoocExerciseSource,
 ) -> Result<DownloadOrUpdateMoocCourseExercisesResult, LangsError> {
     log::debug!(
         "downloading or updating {} mooc exercises in {}",
@@ -1249,18 +1289,17 @@ pub fn download_or_update_mooc_course_exercises(
 
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
-    // exercise_id -> (course_id, course_name, slide)
     let requested: HashSet<Uuid> = exercise_ids.iter().copied().collect();
-    let mut resolved: HashMap<Uuid, (Uuid, String, mooc::TmcExerciseSlide)> = HashMap::new();
+    let mut resolved: HashMap<Uuid, (StoredCourse, mooc::TmcExerciseSlide)> = HashMap::new();
     // Requested exercises of a chapter that has not opened yet, with why they cannot be downloaded.
     let mut closed: HashMap<Uuid, String> = HashMap::new();
     if !requested.is_empty() {
-        match course_id {
-            Some(course_id) => {
-                let course = auth.call(client, |c| c.course(course_id))?;
+        match source {
+            MoocExerciseSource::Course(course_id) => {
+                let course = StoredCourse::of_course(&auth.call(client, |c| c.course(course_id))?);
                 for slide in auth.call(client, |c| c.course_exercises(course_id))? {
                     if requested.contains(&slide.exercise_id) {
-                        resolved.insert(slide.exercise_id, (course.id, course.name.clone(), slide));
+                        resolved.insert(slide.exercise_id, (course.clone(), slide));
                     }
                 }
                 if resolved.len() < requested.len() {
@@ -1283,14 +1322,31 @@ pub fn download_or_update_mooc_course_exercises(
                     }
                 }
             }
-            None => {
+            MoocExerciseSource::Exam(exam_id) => {
+                let exam = auth
+                    .call(client, |c| c.exams())?
+                    .into_iter()
+                    .find(|exam| exam.id == exam_id)
+                    .ok_or(LangsError::MoocExamNotAnswerable(exam_id))?;
+                let exam = StoredCourse {
+                    id: exam.id,
+                    name: exam.name,
+                    is_exam: true,
+                };
+                for slide in auth.call(client, |c| c.exam_exercises(exam_id))? {
+                    if requested.contains(&slide.exercise_id) {
+                        resolved.insert(slide.exercise_id, (exam.clone(), slide));
+                    }
+                }
+            }
+            MoocExerciseSource::EnrolledCourses => {
                 'courses: for course in auth.call(client, |c| c.courses())? {
+                    let stored_course = StoredCourse::of_course(&course);
                     for slide in auth.call(client, |c| c.course_exercises(course.id))? {
                         if requested.contains(&slide.exercise_id)
                             && !resolved.contains_key(&slide.exercise_id)
                         {
-                            resolved
-                                .insert(slide.exercise_id, (course.id, course.name.clone(), slide));
+                            resolved.insert(slide.exercise_id, (stored_course.clone(), slide));
                             if resolved.len() == requested.len() {
                                 break 'courses;
                             }
@@ -1315,7 +1371,7 @@ pub fn download_or_update_mooc_course_exercises(
     );
 
     for &exercise_id in exercise_ids {
-        let Some((course_id, course_name, slide)) = resolved.get(&exercise_id) else {
+        let Some((course, slide)) = resolved.get(&exercise_id) else {
             let reason = closed.remove(&exercise_id).unwrap_or_else(|| {
                 format!(
                     "Exercise {exercise_id} was not found in any of the user's enrolled courses"
@@ -1331,6 +1387,16 @@ pub fn download_or_update_mooc_course_exercises(
             continue;
         };
 
+        if slide.has_several_editor_tasks() {
+            failed.push((
+                MoocExerciseDownload {
+                    exercise_id,
+                    path: projects_dir.join("mooc"),
+                },
+                vec![mooc::MoocClientError::SeveralEditorTasks { exercise_id }.to_string()],
+            ));
+            continue;
+        }
         let editor_task = slide.tasks.iter().find(|task| {
             task.public_spec
                 .as_ref()
@@ -1363,9 +1429,10 @@ pub fn download_or_update_mooc_course_exercises(
         let exercise_name = slide.exercise_name.clone();
 
         let course_config = projects_config.get_or_init_mooc_course_config(
-            *course_id,
-            *course_id,
-            course_name.clone(),
+            course.id,
+            course.id,
+            course.name.clone(),
+            course.is_exam,
         );
 
         // Reuse the directory of an already-downloaded exercise.
@@ -3061,6 +3128,14 @@ checksum = 'new checksum'
     }
 
     fn mooc_http_error(status: u16, obsolete_client: bool) -> Box<mooc::MoocClientError> {
+        mooc_keyed_http_error(status, obsolete_client, None)
+    }
+
+    fn mooc_keyed_http_error(
+        status: u16,
+        obsolete_client: bool,
+        message_key: Option<&str>,
+    ) -> Box<mooc::MoocClientError> {
         Box::new(mooc::MoocClientError::HttpError {
             url: "https://courses.mooc.fi/api/v0/exercise-services/client/courses/1/exercises"
                 .parse()
@@ -3068,7 +3143,7 @@ checksum = 'new checksum'
             status: oauth2::http::StatusCode::from_u16(status).unwrap(),
             error: String::new(),
             obsolete_client,
-            message_key: None,
+            message_key: message_key.map(str::to_string),
         })
     }
 
@@ -3076,6 +3151,14 @@ checksum = 'new checksum'
     fn course_refusal_kind_names_403_and_404() {
         assert_eq!(
             CourseRefusalKind::of(&MoocAuthFailure::Other(mooc_http_error(403, false))),
+            Some(CourseRefusalKind::Forbidden)
+        );
+        assert_eq!(
+            CourseRefusalKind::of(&MoocAuthFailure::Other(mooc_keyed_http_error(
+                403,
+                false,
+                Some(mooc::INSUFFICIENT_SCOPE_MESSAGE_KEY)
+            ))),
             Some(CourseRefusalKind::InsufficientScope)
         );
         assert_eq!(
@@ -3890,7 +3973,7 @@ directory = "skip-me"
             &auth,
             projects_dir.path(),
             &[ex_skip, ex_new, ex_browser, ex_missing],
-            None,
+            MoocExerciseSource::EnrolledCourses,
         )
         .unwrap();
 
@@ -3985,7 +4068,7 @@ directory = "skip-me"
             &auth,
             projects_dir.path(),
             &[ex_new],
-            Some(course_id),
+            MoocExerciseSource::Course(course_id),
         )
         .unwrap();
 
@@ -4039,7 +4122,7 @@ directory = "skip-me"
             &auth,
             projects_dir.path(),
             &[closed_id],
-            Some(course_id),
+            MoocExerciseSource::Course(course_id),
         )
         .unwrap();
 

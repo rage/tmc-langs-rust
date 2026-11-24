@@ -528,7 +528,7 @@ fn assert_error_kind(error: tmc_langs_cli::CliError, expected: &str) {
 }
 
 #[test]
-fn mooc_403_maps_to_insufficient_scope_kind() {
+fn mooc_403_without_a_key_maps_to_forbidden_kind() {
     // Mooc errors travel the anyhow chain as `Box<MoocClientError>`; a bare-type
     // downcast misses them and collapses every HTTP error to `generic`.
     let mut server = mockito::Server::new();
@@ -549,7 +549,7 @@ fn mooc_403_maps_to_insufficient_scope_kind() {
         config_dir.path(),
         projects_dir.path(),
     );
-    assert_error_kind(error, "insufficient-scope");
+    assert_error_kind(error, "forbidden");
 }
 
 #[test]
@@ -629,7 +629,9 @@ fn mooc_refusals_map_to_their_own_kinds() {
             "chapter-completed-and-locked",
         ),
         (403, "exercise_locked", "exercise-locked"),
-        (403, "forbidden", "insufficient-scope"),
+        (403, "forbidden", "forbidden"),
+        (403, "no_access", "forbidden"),
+        (403, "insufficient_scope", "insufficient-scope"),
     ];
     for (status, message_key, kind) in cases {
         let mut server = mockito::Server::new();
@@ -1398,16 +1400,13 @@ fn check_exercise_updates_reports_refused_courses_and_checks_the_rest() {
     assert_eq!(
         unchecked,
         vec![
-            serde_json::json!({ "course_id": hidden_course, "kind": "insufficient-scope" }),
+            serde_json::json!({ "course_id": hidden_course, "kind": "forbidden" }),
             serde_json::json!({ "course_id": deleted_course, "kind": "not-found" }),
         ]
     );
 
     // Clients handle a refused course like a failed single-course command with the same kind.
-    for (course_id, kind) in [
-        (hidden_course, "insufficient-scope"),
-        (deleted_course, "not-found"),
-    ] {
+    for (course_id, kind) in [(hidden_course, "forbidden"), (deleted_course, "not-found")] {
         let error = run_mooc_in_expect_error(
             &server,
             &["course-exercises", "--course-id", &course_id.to_string()],
@@ -3899,4 +3898,117 @@ fn make_tar_zst(files: &[(&str, &[u8])]) -> Vec<u8> {
         builder.finish().unwrap();
     }
     zstd::encode_all(std::io::Cursor::new(tar_buf), 0).unwrap()
+}
+
+#[test]
+fn exam_exercises_download_under_the_exam_and_are_checked_against_it() {
+    let mut server = mockito::Server::new();
+    let exam_id = Uuid::new_v4();
+    let exercise_id = Uuid::new_v4();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_root = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let stub_url = format!("{}/files/exam.tar.zst", server.url());
+    let _exams = server
+        .mock("GET", "/api/v0/exercise-services/client/exams")
+        .with_body(
+            serde_json::json!([{
+                "id": exam_id, "name": "Final exam",
+                "started_at": "2026-11-24T10:00:00Z",
+                "answerable_until": "2026-11-24T13:00:00Z",
+            }])
+            .to_string(),
+        )
+        .create();
+    let exam_exercises = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exams/{exam_id}/exercises").as_str(),
+        )
+        .with_body(
+            serde_json::json!([{
+                "slide_id": Uuid::new_v4(), "exercise_id": exercise_id, "course_id": Uuid::nil(),
+                "exam_id": exam_id, "exercise_name": "Exam task", "exercise_order_number": 0,
+                "tasks": [{
+                    "task_id": Uuid::new_v4(), "order_number": 0, "assignment": [],
+                    "public_spec": {
+                        "type": "editor", "archive_name": "e.tar.zst",
+                        "stub_download_url": stub_url,
+                        "student_file_paths": ["src/main.py"], "checksum": "exam checksum"
+                    },
+                    "model_solution_spec": null, "exercise_service_slug": "tmc"
+                }],
+            }])
+            .to_string(),
+        )
+        .expect(2)
+        .create();
+    server
+        .mock("GET", "/files/exam.tar.zst")
+        .with_body(make_tar_zst(&[("src/main.py", b"print('exam')")]))
+        .create();
+
+    match data_of(
+        run_mooc_in(&server, &["exams"], config_dir.path(), projects_root.path()).unwrap(),
+    ) {
+        DataKind::MoocExams(exams) => assert_eq!(exams[0].id, exam_id),
+        other => panic!("expected MoocExams, got {other:?}"),
+    }
+
+    let output = run_mooc_in(
+        &server,
+        &[
+            "download-or-update-course-exercises",
+            "--exam-id",
+            &exam_id.to_string(),
+            "--exercise-id",
+            &exercise_id.to_string(),
+        ],
+        config_dir.path(),
+        projects_root.path(),
+    )
+    .unwrap();
+    match data_of(output) {
+        DataKind::MoocExerciseDownload(result) => {
+            assert_eq!(result.downloaded.len(), 1, "{result:?}");
+        }
+        other => panic!("expected MoocExerciseDownload, got {other:?}"),
+    }
+
+    let output = run_mooc_in(
+        &server,
+        &["check-exercise-updates"],
+        config_dir.path(),
+        projects_root.path(),
+    )
+    .unwrap();
+    let output = serde_json::to_value(output_data(output)).unwrap();
+    assert_eq!(
+        output["data"]["output-data"]["updated"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        output["data"]["output-data"]["removed"],
+        serde_json::json!([])
+    );
+    exam_exercises.assert();
+}
+
+#[test]
+fn wait_for_grading_stops_at_a_hidden_exam_grading() {
+    let mut server = mockito::Server::new();
+    let submission_id = "55555555-5555-5555-5555-555555555555";
+    let _hidden = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(r#""GradingHidden""#)
+        .expect(1)
+        .create();
+
+    let output = run_mooc(
+        &server,
+        &["wait-for-grading", "--submission-id", submission_id],
+    )
+    .unwrap();
+    assert_eq!(submission_status_json(output)["status"], "grading-hidden");
 }

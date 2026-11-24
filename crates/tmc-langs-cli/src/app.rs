@@ -587,6 +587,16 @@ pub enum MoocCommand {
         #[clap(long)]
         course_id: Uuid,
     },
+    /// Fetches the exams the user has started and can still answer.
+    #[clap(long_about = schema_leaked::<Vec<mooc::Exam>>())]
+    Exams,
+    /// Fetches the exercises of an exam from `exams`. Their gradings stay hidden while the exam
+    /// can be answered.
+    #[clap(long_about = schema_leaked::<Vec<mooc::TmcExerciseSlide>>())]
+    ExamExercises {
+        #[clap(long)]
+        exam_id: Uuid,
+    },
     /// Fetches information about an exercise.
     Exercise {
         #[clap(long)]
@@ -608,8 +618,12 @@ pub enum MoocCommand {
         /// The course the exercises belong to. When given, only that course's
         /// slides are fetched to resolve the exercises instead of scanning every
         /// enrolled course.
-        #[clap(long)]
+        #[clap(long, conflicts_with = "exam_id")]
         course_id: Option<Uuid>,
+        /// The exam the exercises belong to. They are stored like a course's, under the exam's
+        /// id.
+        #[clap(long)]
+        exam_id: Option<Uuid>,
     },
     /// Lists the local exercises of a mooc course, looked up by course id.
     #[clap(long_about = schema_leaked::<Vec<LocalMoocExercise>>())]
@@ -1638,6 +1652,10 @@ mod test {
             tmc_langs::mooc::ExerciseProgress,
             tmc_langs::mooc::ExerciseStanding,
             tmc_langs::mooc::PendingTeacherReview,
+            tmc_langs::mooc::ReviewingStage,
+            tmc_langs::mooc::TeacherReview,
+            tmc_langs::mooc::TeacherDecision,
+            tmc_langs::mooc::Exam,
             tmc_langs::mooc::MoocClientUpdateData,
             tmc_langs::MoocOldSubmissionRestore,
             tmc_langs::CombinedMoocCourseData,

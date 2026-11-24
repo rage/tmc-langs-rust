@@ -12,8 +12,12 @@ use uuid::Uuid;
 pub struct TmcExerciseSlide {
     pub slide_id: Uuid,
     pub exercise_id: Uuid,
-    /// Lets a client locate the exercise's course without a separate lookup.
+    /// Lets a client locate the exercise's course without a separate lookup. The nil UUID for an
+    /// exam exercise, which `exam_id` names instead.
     pub course_id: Uuid,
+    /// `None` for a course exercise.
+    #[serde(default)]
+    pub exam_id: Option<Uuid>,
     pub exercise_name: String,
     pub exercise_order_number: i32,
     /// The effective deadline: the exercise's own, else its chapter's. Submissions are refused
@@ -95,6 +99,16 @@ impl TmcExerciseSlide {
         self.editor_task().map(|task| task.task_id)
     }
 
+    /// Whether the slide has more than one editor task. A submission answers one task, so such
+    /// a slide can only be answered in the course material.
+    pub fn has_several_editor_tasks(&self) -> bool {
+        self.tasks
+            .iter()
+            .filter(|task| task.public_spec.as_ref().is_some_and(PublicSpec::is_editor))
+            .count()
+            > 1
+    }
+
     /// Checksum of this slide's first editor task, if any; compared with the
     /// stored one to detect an out-of-date local exercise.
     pub fn editor_checksum(&self) -> Option<&str> {
@@ -119,6 +133,7 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
             slide_id: value.slide_id,
             exercise_id: value.exercise_id,
             course_id: value.course_id,
+            exam_id: value.exam_id,
             exercise_name: value.exercise_name,
             exercise_order_number: value.exercise_order_number,
             deadline: value.deadline,
@@ -143,13 +158,22 @@ pub struct TmcExerciseTask {
     pub public_spec: Option<PublicSpec>,
     pub model_solution_spec: Option<ModelSolutionSpec>,
     pub checksum: Option<String>,
+    /// The exercise service that owns the task. Specs are read only for [`TMC_SERVICE_SLUG`];
+    /// any other service's task has neither spec.
+    pub exercise_service_slug: String,
 }
+
+/// The exercise service whose tasks this client can work on.
+pub const TMC_SERVICE_SLUG: &str = "tmc";
 
 impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
     type Error = JsonError;
     fn try_from(value: api::ExerciseTask) -> Result<Self, Self::Error> {
+        // Another service's specs have another shape; failing on them would fail the whole course.
+        let is_tmc_task = value.exercise_service_slug == TMC_SERVICE_SLUG;
         let public_spec: Option<PublicSpec> = value
             .public_spec
+            .filter(|_| is_tmc_task)
             .map(deserialize::json_from_value)
             .transpose()?;
         let task = Self {
@@ -160,8 +184,10 @@ impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
             public_spec,
             model_solution_spec: value
                 .model_solution_spec
+                .filter(|_| is_tmc_task)
                 .map(deserialize::json_from_value)
                 .transpose()?,
+            exercise_service_slug: value.exercise_service_slug,
         };
         Ok(task)
     }
@@ -196,6 +222,10 @@ impl PublicSpec {
 
     pub fn stub_download_url(&self) -> &str {
         &self.stub_download_url
+    }
+
+    pub fn is_editor(&self) -> bool {
+        self.exercise_type == ExerciseType::Editor
     }
 
     /// Stub archive download URL; `None` for browser exercises, which have no project archive.
@@ -353,6 +383,66 @@ mod test {
     /// schema. Neither repo's CI can see the other, so a change to the `TryFrom`
     /// impls above has to land there in the same change, or that file goes on
     /// reconciling a conversion that no longer exists.
+    #[test]
+    fn another_services_task_does_not_fail_the_slide() {
+        let slide: api::ExerciseSlide = serde_json::from_value(serde_json::json!({
+            "slide_id": Uuid::new_v4(),
+            "exercise_id": Uuid::new_v4(),
+            "course_id": Uuid::nil(),
+            "exam_id": Uuid::new_v4(),
+            "exercise_name": "other",
+            "exercise_order_number": 0,
+            "deadline": null,
+            "tasks": [{
+                "task_id": Uuid::new_v4(),
+                "order_number": 0,
+                "assignment": [],
+                "public_spec": { "some": "other shape" },
+                "model_solution_spec": [1, 2],
+                "exercise_service_slug": "quizzes"
+            }]
+        }))
+        .unwrap();
+        let slide: TmcExerciseSlide = slide.try_into().unwrap();
+        assert!(slide.exam_id.is_some());
+        assert_eq!(slide.tasks[0].exercise_service_slug, "quizzes");
+        assert!(slide.tasks[0].public_spec.is_none());
+        assert!(slide.tasks[0].model_solution_spec.is_none());
+        assert_eq!(slide.editor_task_id(), None);
+    }
+
+    #[test]
+    fn a_slide_with_two_editor_tasks_is_flagged() {
+        let editor_task = || {
+            serde_json::json!({
+                "task_id": Uuid::new_v4(),
+                "order_number": 0,
+                "assignment": [],
+                "public_spec": {
+                    "type": "editor",
+                    "archive_name": "stub.tar.zst",
+                    "stub_download_url": "http://example.com/e.tar.zst",
+                    "student_file_paths": [],
+                    "checksum": "sum"
+                },
+                "model_solution_spec": null,
+                "exercise_service_slug": "tmc"
+            })
+        };
+        let slide: api::ExerciseSlide = serde_json::from_value(serde_json::json!({
+            "slide_id": Uuid::new_v4(),
+            "exercise_id": Uuid::new_v4(),
+            "course_id": Uuid::new_v4(),
+            "exercise_name": "two",
+            "exercise_order_number": 0,
+            "deadline": null,
+            "tasks": [editor_task(), editor_task()]
+        }))
+        .unwrap();
+        let slide: TmcExerciseSlide = slide.try_into().unwrap();
+        assert!(slide.has_several_editor_tasks());
+    }
+
     #[test]
     fn slide_with_mixed_tasks_round_trips() {
         let editor_task_id = Uuid::new_v4();

@@ -302,6 +302,7 @@ impl ProjectsConfig {
         instance_id: Uuid,
         course_id: Uuid,
         course_name: String,
+        is_exam: bool,
     ) -> &mut MoocCourseConfig {
         let existing_dirs = self
             .mooc_courses
@@ -331,6 +332,7 @@ impl ProjectsConfig {
                 course_id,
                 instance_id,
                 directory,
+                is_exam,
             })
     }
 }
@@ -411,11 +413,15 @@ impl TmcCourseConfig {
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MoocCourseConfig {
+    /// The exam's id when `is_exam`.
     pub course_id: Uuid,
     pub instance_id: Uuid,
     /// The course's name.
     pub course: String,
     pub directory: String,
+    /// Whether this holds an exam's exercises rather than a course's.
+    #[serde(default)]
+    pub is_exam: bool,
     /// The course's exercises in a map with the exercise's id as the key.
     #[serde(default)]
     pub exercises: BTreeMap<Uuid, ProjectsDirMoocExercise>,
@@ -888,6 +894,7 @@ checksum = "defg4567"
             instance_id,
             course: "My MOOC Course".to_string(),
             directory: "my-mooc-course".to_string(),
+            is_exam: false,
             exercises,
         };
         course_config.save_to_projects_dir(temp.path()).unwrap();

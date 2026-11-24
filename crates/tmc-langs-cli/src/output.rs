@@ -124,6 +124,7 @@ pub enum DataKind {
     MoocCurrentUser(mooc::CurrentUser),
     MoocCourse(mooc::Course),
     MoocCourses(Vec<mooc::Course>),
+    MoocExams(Vec<mooc::Exam>),
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
     MoocExerciseSlide(mooc::TmcExerciseSlide),
     MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),
@@ -193,7 +194,8 @@ pub enum OutputResult {
 pub enum Kind {
     /// For all other errors
     Generic,
-    /// tmc.mooc.fi answered 403: the user may not see what was asked for.
+    /// The server answered 403: the user may not see what was asked for, such as a draft
+    /// course (courses.mooc.fi's `no_access`, or a 403 without a more specific key).
     Forbidden,
     /// Not logged in, detected either by no token or 401 from server
     NotLoggedIn,
@@ -223,8 +225,8 @@ pub enum Kind {
     NotFound,
     /// The server answered with a 5xx status. Transient, so stored credentials are kept.
     ServerError,
-    /// courses.mooc.fi answered 403, typically because the access token lacks the
-    /// `exercise-services` scope. Unlike tmc.mooc.fi's `Forbidden`, says nothing about the course.
+    /// courses.mooc.fi answered 403 `insufficient_scope`: the access token lacks the
+    /// `exercise-services` scope. Says nothing about the course.
     InsufficientScope,
     /// The server answered 404 to a request addressing one exercise: the exercise does not
     /// exist, or not for this user.

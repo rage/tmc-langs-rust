@@ -137,6 +137,8 @@ pub enum LangsError {
         kept_at: PathBuf,
         cause: String,
     },
+    #[error("Exam {0} is not among the exams the user has started and can still answer")]
+    MoocExamNotAnswerable(Uuid),
     #[error(transparent)]
     PersistTempFile(#[from] tempfile::PersistError),
     #[error(transparent)]

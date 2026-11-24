@@ -255,6 +255,8 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) => Some(Kind::UploadExpired),
                 Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) => Some(Kind::UnknownUpload),
                 Some(mooc::RATE_LIMITED_MESSAGE_KEY) => Some(Kind::RateLimited),
+                Some(mooc::INSUFFICIENT_SCOPE_MESSAGE_KEY) => Some(Kind::InsufficientScope),
+                Some(mooc::NO_ACCESS_MESSAGE_KEY) => Some(Kind::Forbidden),
                 // `duplicate_upload` is left unmapped: only a buggy client triggers it.
                 _ => None,
             };
@@ -265,7 +267,7 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
             } else if status.as_u16() == 429 {
                 Some(Kind::RateLimited)
             } else if status.as_u16() == 403 {
-                Some(Kind::InsufficientScope)
+                Some(Kind::Forbidden)
             } else if status.as_u16() == 401 {
                 Some(Kind::NotLoggedIn)
             } else {
@@ -1385,6 +1387,17 @@ fn run_mooc_inner(
                 DataKind::MoocCourseProgress(progress),
             )
         }
+        MoocCommand::Exams => {
+            let exams = auth.call(client, |c| c.exams())?;
+            CliOutput::finished_with_data("fetched exams", DataKind::MoocExams(exams))
+        }
+        MoocCommand::ExamExercises { exam_id } => {
+            let exercises = auth.call(client, |c| c.exam_exercises(exam_id))?;
+            CliOutput::finished_with_data(
+                "fetched exam exercises",
+                DataKind::MoocExerciseSlides(exercises),
+            )
+        }
         MoocCommand::Exercise { exercise_id } => {
             let exercise = auth.call(client, |c| c.exercise(exercise_id))?;
             CliOutput::finished_with_data("fetched exercise", DataKind::MoocExerciseSlide(exercise))
@@ -1406,14 +1419,20 @@ fn run_mooc_inner(
         MoocCommand::DownloadOrUpdateCourseExercises {
             exercise_id: exercise_ids,
             course_id,
+            exam_id,
         } => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let source = match (course_id, exam_id) {
+                (_, Some(exam_id)) => tmc_langs::MoocExerciseSource::Exam(exam_id),
+                (Some(course_id), None) => tmc_langs::MoocExerciseSource::Course(course_id),
+                (None, None) => tmc_langs::MoocExerciseSource::EnrolledCourses,
+            };
             let data = tmc_langs::download_or_update_mooc_course_exercises(
                 client,
                 auth,
                 &projects_dir,
                 &exercise_ids,
-                course_id,
+                source,
             )?;
             CliOutput::finished_with_data(
                 "downloaded or updated exercises",
@@ -1581,14 +1600,20 @@ fn parse_poll_millis(var: &str, raw: Option<String>, default: u64, min: u64) -> 
 /// Whether a grading status is terminal from the student's point of view.
 ///
 /// `PendingManual` counts as terminal: the automated part is done and the result
-/// won't change synchronously. `Pending`, `NotReady` and `NoGradingYet` keep polling.
+/// won't change synchronously. So do a hidden exam grading, which shows only after the exam,
+/// and values newer than this client, which polling cannot make sense of either.
+/// `Pending`, `NotReady` and `NoGradingYet` keep polling.
 fn mooc_grading_is_terminal(status: &mooc::ExerciseTaskSubmissionStatus) -> bool {
     use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
     match status {
         Status::NoGradingYet => false,
+        Status::GradingHidden | Status::Unrecognized => true,
         Status::Grading { grading } => matches!(
             grading.grading_progress,
-            Progress::FullyGraded | Progress::Failed | Progress::PendingManual
+            Progress::FullyGraded
+                | Progress::Failed
+                | Progress::PendingManual
+                | Progress::Unrecognized
         ),
     }
 }
@@ -1598,12 +1623,15 @@ fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
     use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
     match status {
         Status::NoGradingYet => "Grading has not started yet".to_string(),
+        Status::GradingHidden => "Graded; the result shows after the exam".to_string(),
+        Status::Unrecognized => "Grading status unknown to this version".to_string(),
         Status::Grading { grading } => match grading.grading_progress {
             Progress::NotReady => "Grading not ready".to_string(),
             Progress::Pending => "Grading in progress".to_string(),
             Progress::PendingManual => "Awaiting manual grading".to_string(),
             Progress::FullyGraded => "Fully graded".to_string(),
             Progress::Failed => "Grading failed".to_string(),
+            Progress::Unrecognized => "Grading status unknown to this version".to_string(),
         },
     }
 }
