@@ -13,8 +13,9 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
-    TmcError, nom::IResult, nom_language::error::VerboseError,
+    Archive, BUILD_TIMEOUT, ExerciseDesc, Language, LanguagePlugin, RunResult,
+    StyleValidationResult, TmcCommand, TmcError, absolute_tool_path, nom::IResult,
+    nom_language::error::VerboseError,
 };
 use tmc_langs_util::{file_util, path_util};
 use walkdir::WalkDir;
@@ -172,7 +173,7 @@ impl LanguagePlugin for AntPlugin {
         let ant_exec = self.get_ant_executable();
         let _output = TmcCommand::new(ant_exec)
             .with(|e| e.arg("clean").stdout(stdout).stderr(stderr).cwd(path))
-            .output_checked()?;
+            .output_with_timeout_checked(BUILD_TIMEOUT)?;
         file_util::remove_file(&stdout_path)?;
         file_util::remove_file(&stderr_path)?;
         Ok(())
@@ -200,8 +201,9 @@ impl JavaPlugin for AntPlugin {
 
     /// Constructs the class path for the given path.
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
-        // canonicalize root path to avoid issues where the cwd and project root are different directories
-        let path = file_util::canonicalize(path)?;
+        // Absolute rather than canonical so a mapped drive keeps its drive letter.
+        let path =
+            absolute_tool_path(path).map_err(|e| JavaError::AbsolutePath(path.to_path_buf(), e))?;
         let mut paths = vec![];
 
         // add all .jar files in lib
@@ -243,7 +245,7 @@ impl JavaPlugin for AntPlugin {
         let ant_exec = self.get_ant_executable();
         let output = TmcCommand::piped(ant_exec)
             .with(|e| e.arg("compile-test").cwd(project_root_path))
-            .output()?;
+            .output_with_timeout(BUILD_TIMEOUT)?;
 
         // TODO: is it really necessary to write the logs in files?
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
@@ -269,7 +271,10 @@ impl JavaPlugin for AntPlugin {
         log::info!("running tests for project at {}", path.display());
 
         // build java args
-        let mut arguments = vec![];
+        let mut arguments: Vec<String> = crate::TEST_JVM_LOCALE_ARGS
+            .iter()
+            .map(|arg| arg.to_string())
+            .collect();
         // JVM args
         if let Ok(jvm_options) = env::var("JVM_OPTIONS") {
             arguments.extend(
