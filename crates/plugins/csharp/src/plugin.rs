@@ -8,11 +8,13 @@ use std::{
     io::{BufReader, Cursor, Read, Seek},
     ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
+    sync::Mutex,
     time::Duration,
 };
 use tmc_langs_framework::{
-    Archive, CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
-    StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand, TmcError,
+    Archive, BUILD_TIMEOUT, CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult,
+    RunStatus, StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand,
+    TmcError,
     nom::{IResult, Parser, bytes, character, combinator, sequence},
     nom_language::error::VerboseError,
 };
@@ -22,6 +24,9 @@ use zip::ZipArchive;
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-2.0.zip");
 const TMC_CSHARP_RUNNER_VERSION: &str = "2.0";
+
+/// Serializes runner updates between threads; the file lock alone is per process on Unix.
+static RUNNER_UPDATE_MUTEX: Mutex<()> = Mutex::new(());
 
 #[derive(Default)]
 pub struct CSharpPlugin {}
@@ -52,35 +57,46 @@ impl CSharpPlugin {
 
     /// Returns the directory of the TMC C# runner, writing it to the cache dir if it doesn't exist there yet.
     ///
-    /// NOTE: May cause issues if called concurrently.
+    /// The update takes a lock shared by all CLI processes; the version file is written last, so
+    /// a process that sees it missing or old waits for the lock instead of using a partial runner.
     /// TODO: Currently this is checked every time when necessary. It could also be done in the constructor, but then it would be done in cases where unnecessary (when checking code style, for example)
     fn get_or_init_runner_dir() -> Result<PathBuf, CSharpError> {
         log::debug!("getting C# runner dir");
-        match dirs::cache_dir() {
-            Some(cache_dir) => {
-                let runner_dir = cache_dir.join("tmc").join("tmc-csharp-runner");
-                let version_path = runner_dir.join("VERSION");
+        let cache_dir = dirs::cache_dir().ok_or(CSharpError::CacheDir)?;
+        let tmc_dir = cache_dir.join("tmc");
+        let runner_dir = tmc_dir.join("tmc-csharp-runner");
+        let version_path = runner_dir.join("VERSION");
 
-                let needs_update = if version_path.exists() {
-                    let version = file_util::read_file_to_string(&version_path)?;
-                    version != TMC_CSHARP_RUNNER_VERSION
-                } else {
-                    true
-                };
-
-                if needs_update {
-                    log::debug!("updating the cached C# runner");
-                    if runner_dir.exists() {
-                        // clear the directory if it exists
-                        file_util::remove_dir_all(&runner_dir)?;
-                    }
-                    Self::extract_runner_to_dir(&runner_dir)?;
-                    file_util::write_to_file(TMC_CSHARP_RUNNER_VERSION.as_bytes(), version_path)?;
-                }
-                Ok(runner_dir)
+        let needs_update = || -> Result<bool, CSharpError> {
+            if version_path.exists() {
+                let version = file_util::read_file_to_string(&version_path)?;
+                Ok(version != TMC_CSHARP_RUNNER_VERSION)
+            } else {
+                Ok(true)
             }
-            None => Err(CSharpError::CacheDir),
+        };
+        if !needs_update()? {
+            return Ok(runner_dir);
         }
+
+        file_util::create_dir_all(&tmc_dir)?;
+        let _thread_guard = RUNNER_UPDATE_MUTEX
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        let mut lock = file_util::Lock::file(
+            tmc_dir.join("tmc-csharp-runner.lock"),
+            file_util::LockOptions::WriteCreate,
+        )?;
+        let _guard = lock.lock()?;
+        if needs_update()? {
+            log::debug!("updating the cached C# runner");
+            if runner_dir.exists() {
+                file_util::remove_dir_all(&runner_dir)?;
+            }
+            Self::extract_runner_to_dir(&runner_dir)?;
+            file_util::write_to_file(TMC_CSHARP_RUNNER_VERSION.as_bytes(), version_path)?;
+        }
+        Ok(runner_dir)
     }
 
     /// Returns the path to the TMC C# runner in the cache. If TMC_CSHARP_BOOTSTRAP_PATH is set, it is returned instead.
@@ -201,7 +217,7 @@ impl LanguagePlugin for CSharpPlugin {
                     .arg(bootstrap_path)
                     .arg("--generate-points-file")
             })
-            .output_checked()?;
+            .output_with_timeout_checked(BUILD_TIMEOUT)?;
 
         // TODO: the command above can fail silently in some edge cases
         // parse result file
