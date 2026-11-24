@@ -42,6 +42,8 @@ pub enum LangsError {
     ProjectsDirNotString,
     #[error("Attempted to move the projects-dir to the directory it's already in")]
     MovingProjectsDirToItself,
+    #[error("Attempted to move the projects-dir into a directory inside itself")]
+    MovingProjectsDirIntoItself,
     #[error("No projects-dir found")]
     NoProjectsDir,
     #[error("Exercise in project-config not found")]

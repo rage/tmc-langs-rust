@@ -180,9 +180,9 @@ pub fn migrate_exercise(
         },
     );
 
-    super::move_dir(exercise_path, &target_dir)?;
-    course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
-    Ok(())
+    super::move_dir(exercise_path, &target_dir, || {
+        course_config.save_to_projects_dir(&tmc_config.projects_dir)
+    })
 }
 
 /// Moves the projects directory from its current location to the target, taking all of the contained exercises with it.
@@ -206,14 +206,15 @@ pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(
     if target_canon == prev_dir_canon {
         return Err(LangsError::MovingProjectsDirToItself);
     }
+    if target_canon.starts_with(&prev_dir_canon) {
+        return Err(LangsError::MovingProjectsDirIntoItself);
+    }
 
     let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
 
     let mut lock = Lock::dir(old_projects_dir.clone(), LockOptions::Write)?;
     let _guard = lock.lock()?;
-    super::move_dir(&old_projects_dir, &target)?;
-    tmc_config.save()?;
-    Ok(())
+    super::move_dir(&old_projects_dir, &target, || tmc_config.save())
 }
 
 #[cfg(test)]
@@ -563,5 +564,28 @@ mod test {
                 .exists()
         );
         assert!(!projects_dir.path().exists());
+    }
+
+    #[test]
+    fn refuses_to_move_the_projects_dir_into_itself() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let config_dir = tempfile::tempdir().unwrap();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let inside = projects_dir.path().join("inside");
+        let tmc_config = TmcConfig {
+            location: config_dir.path().join("tmc_config.temp"),
+            projects_dir: projects_dir.path().to_path_buf(),
+            table: Table::new(),
+        };
+        file_to(projects_dir.path(), "course/file", "");
+
+        let result = move_projects_dir(tmc_config, inside);
+        assert!(matches!(
+            result,
+            Err(LangsError::MovingProjectsDirIntoItself)
+        ));
+        assert!(projects_dir.path().join("course/file").exists());
     }
 }

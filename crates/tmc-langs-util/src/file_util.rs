@@ -203,7 +203,11 @@ pub fn persist_temp_file(temp: NamedTempFile, path: &Path) -> Result<(), FileErr
     let from = temp.path().to_path_buf();
     let mut temp = Some(temp);
     retry_sharing(|| {
-        match temp.take().expect("restored after every failed attempt").persist(path) {
+        match temp
+            .take()
+            .expect("restored after every failed attempt")
+            .persist(path)
+        {
             Ok(_) => Ok(()),
             Err(tempfile::PersistError { error, file }) => {
                 temp = Some(file);
@@ -454,6 +458,34 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
     Ok(())
 }
 
+/// Whether `err` from a rename means source and target are on different volumes.
+pub fn is_cross_volume_error(err: &FileError) -> bool {
+    let FileError::Rename { source, .. } = err else {
+        return false;
+    };
+    // EXDEV, ERROR_NOT_SAME_DEVICE
+    let code = if cfg!(windows) { 17 } else { 18 };
+    source.kind() == std::io::ErrorKind::CrossesDevices || source.raw_os_error() == Some(code)
+}
+
+/// Creates at `link` a symlink to the same target as the one at `original`, without following it.
+pub fn copy_symlink(original: &Path, link: &Path) -> Result<(), FileError> {
+    let link_target =
+        fs::read_link(original).map_err(|e| FileError::FileRead(original.to_path_buf(), e))?;
+    if let Some(parent) = link.parent() {
+        create_dir_all(parent)?;
+    }
+    #[cfg(unix)]
+    let result = std::os::unix::fs::symlink(&link_target, link);
+    #[cfg(windows)]
+    let result = if original.is_dir() {
+        std::os::windows::fs::symlink_dir(&link_target, link)
+    } else {
+        std::os::windows::fs::symlink_file(&link_target, link)
+    };
+    result.map_err(|e| FileError::FileCreate(link.to_path_buf(), e))
+}
+
 pub fn canonicalize(path: &Path) -> Result<PathBuf, FileError> {
     let canon =
         dunce::canonicalize(path).map_err(|e| FileError::Canonicalize(path.to_path_buf(), e))?;
@@ -530,7 +562,9 @@ mod test {
             let err = std::io::Error::from_raw_os_error(code);
             assert_eq!(is_transient_sharing_error(&err), cfg!(windows));
         }
-        assert!(!is_transient_sharing_error(&std::io::Error::from_raw_os_error(2)));
+        assert!(!is_transient_sharing_error(
+            &std::io::Error::from_raw_os_error(2)
+        ));
     }
 
     #[test]

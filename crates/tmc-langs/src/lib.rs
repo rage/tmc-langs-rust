@@ -1981,12 +1981,89 @@ pub fn extract_student_files(
     Ok(())
 }
 
-fn move_dir(source: &Path, target: &Path) -> Result<(), LangsError> {
+/// Moves the directory `source` to `target`, which may exist if empty. `record_move` runs once
+/// the contents are at `target`, before the old directory is deleted, so a failure never leaves
+/// the caller's records pointing at a deleted directory.
+fn move_dir(
+    source: &Path,
+    target: &Path,
+    record_move: impl FnOnce() -> Result<(), LangsError>,
+) -> Result<(), LangsError> {
+    move_dir_with(source, target, true, record_move)
+}
+
+/// [`move_dir`], where `try_rename: false` forces the copy fallback used across volumes.
+fn move_dir_with(
+    source: &Path,
+    target: &Path,
+    try_rename: bool,
+    record_move: impl FnOnce() -> Result<(), LangsError>,
+) -> Result<(), LangsError> {
+    if try_rename {
+        let is_empty_target = target.is_dir() && dir_entry_names(target)?.is_empty();
+        if is_empty_target {
+            file_util::remove_dir_empty(target)?;
+        }
+        if let Some(parent) = target.parent() {
+            file_util::create_dir_all(parent)?;
+        }
+        match file_util::rename(source, target) {
+            Ok(()) => {
+                if let Err(err) = record_move() {
+                    if let Err(undo_err) = file_util::rename(target, source) {
+                        log::error!("failed to move {} back: {undo_err}", target.display());
+                    }
+                    return Err(err);
+                }
+                return Ok(());
+            }
+            Err(err) if file_util::is_cross_volume_error(&err) => {
+                log::debug!("moving across volumes, copying instead: {err}");
+            }
+            Err(err) => {
+                if is_empty_target {
+                    file_util::create_dir_all(target)?;
+                }
+                return Err(err.into());
+            }
+        }
+    }
+
+    file_util::create_dir_all(target)?;
+    let result = copy_contents_for_move(source, target).and_then(|()| record_move());
+    if let Err(err) = result {
+        for name in dir_entry_names(target).unwrap_or_default() {
+            if let Err(clean_err) = file_util::remove_all(target.join(name)) {
+                log::warn!("failed to clean up the partial copy: {clean_err}");
+            }
+        }
+        return Err(err);
+    }
+
+    for name in dir_entry_names(source).unwrap_or_default() {
+        if let Err(err) = file_util::remove_all(source.join(&name)) {
+            log::warn!(
+                "failed to delete {} after the move: {err}",
+                source.display()
+            );
+        }
+    }
+    if let Err(err) = file_util::remove_dir_empty(source) {
+        log::warn!(
+            "failed to delete {} after the move: {err}",
+            source.display()
+        );
+    }
+    finish_stage("Finished moving project directory");
+    Ok(())
+}
+
+/// Copies everything under `source` into `target`, symlinks as symlinks.
+fn copy_contents_for_move(source: &Path, target: &Path) -> Result<(), LangsError> {
     let mut file_count_copied = 0;
     let mut file_count_total = 0;
     for entry in WalkDir::new(source) {
-        let entry = entry?;
-        if entry.path().is_file() {
+        if !entry?.file_type().is_dir() {
             file_count_total += 1;
         }
     }
@@ -1995,52 +2072,34 @@ fn move_dir(source: &Path, target: &Path) -> Result<(), LangsError> {
         format!("Moving dir {} -> {}", source.display(), target.display()),
     );
 
-    for entry in WalkDir::new(source).contents_first(true).min_depth(1) {
+    for entry in WalkDir::new(source).min_depth(1) {
         let entry = entry?;
         let entry_path = entry.path();
+        let relative = entry_path
+            .strip_prefix(source)
+            .expect("the entry is inside the source");
+        let target_path = target.join(relative);
 
         if entry_path.file_name() == Some(OsStr::new(LOCK_FILE_NAME)) {
             log::info!("skipping lock file");
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Skipped moving file {file_count_copied} / {file_count_total}"
-            ));
+        } else if entry.file_type().is_symlink() {
+            file_util::copy_symlink(entry_path, &target_path)?;
+        } else if entry.file_type().is_dir() {
+            file_util::create_dir_all(&target_path)?;
             continue;
-        }
-
-        if entry_path.is_file() {
-            let relative = entry_path
-                .strip_prefix(source)
-                .expect("the entry is inside the source");
-            let target_path = target.join(relative);
+        } else {
             log::debug!(
-                "Moving {} -> {}",
+                "Copying {} -> {}",
                 entry_path.display(),
                 target_path.display()
             );
-
-            // create parent dir for target and copy it, remove source file after
-            if let Some(parent) = target_path.parent() {
-                file_util::create_dir_all(parent)?;
-            }
             file_util::copy(entry_path, &target_path)?;
-            file_util::remove_file(entry_path)?;
-
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Moved file {file_count_copied} / {file_count_total}"
-            ));
-        } else if entry_path.is_dir() {
-            log::debug!("Deleting {}", entry_path.display());
-            file_util::remove_dir_empty(entry_path)?;
         }
+        file_count_copied += 1;
+        progress_stage(format!(
+            "Moved file {file_count_copied} / {file_count_total}"
+        ));
     }
-
-    // remove lock file if any
-    file_util::remove_file(source.join(file_util::LOCK_FILE_NAME)).ok();
-    file_util::remove_dir_empty(source)?;
-
-    finish_stage("Finished moving project directory");
     Ok(())
 }
 
@@ -3755,6 +3814,92 @@ checksum = 'new checksum'
             file_util::read_file_to_string(target.join("src/main.py")).unwrap(),
             "stub"
         );
+    }
+
+    fn moved_dir_fixture() -> (tempfile::TempDir, PathBuf, PathBuf) {
+        let parent = tempfile::tempdir().unwrap();
+        let source = parent.path().join("old");
+        let target = parent.path().join("new");
+        file_to(&source, "course/ex/src/main.py", b"code");
+        file_to(&source, "course/course_config.toml", b"cfg");
+        (parent, source, target)
+    }
+
+    #[test]
+    fn move_dir_renames_and_records_the_move() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        std::fs::create_dir(&target).unwrap();
+        let mut recorded = false;
+        move_dir(&source, &target, || {
+            recorded = true;
+            Ok(())
+        })
+        .unwrap();
+        assert!(recorded);
+        assert!(!source.exists());
+        assert!(target.join("course/ex/src/main.py").is_file());
+    }
+
+    #[test]
+    fn move_dir_copy_fallback_records_the_move_before_deleting_the_old_dir() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        move_dir_with(&source, &target, false, || {
+            assert!(source.join("course/ex/src/main.py").is_file());
+            assert!(target.join("course/ex/src/main.py").is_file());
+            Ok(())
+        })
+        .unwrap();
+        assert!(!source.exists());
+        assert_eq!(
+            file_util::read_file_to_string(target.join("course/course_config.toml")).unwrap(),
+            "cfg"
+        );
+    }
+
+    #[test]
+    fn move_dir_copy_fallback_keeps_the_old_dir_when_recording_fails() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        let result = move_dir_with(&source, &target, false, || {
+            Err(LangsError::NoProjectExercise)
+        });
+        assert!(result.is_err());
+        assert!(source.join("course/ex/src/main.py").is_file());
+        assert!(dir_entry_names(&target).unwrap().is_empty());
+    }
+
+    #[test]
+    fn move_dir_rename_is_undone_when_recording_fails() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        let result = move_dir(&source, &target, || Err(LangsError::NoProjectExercise));
+        assert!(result.is_err());
+        assert!(source.join("course/ex/src/main.py").is_file());
+        assert!(!target.exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn move_dir_copy_fallback_keeps_symlinks_as_symlinks() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        file_to(&source, "course/ex/.venv/lib/site.py", b"x");
+        std::os::unix::fs::symlink("lib", source.join("course/ex/.venv/lib64")).unwrap();
+        std::os::unix::fs::symlink("/usr/bin/python3", source.join("course/ex/.venv/python"))
+            .unwrap();
+
+        move_dir_with(&source, &target, false, || Ok(())).unwrap();
+
+        let venv = target.join("course/ex/.venv");
+        assert!(venv.join("lib64").is_symlink());
+        assert_eq!(
+            std::fs::read_link(venv.join("lib64")).unwrap(),
+            Path::new("lib")
+        );
+        assert!(venv.join("python").is_symlink());
+        assert!(!source.exists());
     }
 
     #[test]
