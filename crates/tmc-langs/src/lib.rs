@@ -438,6 +438,8 @@ pub fn download_or_update_course_exercises(
     client.require_authentication().map_err(Box::new)?;
 
     let exercises_details = client.get_exercises_details(exercises)?;
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let projects_config = ProjectsConfig::load(projects_dir)?;
 
     // separate exercises into downloads and skipped
@@ -918,6 +920,8 @@ pub fn update_tmc_exercises(
 
     let mut course_data = HashMap::<String, Vec<(String, String, u32)>>::new();
 
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
     let exercises = projects_config
@@ -1046,6 +1050,8 @@ pub fn update_mooc_exercises(
     auth: &MoocAuth,
     projects_dir: &Path,
 ) -> Result<DownloadOrUpdateMoocCourseExercisesResult, LangsError> {
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
     // Owned snapshot keyed by exercise id (not the editor task id), so
     // `projects_config` can be mutated below.
@@ -1288,6 +1294,8 @@ pub fn download_or_update_mooc_course_exercises(
         projects_dir.display()
     );
 
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
     let requested: HashSet<Uuid> = exercise_ids.iter().copied().collect();

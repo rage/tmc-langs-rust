@@ -5,13 +5,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
     env,
-    io::Write,
     path::{Path, PathBuf},
 };
-use tmc_langs_util::{
-    FileError, deserialize,
-    file_util::{self, Lock, LockOptions},
-};
+use tmc_langs_util::{deserialize, file_util};
 use toml::{Value, value::Table};
 
 /// The main configuration file. A separate one is used for each client.
@@ -78,8 +74,6 @@ impl TmcConfig {
             file_util::create_dir_all(parent)?;
         }
 
-        let mut lock = Lock::file(&path, LockOptions::WriteTruncate)?;
-        let mut guard = lock.lock()?;
         let default_project_dir = get_projects_dir_root()?.join(get_client_stub(client_name));
         file_util::create_dir_all(&default_project_dir)?;
 
@@ -89,11 +83,9 @@ impl TmcConfig {
             table: Table::new(),
         };
 
+        // Atomic, so a concurrent first run reads either nothing or the whole file.
         let toml = toml::to_string_pretty(&config).expect("this should never fail");
-        guard
-            .get_file_mut()
-            .write_all(toml.as_bytes())
-            .map_err(|e| FileError::FileWrite(config.location.to_path_buf(), e))?;
+        file_util::write_atomically(&config.location, toml)?;
         Ok(config)
     }
 
@@ -135,23 +127,15 @@ impl TmcConfig {
         let path = &self.location;
         log::info!("Saving config at {}", path.display());
 
-        log::debug!("Saving config to temporary path");
-        let parent = path
-            .parent()
-            .ok_or_else(|| LangsError::NoParentDir(path.to_path_buf()))?;
-        let temp_file = file_util::named_temp_file_in(parent)?;
         let toml = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(toml, temp_file.path())?;
-
-        log::debug!("Moving new config over old one");
-        temp_file.persist(path)?;
+        file_util::write_atomically(path, toml)?;
         Ok(())
     }
 
     /// Reinitialises the config file.
     pub fn reset(client_name: &str) -> Result<(), LangsError> {
         let path = Self::get_location(client_name)?;
-        Self::init_at(client_name, path)?; // init locks the file
+        Self::init_at(client_name, path)?;
         Ok(())
     }
 

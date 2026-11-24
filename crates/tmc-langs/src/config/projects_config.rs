@@ -198,6 +198,15 @@ impl ProjectsConfig {
         })
     }
 
+    /// Exclusive lock for a download or update that reads, modifies and saves course configs.
+    /// Keyed apart from the projects directory itself, which [`ProjectsConfig::load`] read-locks.
+    pub fn lock_course_config_updates(projects_dir: &Path) -> Result<Lock, LangsError> {
+        Ok(Lock::dir(
+            projects_dir.join(".course-config-updates"),
+            LockOptions::Write,
+        )?)
+    }
+
     /// Reads the TMC course config in a course directory, keyed by the directory's name.
     /// `None` if the entry has no config.
     fn read_tmc_course_config(
@@ -210,9 +219,13 @@ impl ProjectsConfig {
         let course_dir_name = entry.file_name().to_str().ok_or_else(|| {
             LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
         })?;
-        let file = file_util::read_file_to_string(&course_config_path)?;
-        let course_config = deserialize::toml_from_str(&file)?;
-        Ok(Some((course_dir_name.to_string(), course_config)))
+        match read_course_config(&course_config_path) {
+            Ok(course_config) => Ok(Some((course_dir_name.to_string(), course_config))),
+            Err(err) => {
+                log::warn!("Skipping {}: {err}", course_config_path.display());
+                Ok(None)
+            }
+        }
     }
 
     fn is_reserved_dir_name(name: &str) -> bool {
@@ -281,8 +294,14 @@ impl ProjectsConfig {
         if !course_config_path.is_file() {
             return Ok(None);
         }
-        let file = file_util::read_file_to_string(&course_config_path)?;
-        let mut course_config = deserialize::toml_from_str::<MoocCourseConfig>(&file)?;
+        let mut course_config =
+            match read_course_config::<MoocCourseConfig>(&course_config_path) {
+                Ok(course_config) => course_config,
+                Err(err) => {
+                    log::warn!("Skipping {}: {err}", course_config_path.display());
+                    return Ok(None);
+                }
+            };
         let relative_dir = course_dir
             .strip_prefix(mooc_projects_dir)
             .expect("course dirs are walked from the mooc projects dir");
@@ -438,6 +457,11 @@ pub(crate) fn unique_directory_name<'a>(
         .expect("an unbounded range always yields a free suffix")
 }
 
+fn read_course_config<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T, LangsError> {
+    let file = file_util::read_file_to_string(path)?;
+    Ok(deserialize::toml_from_str(&file)?)
+}
+
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TmcCourseConfig {
@@ -464,14 +488,14 @@ impl TmcCourseConfig {
         }
         let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
         let s = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(s.as_bytes(), &target)?;
+        file_util::write_atomically(&target, &s)?;
 
         // `load` merges a `tmc/` copy back in, so a stale one would revert this save.
         let split_layout_target =
             ProjectsConfig::split_layout_tmc_course_dir(projects_dir, &self.course)
                 .join(COURSE_CONFIG_FILE_NAME);
         if split_layout_target != target && split_layout_target.exists() {
-            file_util::write_to_file(s.as_bytes(), split_layout_target)?;
+            file_util::write_atomically(&split_layout_target, &s)?;
         }
         Ok(())
     }
@@ -572,7 +596,7 @@ impl MoocCourseConfig {
         }
         let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
         let s = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(s.as_bytes(), target)?;
+        file_util::write_atomically(&target, &s)?;
         Ok(())
     }
 }
@@ -1099,5 +1123,57 @@ checksum = "defg4567"
         assert_eq!(ex.task_id, task_id);
         assert_eq!(ex.checksum, "abcd1234");
         assert_eq!(ex.directory, "exercise-1");
+    }
+
+    #[test]
+    fn an_unparsable_course_config_is_skipped_not_fatal() {
+        init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        file_to(
+            &temp,
+            "broken/course_config.toml",
+            "course = \"unterminated",
+        );
+        file_to(&temp, "mooc/broken/course_config.toml", "not = [valid");
+        file_to(
+            &temp,
+            "python/course_config.toml",
+            "course = \"python\"\n[exercises.ex1]\nid = 1\nchecksum = \"a\"\n",
+        );
+        dir_to(&temp, "python/ex1");
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+        assert_eq!(pc.tmc_courses.len(), 1);
+        assert!(pc.tmc_courses.contains_key("python"));
+        assert!(pc.mooc_courses.is_empty());
+    }
+
+    #[test]
+    fn saving_a_course_config_replaces_it_whole_and_leaves_no_temp_files() {
+        init_logging();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        let mut course_config = TmcCourseConfig {
+            course: "python".to_string(),
+            course_id: None,
+            exercises: BTreeMap::new(),
+        };
+        course_config.save_to_projects_dir(temp.path()).unwrap();
+        course_config.add_exercise("ex1".to_string(), 1, "a".to_string());
+        course_config.save_to_projects_dir(temp.path()).unwrap();
+
+        let course_dir = temp.path().join("python");
+        let names = std::fs::read_dir(&course_dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect::<Vec<_>>();
+        assert_eq!(names, [std::ffi::OsString::from(COURSE_CONFIG_FILE_NAME)]);
+        let saved: TmcCourseConfig = deserialize::toml_from_str(
+            &std::fs::read_to_string(course_dir.join(COURSE_CONFIG_FILE_NAME)).unwrap(),
+        )
+        .unwrap();
+        assert!(saved.exercises.contains_key("ex1"));
     }
 }
