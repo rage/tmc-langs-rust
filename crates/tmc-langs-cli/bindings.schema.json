@@ -1524,14 +1524,15 @@
           }
         },
         "failed": {
+          "description": "Each failure with its error chain, outermost first, and why it failed.",
           "type": [
             "array",
             "null"
           ],
           "items": {
             "type": "array",
-            "maxItems": 2,
-            "minItems": 2,
+            "maxItems": 3,
+            "minItems": 3,
             "prefixItems": [
               {
                 "$ref": "#/$defs/MoocExerciseDownload"
@@ -1541,6 +1542,9 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              {
+                "$ref": "#/$defs/MoocDownloadFailure"
               }
             ]
           }
@@ -3013,6 +3017,49 @@
         "user_code",
         "expires_in",
         "interval"
+      ]
+    },
+    "MoocDownloadFailure": {
+      "description": "Why a mooc exercise could not be downloaded.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "server-error",
+            "connection-error",
+            "other"
+          ]
+        },
+        {
+          "description": "Not among the exercises of the course, the exam or any enrolled course.",
+          "type": "string",
+          "const": "not-found"
+        },
+        {
+          "description": "Its chapter has not opened yet.",
+          "type": "string",
+          "const": "closed-chapter"
+        },
+        {
+          "description": "It is answered in the browser and has no project to download.",
+          "type": "string",
+          "const": "browser-only"
+        },
+        {
+          "description": "Its slide has more than one editor task; it is answered in the course material.",
+          "type": "string",
+          "const": "several-editor-tasks"
+        },
+        {
+          "description": "courses.mooc.fi's file store has no files for it.",
+          "type": "string",
+          "const": "file-missing"
+        },
+        {
+          "description": "The download could not be unpacked or written into the exercise folder.",
+          "type": "string",
+          "const": "extract-failed"
+        }
       ]
     },
     "MoocExam": {

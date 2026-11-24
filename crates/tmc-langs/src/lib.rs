@@ -26,8 +26,9 @@ pub use crate::{
     data::{
         CombinedCourseData, CombinedMoocCourseData, ConfigValue,
         DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocExerciseDownload,
-        MoocOldSubmissionRestore, TmcDownloadResult, TmcExerciseDownload, TmcParams,
+        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocDownloadFailure,
+        MoocExerciseDownload, MoocOldSubmissionRestore, TmcDownloadResult, TmcExerciseDownload,
+        TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
@@ -1143,6 +1144,25 @@ pub fn update_mooc_exercises(
     })
 }
 
+impl MoocDownloadFailure {
+    fn of(err: &LangsError) -> Self {
+        match err {
+            LangsError::MoocClient(err) => match err.as_ref() {
+                mooc::MoocClientError::FileNotFound { .. } => Self::FileMissing,
+                mooc::MoocClientError::ConnectionError(..) => Self::ConnectionError,
+                mooc::MoocClientError::HttpError { status, .. } if status.is_server_error() => {
+                    Self::ServerError
+                }
+                _ => Self::Other,
+            },
+            LangsError::Tmc(_) | LangsError::FileError(_) | LangsError::Plugin(_) => {
+                Self::ExtractFailed
+            }
+            _ => Self::Other,
+        }
+    }
+}
+
 /// Flattens an error's `source()` chain into strings, outermost first, for the
 /// CLI's `failed` list entries.
 fn error_chain(err: &dyn std::error::Error) -> Vec<String> {
@@ -1358,7 +1378,7 @@ pub fn download_or_update_mooc_course_exercises(
 
     let mut downloaded = Vec::new();
     let mut skipped = Vec::new();
-    let mut failed: Vec<(MoocExerciseDownload, Vec<String>)> = Vec::new();
+    let mut failed: Vec<(MoocExerciseDownload, Vec<String>, MoocDownloadFailure)> = Vec::new();
 
     let total_steps = u32::try_from(exercise_ids.len())
         .unwrap_or(u32::MAX)
@@ -1371,17 +1391,23 @@ pub fn download_or_update_mooc_course_exercises(
 
     for &exercise_id in exercise_ids {
         let Some((course, slide)) = resolved.get(&exercise_id) else {
-            let reason = closed.remove(&exercise_id).unwrap_or_else(|| {
-                format!(
-                    "Exercise {exercise_id} was not found in any of the user's enrolled courses"
-                )
-            });
+            let (reason, failure) = match closed.remove(&exercise_id) {
+                Some(reason) => (reason, MoocDownloadFailure::ClosedChapter),
+                None => (
+                    format!(
+                        "Exercise {exercise_id} was not found in any of the user's enrolled \
+                         courses"
+                    ),
+                    MoocDownloadFailure::NotFound,
+                ),
+            };
             failed.push((
                 MoocExerciseDownload {
                     exercise_id,
                     path: projects_dir.join("mooc"),
                 },
                 vec![reason],
+                failure,
             ));
             continue;
         };
@@ -1393,6 +1419,7 @@ pub fn download_or_update_mooc_course_exercises(
                     path: projects_dir.join("mooc"),
                 },
                 vec![mooc::MoocClientError::SeveralEditorTasks { exercise_id }.to_string()],
+                MoocDownloadFailure::SeveralEditorTasks,
             ));
             continue;
         }
@@ -1412,6 +1439,7 @@ pub fn download_or_update_mooc_course_exercises(
                     "Exercise {exercise_id} has no downloadable editor task \
                      (browser exercises have no project archive)"
                 )],
+                MoocDownloadFailure::BrowserOnly,
             ));
             continue;
         };
@@ -1497,12 +1525,14 @@ pub fn download_or_update_mooc_course_exercises(
             }
             Err(err) => {
                 let err: LangsError = err.into();
+                let failure = MoocDownloadFailure::of(&err);
                 failed.push((
                     MoocExerciseDownload {
                         exercise_id,
                         path: target,
                     },
                     error_chain(&err),
+                    failure,
                 ));
             }
         }
@@ -4278,12 +4308,12 @@ directory = "skip-me"
         assert_eq!(result.skipped[0].exercise_id, ex_skip);
         let failed = result.failed.expect("two failures");
         assert_eq!(failed.len(), 2, "browser + missing exercises fail");
-        let failed_ids = failed
+        let failures = failed
             .iter()
-            .map(|(d, _)| d.exercise_id)
-            .collect::<HashSet<_>>();
-        assert!(failed_ids.contains(&ex_browser));
-        assert!(failed_ids.contains(&ex_missing));
+            .map(|(d, _, failure)| (d.exercise_id, *failure))
+            .collect::<HashMap<_, _>>();
+        assert_eq!(failures[&ex_browser], MoocDownloadFailure::BrowserOnly);
+        assert_eq!(failures[&ex_missing], MoocDownloadFailure::NotFound);
 
         let extracted = projects_dir
             .path()
@@ -4423,6 +4453,7 @@ directory = "skip-me"
         let failed = result.failed.unwrap();
         assert_eq!(failed.len(), 1);
         assert_eq!(failed[0].0.exercise_id, closed_id);
+        assert_eq!(failed[0].2, MoocDownloadFailure::ClosedChapter);
         assert_eq!(
             failed[0].1,
             vec![format!(
