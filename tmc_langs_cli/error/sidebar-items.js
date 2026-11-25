@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["InvalidTokenError","SandboxTestError"]};
+window.SIDEBAR_ITEMS = {"struct":["InvalidTokenError","SandboxTestError","TmcLoginNotAcceptedError"]};
