@@ -22,7 +22,8 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
           - target: i686-unknown-linux-gnu
-            cflags: -msse2 # boringssl's x86 assembly requires SSE2
+            # boringssl's x86 assembly requires SSE2; zig's clang 18 rejects blake3's AVX-512 C without evex512
+            cflags: -msse2 -mevex512
           - target: aarch64-unknown-linux-gnu
           - target: armv7-unknown-linux-gnueabihf
     env:
@@ -35,7 +36,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake libclang-dev # boring-sys builds and binds boringssl
           # zig links against the requested glibc version whatever the runner has
-          pip install ziglang==0.13.0 cargo-zigbuild==0.20.1
+          # cargo-zigbuild 0.24 drops the --fix-cortex-a53-843419 that zig rejects on aarch64
+          pip install ziglang==0.13.0 cargo-zigbuild==0.24.1
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -139,13 +141,13 @@ jobs:
       - name: Deploy the third-party notices
         env:
           GH_TOKEN: ${{ github.token }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
-          cargo install --locked cargo-about@0.9.0
+          cargo install --locked cargo-about@0.9.0 --features cli
           cargo about generate -m crates/tmc-langs-cli/Cargo.toml about.hbs -o "tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html"
           gsutil cp "tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html" gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html
-          if [ "$EVENT_NAME" = release ]; then
-            gh release upload "$TAG" "tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html" --clobber
+          # a workflow_dispatch run names a tag that need not have a release
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" "tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html" --clobber
           fi
 
       - name: Deploy the CLI output schema
@@ -153,13 +155,11 @@ jobs:
         # pin the schema to the release it pins the binary to, with no checkout.
         env:
           GH_TOKEN: ${{ github.token }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           cp crates/tmc-langs-cli/bindings.schema.json "bindings.schema-$TAG.json"
           gsutil cp "bindings.schema-$TAG.json" gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/bindings.schema-$TAG.json
-          # a workflow_dispatch run names a tag that need not have a release
-          if [ "$EVENT_NAME" = release ]; then
-            gh release upload "$TAG" "bindings.schema-$TAG.json" --clobber
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" "bindings.schema-$TAG.json" --clobber
           fi
 
   windows:
