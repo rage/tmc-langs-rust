@@ -267,9 +267,11 @@ pub fn named_temp_file_in(path: &Path) -> Result<NamedTempFile, FileError> {
     tempfile::NamedTempFile::new_in(path).map_err(FileError::TempFile)
 }
 
+/// Opens `path` for reading. On Windows a file being deleted refuses opens with access denied
+/// until its last handle closes, so that is retried like a sharing violation.
 pub fn open_file(path: impl AsRef<Path>) -> Result<File, FileError> {
     let path = path.as_ref();
-    File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
+    retry_sharing(|| File::open(path)).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
 }
 
 pub fn read_reader<R: Read>(mut reader: R) -> Result<Vec<u8>, FileError> {
