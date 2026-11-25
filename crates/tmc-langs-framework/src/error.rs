@@ -22,8 +22,14 @@ pub enum TmcError {
     ZipReadFile(PathBuf, #[source] std::io::Error),
     #[error("Failed to write file at {0} to zip archive")]
     ZipWrite(PathBuf, #[source] std::io::Error),
-    #[error("Invalid name {0} in zip")]
-    ZipName(String),
+    #[error("Unsafe archive entry {entry}: it {reason}")]
+    UnsafeArchiveEntry { entry: String, reason: &'static str },
+    #[error("Archive entry {entry} exceeds the extraction limit of {max} {limit}")]
+    ArchiveExtractionLimitExceeded {
+        entry: String,
+        limit: &'static str,
+        max: u64,
+    },
     #[error("Path {0} cannot be used as an archive entry name")]
     InvalidArchiveEntryPath(PathBuf),
     #[error("Failed to read tar archive")]
@@ -74,10 +80,21 @@ pub enum TmcError {
 pub enum CommandError {
     #[error("Failed to execute command: {0}")]
     Popen(String, #[source] io::Error),
+    #[error("Could not find `{tool}` (command: {cmd}). {hint}")]
+    NotFound {
+        cmd: String,
+        /// File name of the program that was not found.
+        tool: String,
+        /// What to install or restart; see [`crate::missing_tool_hint`].
+        hint: String,
+        source: io::Error,
+    },
     #[error(
-        "The executable for command {cmd} could not be found. Please make sure you have installed it correctly."
+        "Could not start {command}: the file was blocked, denied or removed right after it was \
+         built, which antivirus software often does to freshly built programs. Add the exercise \
+         folder to your antivirus exclusions (or temporarily allow the file) and run the tests again."
     )]
-    NotFound { cmd: String, source: io::Error },
+    ExecutableBlocked { command: String, source: io::Error },
     #[error("Failed to run command {0}")]
     FailedToRun(String, #[source] io::Error),
     #[error(

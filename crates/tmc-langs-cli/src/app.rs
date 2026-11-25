@@ -213,6 +213,16 @@ pub enum Command {
         no_archive_prefix: bool,
     },
 
+    /// Prepares a course repository checkout for archiving its exercises one by one: finds every
+    /// exercise directory the way refresh-course does and writes the repository's root
+    /// .tmcproject.yml into each, merged under the exercise's own
+    #[clap(long_about = schema_leaked::<Vec<tmc_langs::RepositoryExercise>>())]
+    PrepareExerciseRepository {
+        /// Path to the repository checkout.
+        #[clap(long)]
+        repository_path: PathBuf,
+    },
+
     /// Refresh the given course
     RefreshCourse {
         /// Path to the cached course.
@@ -539,6 +549,9 @@ pub struct Mooc {
     /// Name used to differentiate between different frontends (e.g. the VSCode extension).
     #[clap(long, short)]
     pub client_name: String,
+    /// The frontend's own version, sent to courses.mooc.fi with `client_name`.
+    #[clap(long, short = 'v')]
+    pub client_version: Option<String>,
     #[clap(subcommand)]
     pub command: MoocCommand,
 }
@@ -587,6 +600,16 @@ pub enum MoocCommand {
         #[clap(long)]
         course_id: Uuid,
     },
+    /// Fetches the exams the user has started and can still answer.
+    #[clap(long_about = schema_leaked::<Vec<mooc::Exam>>())]
+    Exams,
+    /// Fetches the exercises of an exam from `exams`. Their gradings stay hidden while the exam
+    /// can be answered.
+    #[clap(long_about = schema_leaked::<Vec<mooc::TmcExerciseSlide>>())]
+    ExamExercises {
+        #[clap(long)]
+        exam_id: Uuid,
+    },
     /// Fetches information about an exercise.
     Exercise {
         #[clap(long)]
@@ -608,8 +631,12 @@ pub enum MoocCommand {
         /// The course the exercises belong to. When given, only that course's
         /// slides are fetched to resolve the exercises instead of scanning every
         /// enrolled course.
-        #[clap(long)]
+        #[clap(long, conflicts_with = "exam_id")]
         course_id: Option<Uuid>,
+        /// The exam the exercises belong to. They are stored like a course's, under the exam's
+        /// id.
+        #[clap(long)]
+        exam_id: Option<Uuid>,
     },
     /// Lists the local exercises of a mooc course, looked up by course id.
     #[clap(long_about = schema_leaked::<Vec<LocalMoocExercise>>())]
@@ -731,9 +758,30 @@ pub enum SettingsCommand {
     MoveProjectsDir {
         /// The directory where the projects should be moved.
         dir: PathBuf,
+        /// Only validate the move, failing with the error it would, and move nothing.
+        #[clap(long)]
+        check: bool,
     },
     /// Resets the settings file to the defaults
     Reset,
+    /// Moves every entry of the projects directory into the given folder, leaving it empty.
+    /// Moves nothing if an entry cannot be moved; when another program holds it, fails with
+    /// `file-in-use`, whose `path` ends in the entry's name
+    #[clap(long_about = SCHEMA_NULL)]
+    SetProjectsAside {
+        /// The folder to move the projects into: absent or empty, outside the projects directory
+        /// and on the same drive.
+        dir: PathBuf,
+    },
+    /// Moves every entry of a folder `set-projects-aside` filled back into the projects
+    /// directory and deletes the folder. Fails with `projects-restore-conflict`, moving nothing,
+    /// when the projects directory holds anything but OS metadata files; `path` is the first
+    /// such entry
+    #[clap(long_about = SCHEMA_NULL)]
+    RestoreProjects {
+        /// The folder the projects were set aside in.
+        dir: PathBuf,
+    },
     /// Saves a value in the settings
     Set {
         /// The key. Parsed as JSON, assumed to be a string if parsing fails.
@@ -948,6 +996,11 @@ mod base_test {
             "--tmc-param",
             "c=d",
         ]);
+    }
+
+    #[test]
+    fn prepare_exercise_repository() {
+        get_matches(&["prepare-exercise-repository", "--repository-path", "path"]);
     }
 
     #[test]
@@ -1318,6 +1371,13 @@ mod settings_test {
     #[test]
     fn move_projects_dir() {
         get_matches_settings(&["move-projects-dir", "path"]);
+        get_matches_settings(&["move-projects-dir", "--check", "path"]);
+    }
+
+    #[test]
+    fn set_projects_aside_and_restore_projects() {
+        get_matches_settings(&["set-projects-aside", "path"]);
+        get_matches_settings(&["restore-projects", "path"]);
     }
 
     #[test]
@@ -1548,6 +1608,7 @@ mod test {
             // refreshCourse
             tmc_langs::RefreshData,
             tmc_langs::RefreshExercise,
+            tmc_langs::RepositoryExercise,
             tmc_langs::TmcProjectYml,
             tmc_langs::PythonVer,
             // runTests
@@ -1567,6 +1628,7 @@ mod test {
             tmc_langs::DownloadOrUpdateMoocCourseExercisesResult,
             tmc_langs::TmcExerciseDownload,
             tmc_langs::MoocExerciseDownload,
+            tmc_langs::MoocExerciseClosedChapter,
             // getCourseData
             tmc_langs::CombinedCourseData,
             // getCourseDetails
@@ -1638,8 +1700,14 @@ mod test {
             tmc_langs::mooc::ExerciseProgress,
             tmc_langs::mooc::ExerciseStanding,
             tmc_langs::mooc::PendingTeacherReview,
+            tmc_langs::mooc::ReviewingStage,
+            tmc_langs::mooc::TeacherReview,
+            tmc_langs::mooc::TeacherDecision,
+            tmc_langs::mooc::Exam,
             tmc_langs::mooc::MoocClientUpdateData,
             tmc_langs::MoocOldSubmissionRestore,
+            tmc_langs::MoocDownloadFailure,
+            tmc_langs::TmcDownloadFailure,
             tmc_langs::CombinedMoocCourseData,
         )
         .unwrap();

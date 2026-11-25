@@ -26,16 +26,30 @@ fn run_tmc_in(
     args: &[&str],
     config_dir: &std::path::Path,
 ) -> Result<CliOutput, tmc_langs_cli::CliError> {
+    run_tmc_with_mooc_trust(server, args, config_dir, false)
+}
+
+/// Like [`run_tmc_in`]; with `trust_mooc_login`, `server` also serves courses.mooc.fi and the
+/// tmc path may use the mooc login stored in `config_dir`.
+fn run_tmc_with_mooc_trust(
+    server: &mockito::Server,
+    args: &[&str],
+    config_dir: &std::path::Path,
+    trust_mooc_login: bool,
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
     let projects_dir = tempfile::tempdir().unwrap();
     let _guard = env_lock();
     // SAFETY: all env access in these tests is serialized by ENV_LOCK.
     unsafe {
         std::env::set_var("TMC_LANGS_TMC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
         std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
         std::env::set_var("TMC_LANGS_DEFAULT_PROJECTS_DIR", projects_dir.path());
-        // A trusted loopback host would let the tmc path adopt a mooc token,
-        // which these tests never seed; keep the credential source unambiguous.
-        std::env::remove_var("TMC_LANGS_MOOC_TRUST_LOCALHOST");
+        if trust_mooc_login {
+            std::env::set_var("TMC_LANGS_MOOC_TRUST_LOCALHOST", "1");
+        } else {
+            std::env::remove_var("TMC_LANGS_MOOC_TRUST_LOCALHOST");
+        }
     }
     let mut full = vec![
         "tmc-langs-cli",
@@ -200,6 +214,70 @@ fn tmc_without_any_credential_reports_not_logged_in() {
     assert_error_kind(error, "not-logged-in");
 }
 
+fn write_mooc_credentials(config_dir: &std::path::Path) {
+    let dir = config_dir.join("tmc-test");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(
+        dir.join(tmc_langs::MoocCredentials::credentials_file_name()),
+        serde_json::json!({
+            "token": {
+                "access_token": "mooc-token",
+                "token_type": "bearer",
+                "scope": "exercise-services"
+            },
+            "obtained_at": "2026-07-22T00:00:00Z"
+        })
+        .to_string(),
+    )
+    .unwrap();
+}
+
+fn mock_mooc_current_user(server: &mut mockito::Server, status: usize) -> mockito::Mock {
+    server
+        .mock("GET", "/api/v0/exercise-services/client/me")
+        .with_status(status)
+        .with_body(serde_json::json!({ "id": "00000000-0000-0000-0000-000000000001" }).to_string())
+        .create()
+}
+
+#[test]
+fn tmc_401_to_a_mooc_login_courses_mooc_fi_accepts_reports_not_accepted() {
+    let mut server = mockito::Server::new();
+    let _course = mock_course_status(&mut server, 401);
+    let _me = mock_mooc_current_user(&mut server, 200);
+    let config_dir = tempfile::tempdir().unwrap();
+    write_mooc_credentials(config_dir.path());
+
+    let error = run_tmc_with_mooc_trust(
+        &server,
+        &["get-course-settings", "--course-id", "1"],
+        config_dir.path(),
+        true,
+    )
+    .expect_err("expected the command to fail");
+
+    assert_error_kind(error, "tmc-login-not-accepted");
+}
+
+#[test]
+fn tmc_401_to_a_revoked_mooc_login_reports_not_logged_in() {
+    let mut server = mockito::Server::new();
+    let _course = mock_course_status(&mut server, 401);
+    let _me = mock_mooc_current_user(&mut server, 401);
+    let config_dir = tempfile::tempdir().unwrap();
+    write_mooc_credentials(config_dir.path());
+
+    let error = run_tmc_with_mooc_trust(
+        &server,
+        &["get-course-settings", "--course-id", "1"],
+        config_dir.path(),
+        true,
+    )
+    .expect_err("expected the command to fail");
+
+    assert_error_kind(error, "not-logged-in");
+}
+
 /// A projects dir as tmc-langs 0.39 left it must stay listed, and its config intact.
 #[test]
 fn list_local_tmc_course_exercises_reads_the_legacy_layout() {
@@ -260,4 +338,20 @@ fn list_local_tmc_course_exercises_reads_the_legacy_layout() {
             .unwrap()
             .contains("ex1")
     );
+}
+
+#[test]
+fn logout_needs_no_network() {
+    let server = mockito::Server::new();
+    let config_dir = tempfile::tempdir().unwrap();
+    let credentials = write_stored_tmc_credentials(config_dir.path());
+    let _guard = env_lock();
+    // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+    unsafe {
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", "http://127.0.0.1:1");
+    }
+    drop(_guard);
+
+    run_tmc_in(&server, &["logout"], config_dir.path()).unwrap();
+    assert!(!credentials.exists());
 }

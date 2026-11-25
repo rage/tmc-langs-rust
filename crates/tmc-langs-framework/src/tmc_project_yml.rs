@@ -72,9 +72,12 @@ pub struct TmcProjectYml {
 }
 
 impl TmcProjectYml {
+    /// The config's file name in an exercise or repository directory.
+    pub const FILE_NAME: &str = ".tmcproject.yml";
+
     /// Returns the path of the TmcProjectYml file in the given directory.
     fn path_in_dir(dir: &Path) -> PathBuf {
-        dir.join(".tmcproject.yml")
+        dir.join(Self::FILE_NAME)
     }
 
     /// Loads a TmcProjectYml either from the directory or the default if there is none.

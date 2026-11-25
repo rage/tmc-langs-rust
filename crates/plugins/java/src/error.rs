@@ -21,6 +21,8 @@ pub enum JavaError {
     TempDir(#[source] io::Error),
     #[error("Failed to find home directory")]
     HomeDir,
+    #[error("Failed to make path {0} absolute")]
+    AbsolutePath(PathBuf, #[source] io::Error),
     #[error("Failed to find cache directory")]
     CacheDir,
     #[error("Failed to compile{}", describe_output(stdout, stderr))]

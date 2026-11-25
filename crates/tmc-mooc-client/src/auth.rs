@@ -9,7 +9,10 @@
 //! Endpoints (`POST .../device_authorization`, `POST .../token`) are mounted at
 //! `/api/v0/main-frontend/oauth` in the backend.
 
-use crate::{CLIENT_VERSION_HEADER, error::MoocClientError, error::MoocClientResult};
+use crate::{
+    CLIENT_VERSION_HEADER,
+    error::{MoocClientError, MoocClientResult, ResponseMeta},
+};
 use exercise_services_api as api;
 use oauth2::{RefreshToken, TokenResponse};
 use reqwest::{
@@ -36,6 +39,7 @@ pub const AUTH_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 /// Panics if the client cannot be built, like `reqwest::blocking::Client::new()`.
 fn auth_client() -> Client {
     Client::builder()
+        .user_agent(crate::user_agent())
         .timeout(AUTH_REQUEST_TIMEOUT)
         .build()
         .expect("failed to build auth HTTP client")
@@ -176,6 +180,7 @@ pub fn poll_device_token(
 
     // RFC 8628 §3.5: every non-success state is a 400 with an OAuth error code.
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
+    let meta = ResponseMeta::of(response.headers());
     let body = read_text(response, &url)?;
     match parse_oauth_error_code(&body).as_deref() {
         Some("authorization_pending") => Ok(DeviceTokenPoll::Pending),
@@ -188,8 +193,45 @@ pub fn poll_device_token(
             error: body,
             obsolete_client,
             message_key: None,
+            meta,
         })),
     }
+}
+
+/// How long a logout waits for the revocation; offline it must still log out promptly.
+const REVOKE_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Revokes a refresh token at the authorization server (RFC 7009), ending this device's login
+/// there; the server answers success for an already invalid token too.
+pub fn revoke_refresh_token(
+    root_url: &Url,
+    client_id: &str,
+    refresh_token: &str,
+) -> MoocClientResult<()> {
+    let url = oauth_url(root_url, "revoke")?;
+    let body = urlencode(&[
+        ("token", refresh_token),
+        ("token_type_hint", "refresh_token"),
+        ("client_id", client_id),
+    ]);
+    let response = auth_client()
+        .post(url.clone())
+        .timeout(REVOKE_TIMEOUT)
+        .header(CLIENT_VERSION_HEADER, env!("CARGO_PKG_VERSION"))
+        .header(CONTENT_TYPE, FORM_CONTENT_TYPE)
+        .body(body)
+        .send()
+        .map_err(|e| {
+            Box::new(MoocClientError::ConnectionError(
+                Method::POST,
+                url.clone(),
+                e.without_url(),
+            ))
+        })?;
+    if response.status().is_success() {
+        return Ok(());
+    }
+    Err(http_error(response, url))
 }
 
 /// Redeems a refresh token for a fresh token pair (OAuth2 refresh grant).
@@ -236,6 +278,7 @@ pub fn refresh_token(
     // never lead the caller to delete credentials.
     let status = response.status();
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
+    let meta = ResponseMeta::of(response.headers());
     let body = read_text(response, &url)?;
     if status == StatusCode::BAD_REQUEST {
         if let Some(error) = parse_oauth_error_code(&body) {
@@ -248,6 +291,7 @@ pub fn refresh_token(
         error: body,
         obsolete_client,
         message_key: None,
+        meta,
     }))
 }
 
@@ -294,6 +338,7 @@ fn read_text(response: reqwest::blocking::Response, url: &Url) -> MoocClientResu
 fn http_error(response: reqwest::blocking::Response, url: Url) -> Box<MoocClientError> {
     let status = response.status();
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
+    let meta = ResponseMeta::of(response.headers());
     let error = response.text().unwrap_or_default();
     Box::new(MoocClientError::HttpError {
         url,
@@ -301,6 +346,7 @@ fn http_error(response: reqwest::blocking::Response, url: Url) -> Box<MoocClient
         error,
         obsolete_client,
         message_key: None,
+        meta,
     })
 }
 
@@ -583,5 +629,22 @@ mod test {
         let root: Url = server.url().parse().unwrap();
         let token = refresh_token(&root, "cid", "old-rt").unwrap();
         assert_eq!(token.refresh_token().unwrap().secret(), "old-rt");
+    }
+
+    #[test]
+    fn revoking_sends_the_refresh_token_with_its_hint() {
+        let mut server = mockito::Server::new();
+        let revoke = server
+            .mock("POST", "/api/v0/main-frontend/oauth/revoke")
+            .match_body(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("token".into(), "refresh-1".into()),
+                mockito::Matcher::UrlEncoded("token_type_hint".into(), "refresh_token".into()),
+                mockito::Matcher::UrlEncoded("client_id".into(), "tmc-vscode".into()),
+            ]))
+            .with_status(200)
+            .create();
+        let root: Url = server.url().parse().unwrap();
+        revoke_refresh_token(&root, "tmc-vscode", "refresh-1").unwrap();
+        revoke.assert();
     }
 }

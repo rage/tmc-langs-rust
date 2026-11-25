@@ -8,7 +8,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     path::PathBuf,
 };
-use tmc_mooc_client as mooc;
+use tmc_mooc_client::{self as mooc, MoocDownloadFailure};
 use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
 use uuid::Uuid;
 
@@ -40,8 +40,8 @@ pub struct LocalTmcExercise {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalMoocExercise {
-    /// The course's on-disk directory name. Mooc courses have no server-side
-    /// slug; this is the kebab-cased course name, deduplicated locally.
+    /// The course's on-disk directory name, derived from the course name and unique among the
+    /// local courses. Not the course's server-side `slug`.
     pub course_slug: String,
     pub course_id: Uuid,
     /// The exercise's on-disk directory name, used as its slug (mirrors the TMC
@@ -189,7 +189,7 @@ pub enum TmcDownloadResult {
     Failure {
         downloaded: Vec<TmcExerciseDownload>,
         skipped: Vec<TmcExerciseDownload>,
-        failed: Vec<(TmcExerciseDownload, Vec<String>)>,
+        failed: Vec<(TmcExerciseDownload, Vec<String>, TmcDownloadFailure)>,
     },
 }
 
@@ -247,8 +247,23 @@ pub struct CombinedMoocCourseData {
 pub struct DownloadOrUpdateTmcCourseExercisesResult {
     pub downloaded: Vec<TmcExerciseDownload>,
     pub skipped: Vec<TmcExerciseDownload>,
+    /// Each failure with its error chain, outermost first, and why it failed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub failed: Option<Vec<(TmcExerciseDownload, Vec<String>)>>,
+    pub failed: Option<Vec<(TmcExerciseDownload, Vec<String>, TmcDownloadFailure)>>,
+}
+
+/// Why a TMC exercise could not be downloaded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum TmcDownloadFailure {
+    /// tmc.mooc.fi has no such exercise, or not for this user.
+    NotFound,
+    ServerError,
+    ConnectionError,
+    /// The download could not be unpacked or written into the exercise folder.
+    ExtractFailed,
+    Other,
 }
 
 /// A setting in a TmcConfig file.
@@ -267,8 +282,24 @@ pub enum ConfigValue {
 pub struct DownloadOrUpdateMoocCourseExercisesResult {
     pub downloaded: Vec<MoocExerciseDownload>,
     pub skipped: Vec<MoocExerciseDownload>,
+    /// Each failure with its error chain, outermost first, and why it failed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>)>>,
+    pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>, MoocDownloadFailure)>>,
+    /// The chapter of each `failed` entry whose failure is `closed-chapter`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub closed_chapters: Vec<MoocExerciseClosedChapter>,
+}
+
+/// The chapter that has not opened yet and holds a requested mooc exercise.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct MoocExerciseClosedChapter {
+    pub exercise_id: Uuid,
+    pub chapter_name: String,
+    /// The chapter's position in the course, from 1.
+    pub chapter_number: i32,
+    pub opens_at: chrono::DateTime<chrono::Utc>,
 }
 
 /// Outcome of restoring a past mooc submission.
@@ -299,11 +330,20 @@ mod test {
                 "description": null,
                 "organization_name": "mooc.fi",
                 "ai_policy": "full_use",
+                "url": "https://courses.mooc.fi/org/uh-cs/courses/python",
+                "language_code": "fi-FI",
+                "language_group_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d06",
+                "moved_to_course_id": null,
+                "closed_at": null,
+                "successor_course_id": null,
+                "is_enrolled": true,
+                "is_staff": false,
             },
             "slides": [{
                 "slide_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d01",
                 "exercise_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d02",
                 "course_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "exam_id": null,
                 "exercise_name": "part01-01",
                 "exercise_order_number": 1,
                 "deadline": "2026-10-01T12:00:00Z",
@@ -321,6 +361,7 @@ mod test {
                     },
                     "model_solution_spec": null,
                     "checksum": "abc",
+                    "exercise_service_slug": "tmc",
                 }],
                 "page_url": "https://courses.mooc.fi/org/uh-cs/courses/python/chapter-1/page-1",
                 "chapter": {
@@ -343,6 +384,8 @@ mod test {
                     "tries_left": 2,
                     "pending_teacher_review": "awaits_teacher",
                     "exercise_locked": true,
+                    "reviewing_stage": "waiting_for_teacher",
+                    "teacher_review": null,
                 }],
                 "closed_chapters": [{
                     "id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d05",

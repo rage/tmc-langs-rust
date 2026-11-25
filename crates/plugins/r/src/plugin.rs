@@ -10,7 +10,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    Archive, ExerciseDesc, LanguagePlugin, RunResult, TestDesc, TmcCommand, TmcError,
+    Archive, BUILD_TIMEOUT, ExerciseDesc, LanguagePlugin, RunResult, TestDesc, TmcCommand,
+    TmcError,
     nom::{IResult, Parser, branch, bytes, character, sequence},
     nom_language::error::VerboseError,
 };
@@ -36,14 +37,10 @@ impl LanguagePlugin for RPlugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         // run available points command
-        let args = if cfg!(windows) {
-            &["-e", "\"library('tmcRtestrunner');run_available_points()\""]
-        } else {
-            &["-e", "library(tmcRtestrunner);run_available_points()"]
-        };
+        let args = ["-e", "library(tmcRtestrunner);run_available_points()"];
         let _output = TmcCommand::piped("Rscript")
             .with(|e| e.cwd(path).args(args))
-            .output_checked()?;
+            .output_with_timeout_checked(BUILD_TIMEOUT)?;
 
         // parse exercise desc
         let points_path = path.join(".available_points.json");
@@ -73,11 +70,7 @@ impl LanguagePlugin for RPlugin {
         }
 
         // run test command
-        let args = if cfg!(windows) {
-            &["-e", "\"library('tmcRtestrunner');run_tests()\""]
-        } else {
-            &["-e", "library(tmcRtestrunner);run_tests()"]
-        };
+        let args = ["-e", "library(tmcRtestrunner);run_tests()"];
 
         let output = if let Some(timeout) = timeout {
             TmcCommand::piped("Rscript")
@@ -212,7 +205,7 @@ impl LanguagePlugin for RPlugin {
 }
 
 #[cfg(test)]
-#[cfg(target_os = "linux")] // tmc-r-testrunner not installed on other CI platforms
+#[cfg(any(target_os = "linux", windows))] // tmcRtestrunner is installed only on these in CI
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;

@@ -18,16 +18,20 @@ use crate::{
 pub use crate::{
     config::{
         Credentials, MoocAuth, MoocAuthFailure, MoocCredentials, ProjectsConfig,
-        ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, list_local_exercises,
-        list_local_mooc_course_exercises, list_local_tmc_course_exercises, migrate_exercise,
-        move_projects_dir,
+        ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, check_move_projects_dir,
+        list_local_exercises, list_local_mooc_course_exercises, list_local_tmc_course_exercises,
+        migrate_exercise, move_projects_dir, restore_projects, set_projects_aside,
     },
-    course_refresher::{RefreshData, RefreshExercise, refresh_course},
+    course_refresher::{
+        RefreshData, RefreshExercise, RepositoryExercise, prepare_exercise_repository,
+        refresh_course,
+    },
     data::{
         CombinedCourseData, CombinedMoocCourseData, ConfigValue,
         DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocExerciseDownload,
-        MoocOldSubmissionRestore, TmcDownloadResult, TmcExerciseDownload, TmcParams,
+        LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocExerciseClosedChapter,
+        MoocExerciseDownload, MoocOldSubmissionRestore, TmcDownloadFailure, TmcDownloadResult,
+        TmcExerciseDownload, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
@@ -40,35 +44,34 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     convert::TryFrom,
-    ffi::{OsStr, OsString},
+    ffi::OsString,
     io::Cursor,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicUsize, Ordering as AtomicOrdering},
+    },
 };
 use tmc_langs_framework::Archive;
 pub use tmc_langs_framework::{
     CommandError, Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
-    StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
+    StyleValidationStrategy, TestDesc, TestResult, TmcError, TmcProjectYml,
 };
 use tmc_langs_plugins::{
     CSharpPlugin, MakePlugin, NoTestsPlugin, Plugin, PluginType, Python3Plugin, RPlugin,
 };
-use tmc_langs_util::file_util::LOCK_FILE_NAME;
 // the Java plugin is disabled on musl
+#[cfg(not(target_env = "musl"))]
+use tmc_langs_plugins::{AntPlugin, MavenPlugin};
 pub use tmc_langs_util::{FileError, file_util, notification_reporter, progress_reporter};
-pub use tmc_mooc_client as mooc;
 use tmc_mooc_client::MoocClient;
+pub use tmc_mooc_client::{self as mooc, MoocDownloadFailure};
 pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
 use url::Url;
 use uuid::Uuid;
 use walkdir::WalkDir;
-#[cfg(not(target_env = "musl"))]
-use {
-    tmc_langs_framework::TmcError,
-    tmc_langs_plugins::{AntPlugin, MavenPlugin},
-};
 
 const TMC_LANGS_CONFIG_DIR_VAR: &str = "TMC_LANGS_CONFIG_DIR";
 
@@ -111,9 +114,10 @@ pub struct UncheckedMoocCourse {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum CourseRefusalKind {
-    /// A 403: the course is hidden or closed to the user, or the session lacks the
-    /// `exercise-services` scope, which courses.mooc.fi answers the same way.
+    /// A 403 `insufficient_scope`: the session lacks the `exercise-services` scope.
     InsufficientScope,
+    /// Any other 403: the user may not view the course, e.g. a draft.
+    Forbidden,
     /// A 404: the course does not exist, or not for this user.
     NotFound,
 }
@@ -128,13 +132,17 @@ impl CourseRefusalKind {
         let mooc::MoocClientError::HttpError {
             status,
             obsolete_client: false,
+            message_key,
             ..
         } = err.as_ref()
         else {
             return None;
         };
         match status.as_u16() {
-            403 => Some(Self::InsufficientScope),
+            403 if message_key.as_deref() == Some(mooc::INSUFFICIENT_SCOPE_MESSAGE_KEY) => {
+                Some(Self::InsufficientScope)
+            }
+            403 => Some(Self::Forbidden),
             404 => Some(Self::NotFound),
             _ => None,
         }
@@ -174,8 +182,14 @@ pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, La
 
 /// Returns the projects directory for the given client name.
 /// The return value for `my-client` might look something like `/home/username/.local/share/tmc/my-client` on Linux.
+///
+/// Fails with [`LangsError::ProjectsDirUnreachable`] when the folder is missing, e.g. on a
+/// drive that is not connected.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
     let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+    if !projects_dir.is_dir() {
+        return Err(LangsError::ProjectsDirUnreachable(projects_dir));
+    }
     Ok(projects_dir)
 }
 
@@ -262,11 +276,11 @@ fn check_mooc_course_updates(
 ) -> Result<MoocExerciseUpdates, MoocAuthFailure> {
     let mut updates = MoocExerciseUpdates::default();
     // Keyed by exercise id: the stored `task_id` is the editor task's id, not an exercise key.
-    let server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = auth
-        .call(client, |c| c.course_exercises(course_config.course_id))?
-        .into_iter()
-        .map(|slide| (slide.exercise_id, slide))
-        .collect();
+    let server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> =
+        stored_course_exercises(client, auth, course_config)?
+            .into_iter()
+            .map(|slide| (slide.exercise_id, slide))
+            .collect();
     let mut missing = Vec::new();
     for (exercise_id, local_exercise) in &course_config.exercises {
         let Some(server_exercise) = server_exercises.get(exercise_id) else {
@@ -281,13 +295,26 @@ fn check_mooc_course_updates(
             updates.updated.push(*exercise_id);
         }
     }
-    if !missing.is_empty() {
+    if !missing.is_empty() && !course_config.is_exam {
         let closed = closed_chapter_exercise_ids(client, auth, course_config.course_id)?;
         updates
             .removed
             .extend(missing.into_iter().filter(|id| !closed.contains(id)));
     }
     Ok(updates)
+}
+
+/// The current exercise list of a course or exam stored in the projects directory.
+fn stored_course_exercises(
+    client: &MoocClient,
+    auth: &MoocAuth,
+    course_config: &MoocCourseConfig,
+) -> Result<Vec<mooc::TmcExerciseSlide>, MoocAuthFailure> {
+    if course_config.is_exam {
+        auth.call(client, |c| c.exam_exercises(course_config.course_id))
+    } else {
+        auth.call(client, |c| c.course_exercises(course_config.course_id))
+    }
 }
 
 /// The course's exercises that sit in chapters that have not opened yet. The course's exercise
@@ -305,8 +332,8 @@ fn closed_chapter_exercise_ids(
         .collect())
 }
 
-/// Downloads the user's old submission from the server.
-/// Resets the exercise at the path before the download.
+/// Downloads the user's old submission from the server and restores it over a fresh template at
+/// the path, replacing the directory's contents.
 /// If a submission_url is given, the current state of the exercise is submitted to that URL before the download.
 pub fn download_old_submission(
     client: &tmc::TestMyCodeClient,
@@ -329,18 +356,25 @@ pub fn download_old_submission(
         log::debug!("finished submission");
     }
 
-    // reset old exercise
-    reset(client, exercise_id, output_path)?;
-    log::debug!("reset exercise");
-
-    // dl submission
-    let mut buf = vec![];
-    client.download_old_submission(submission_id, &mut buf)?;
+    // Fetch both archives before touching the exercise: a failed download must not wipe the
+    // student's work.
+    let mut submission = vec![];
+    client.download_old_submission(submission_id, &mut submission)?;
+    let mut template = vec![];
+    client.download_exercise(exercise_id, &mut template)?;
     log::debug!("downloaded old submission");
 
-    // extract submission
-    extract_student_files(Cursor::new(buf), Compression::Zip, output_path)?;
-    log::debug!("extracted project");
+    let staging = staging_dir_beside(output_path)?;
+    extract_project(
+        Cursor::new(template),
+        staging.path(),
+        Compression::Zip,
+        false,
+        false,
+    )?;
+    extract_student_files(Cursor::new(submission), Compression::Zip, staging.path())?;
+    replace_dir_contents(output_path, staging.path())?;
+    log::debug!("restored old submission");
     Ok(())
 }
 
@@ -420,6 +454,8 @@ pub fn download_or_update_course_exercises(
     client.require_authentication().map_err(Box::new)?;
 
     let exercises_details = client.get_exercises_details(exercises)?;
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let projects_config = ProjectsConfig::load(projects_dir)?;
 
     // separate exercises into downloads and skipped
@@ -558,13 +594,7 @@ pub fn download_or_update_course_exercises(
                         DownloadTargetKind::Template => {
                             let mut buf = vec![];
                             client.download_exercise(download_target.target.id, &mut buf)?;
-                            extract_project(
-                                Cursor::new(buf),
-                                &download_target.target.path,
-                                Compression::Zip,
-                                true,
-                                false,
-                            )?;
+                            extract_update(buf, &download_target.target.path, Compression::Zip)?;
                         }
                         DownloadTargetKind::Submission { submission_id } => {
                             let mut buf = vec![];
@@ -689,17 +719,11 @@ pub fn download_or_update_course_exercises(
     // return information about the downloads
     let downloaded = successful.into_iter().map(|t| t.target).collect();
     if !failed.is_empty() {
-        // add an error trace to each failed download
         let failed = failed
             .into_iter()
             .map(|(target, err)| {
-                let mut error = &err as &dyn std::error::Error;
-                let mut chain = vec![error.to_string()];
-                while let Some(source) = error.source() {
-                    chain.push(source.to_string());
-                    error = source;
-                }
-                (target.target, chain)
+                let failure = TmcDownloadFailure::of(&err);
+                (target.target, error_chain(&err), failure)
             })
             .collect();
         return Ok(TmcDownloadResult::Failure {
@@ -900,6 +924,8 @@ pub fn update_tmc_exercises(
 
     let mut course_data = HashMap::<String, Vec<(String, String, u32)>>::new();
 
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
     let exercises = projects_config
@@ -958,13 +984,7 @@ pub fn update_tmc_exercises(
             for exercise in &exercises_to_update {
                 let mut buf = vec![];
                 client.download_exercise(exercise.id, &mut buf)?;
-                extract_project(
-                    Cursor::new(buf),
-                    &exercise.path,
-                    Compression::Zip,
-                    true,
-                    false,
-                )?;
+                extract_update(buf, &exercise.path, Compression::Zip)?;
             }
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
@@ -994,17 +1014,113 @@ pub fn update_tmc_exercises(
     })
 }
 
-/// Updates the mooc exercises in the local projects directory.
+/// One exercise [`download_or_update_mooc_course_exercises`] downloads.
+struct PlannedMoocDownload {
+    exercise_id: Uuid,
+    course_id: Uuid,
+    exercise_name: String,
+    task_id: Uuid,
+    checksum: String,
+    exercise_directory: String,
+    download_url: String,
+    target: PathBuf,
+}
+
+/// Mirrors the TMC path's download thread count.
+const MOOC_DOWNLOAD_THREADS: usize = 4;
+
+/// Downloads and extracts each planned exercise, a few at a time; results are in plan order.
+fn download_mooc_archives_in_parallel(
+    client: &MoocClient,
+    auth: &MoocAuth,
+    planned: &[PlannedMoocDownload],
+) -> Vec<Result<(), DownloadArchiveError>> {
+    let next = AtomicUsize::new(0);
+    let mut results: Vec<(usize, Result<(), DownloadArchiveError>)> = std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..MOOC_DOWNLOAD_THREADS.min(planned.len()))
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut results = vec![];
+                    loop {
+                        let index = next.fetch_add(1, AtomicOrdering::Relaxed);
+                        let Some(plan) = planned.get(index) else {
+                            break;
+                        };
+                        progress_reporter::progress_stage::<mooc::MoocClientUpdateData>(
+                            format!(
+                                "Downloading exercise {} to '{}'",
+                                plan.exercise_id,
+                                plan.target.display()
+                            ),
+                            Some(mooc::MoocClientUpdateData::ExerciseDownload {
+                                id: plan.exercise_id,
+                                path: plan.target.clone(),
+                            }),
+                        );
+                        let result = download_and_extract_mooc_archive(
+                            client,
+                            auth,
+                            &plan.download_url,
+                            &plan.target,
+                        );
+                        results.push((index, result));
+                    }
+                    results
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .flat_map(|worker| worker.join().expect("download workers do not panic"))
+            .collect()
+    });
+    results.sort_by_key(|(index, _)| *index);
+    results.into_iter().map(|(_, result)| result).collect()
+}
+
+/// Where [`download_or_update_mooc_course_exercises`] looks the requested exercises up.
+#[derive(Debug, Clone, Copy)]
+pub enum MoocExerciseSource {
+    Course(Uuid),
+    /// An exam from [`mooc::MoocClient::exams`]; its exercises are stored like a course's.
+    Exam(Uuid),
+    /// Every course the user is enrolled on, in turn.
+    EnrolledCourses,
+}
+
+/// The course or exam an exercise is stored under.
+#[derive(Debug, Clone)]
+struct StoredCourse {
+    id: Uuid,
+    name: String,
+    is_exam: bool,
+}
+
+impl StoredCourse {
+    fn of_course(course: &mooc::Course) -> Self {
+        Self {
+            id: course.id,
+            name: course.name.clone(),
+            is_exam: false,
+        }
+    }
+}
+
+/// Updates the mooc exercises in the local projects directory. The exercises of a course
+/// courses.mooc.fi refuses, and those whose archive fails to download or extract, land in
+/// `failed` and the rest are still updated.
 pub fn update_mooc_exercises(
     client: &MoocClient,
     auth: &MoocAuth,
     projects_dir: &Path,
 ) -> Result<DownloadOrUpdateMoocCourseExercisesResult, LangsError> {
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
     // Owned snapshot keyed by exercise id (not the editor task id), so
     // `projects_config` can be mutated below.
     struct LocalMoocExerciseInfo {
-        instance_id: Uuid,
+        course_id: Uuid,
         course_directory: String,
         exercise_directory: String,
         exercise_name: String,
@@ -1013,12 +1129,12 @@ pub fn update_mooc_exercises(
     let locals: HashMap<Uuid, LocalMoocExerciseInfo> = projects_config
         .mooc_courses
         .iter()
-        .flat_map(|(instance_id, cc)| {
+        .flat_map(|(course_id, cc)| {
             cc.exercises.iter().map(move |(id, e)| {
                 (
                     *id,
                     LocalMoocExerciseInfo {
-                        instance_id: *instance_id,
+                        course_id: *course_id,
                         course_directory: cc.directory.clone(),
                         exercise_directory: e.directory.clone(),
                         exercise_name: e.name.clone(),
@@ -1030,17 +1146,48 @@ pub fn update_mooc_exercises(
         .collect();
 
     let mut downloaded = Vec::new();
+    let mut failed = Vec::new();
     if !locals.is_empty() {
-        // One `course_exercises` request per course, not one per exercise.
-        // `instance_id` and `course_id` coincide for mooc courses.
-        let course_ids: HashSet<Uuid> = projects_config
-            .mooc_courses
-            .values()
-            .map(|cc| cc.course_id)
-            .collect();
+        // One exercise list request per course, not one per exercise.
         let mut server_exercises: Vec<mooc::TmcExerciseSlide> = Vec::new();
-        for course_id in course_ids {
-            server_exercises.extend(auth.call(client, |c| c.course_exercises(course_id))?);
+        for course_config in projects_config.mooc_courses.values() {
+            if course_config.exercises.is_empty() {
+                continue;
+            }
+            match stored_course_exercises(client, auth, course_config) {
+                Ok(slides) => server_exercises.extend(slides),
+                // An exam stops being served once it ends; that must not block the other courses.
+                Err(err) => {
+                    let Some(kind) = CourseRefusalKind::of(&err) else {
+                        return Err(err.into());
+                    };
+                    log::warn!(
+                        "skipping the update of course {}: {err}",
+                        course_config.course_id
+                    );
+                    let failure = match kind {
+                        CourseRefusalKind::NotFound => MoocDownloadFailure::NotFound,
+                        CourseRefusalKind::Forbidden | CourseRefusalKind::InsufficientScope => {
+                            MoocDownloadFailure::Other
+                        }
+                    };
+                    let reason = error_chain(&LangsError::from(err));
+                    for (exercise_id, exercise) in &course_config.exercises {
+                        failed.push((
+                            MoocExerciseDownload {
+                                exercise_id: *exercise_id,
+                                path: ProjectsConfig::get_mooc_exercise_download_target(
+                                    projects_dir,
+                                    &course_config.directory,
+                                    &exercise.directory,
+                                ),
+                            },
+                            reason.clone(),
+                            failure,
+                        ));
+                    }
+                }
+            }
         }
         for slide in server_exercises {
             let Some(local) = locals.get(&slide.exercise_id) else {
@@ -1067,7 +1214,25 @@ pub fn update_mooc_exercises(
                 );
                 continue;
             };
-            download_and_extract_mooc_archive(client, auth, download_url, &target)?;
+            match download_and_extract_mooc_archive(client, auth, download_url, &target) {
+                Ok(()) => {}
+                Err(DownloadArchiveError::Auth(auth_err)) if auth_err.is_permanent() => {
+                    return Err(auth_err.into());
+                }
+                Err(err) => {
+                    let err: LangsError = err.into();
+                    let failure = mooc_download_failure(&err);
+                    failed.push((
+                        MoocExerciseDownload {
+                            exercise_id: slide.exercise_id,
+                            path: target,
+                        },
+                        error_chain(&err),
+                        failure,
+                    ));
+                    continue;
+                }
+            }
 
             // Persist the new checksum, or every later check re-reports the update.
             // Prefer the editor task id (the checksum's owner) over the stored one.
@@ -1076,17 +1241,18 @@ pub fn update_mooc_exercises(
                 .or_else(|| {
                     projects_config
                         .mooc_courses
-                        .get(&local.instance_id)
+                        .get(&local.course_id)
                         .and_then(|cc| cc.exercises.get(&slide.exercise_id))
                         .map(|e| e.task_id)
                 })
                 .unwrap_or_else(Uuid::nil);
-            if let Some(course_config) = projects_config.mooc_courses.get_mut(&local.instance_id) {
+            if let Some(course_config) = projects_config.mooc_courses.get_mut(&local.course_id) {
                 course_config.add_exercise(
                     slide.exercise_id,
                     local.exercise_name.clone(),
                     task_id,
                     new_checksum.to_string(),
+                    local.exercise_directory.clone(),
                 );
                 course_config.save_to_projects_dir(projects_dir)?;
             }
@@ -1101,8 +1267,62 @@ pub fn update_mooc_exercises(
     Ok(DownloadOrUpdateMoocCourseExercisesResult {
         downloaded,
         skipped: vec![],
-        failed: None,
+        failed: (!failed.is_empty()).then_some(failed),
+        closed_chapters: Vec::new(),
     })
+}
+
+impl TmcDownloadFailure {
+    fn of(err: &LangsError) -> Self {
+        match err {
+            LangsError::TestMyCodeClient(err) => match err.as_ref() {
+                tmc::TestMyCodeClientError::HttpError { status, .. }
+                    if matches!(status.as_u16(), 403 | 404) =>
+                {
+                    Self::NotFound
+                }
+                tmc::TestMyCodeClientError::HttpError { status, .. }
+                    if status.is_server_error() =>
+                {
+                    Self::ServerError
+                }
+                tmc::TestMyCodeClientError::ConnectionError(..) => Self::ConnectionError,
+                _ => Self::Other,
+            },
+            err if is_extract_error(err) => Self::ExtractFailed,
+            _ => Self::Other,
+        }
+    }
+}
+
+/// The [`MoocDownloadFailure`] of an error downloading or extracting a mooc exercise archive.
+fn mooc_download_failure(err: &LangsError) -> MoocDownloadFailure {
+    match err {
+        LangsError::MoocClient(err) => match err.as_ref() {
+            mooc::MoocClientError::FileNotFound { .. } => MoocDownloadFailure::FileMissing,
+            mooc::MoocClientError::NoDownloadableExerciseTask { .. } => {
+                MoocDownloadFailure::BrowserOnly
+            }
+            mooc::MoocClientError::SeveralEditorTasks { .. } => {
+                MoocDownloadFailure::SeveralEditorTasks
+            }
+            mooc::MoocClientError::ConnectionError(..) => MoocDownloadFailure::ConnectionError,
+            mooc::MoocClientError::HttpError { status, .. } if status.is_server_error() => {
+                MoocDownloadFailure::ServerError
+            }
+            _ => MoocDownloadFailure::Other,
+        },
+        err if is_extract_error(err) => MoocDownloadFailure::ExtractFailed,
+        _ => MoocDownloadFailure::Other,
+    }
+}
+
+/// Whether `err` came from unpacking a downloaded exercise archive rather than fetching it.
+fn is_extract_error(err: &LangsError) -> bool {
+    matches!(
+        err,
+        LangsError::Tmc(_) | LangsError::FileError(_) | LangsError::Plugin(_) | LangsError::Zip(_)
+    )
 }
 
 /// Flattens an error's `source()` chain into strings, outermost first, for the
@@ -1150,8 +1370,7 @@ fn download_and_extract_mooc_archive(
     let data = auth
         .call(client, |c| c.download(url.clone()))
         .map_err(DownloadArchiveError::Auth)?;
-    extract_project(Cursor::new(data), target, Compression::TarZstd, true, false)
-        .map_err(DownloadArchiveError::Local)?;
+    extract_update(data, target, Compression::TarZstd).map_err(DownloadArchiveError::Local)?;
     Ok(())
 }
 
@@ -1239,7 +1458,7 @@ pub fn download_or_update_mooc_course_exercises(
     auth: &MoocAuth,
     projects_dir: &Path,
     exercise_ids: &[Uuid],
-    course_id: Option<Uuid>,
+    source: MoocExerciseSource,
 ) -> Result<DownloadOrUpdateMoocCourseExercisesResult, LangsError> {
     log::debug!(
         "downloading or updating {} mooc exercises in {}",
@@ -1247,20 +1466,21 @@ pub fn download_or_update_mooc_course_exercises(
         projects_dir.display()
     );
 
+    let mut config_update_lock = ProjectsConfig::lock_course_config_updates(projects_dir)?;
+    let _config_update_guard = config_update_lock.lock()?;
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
-    // exercise_id -> (course_id, course_name, slide)
     let requested: HashSet<Uuid> = exercise_ids.iter().copied().collect();
-    let mut resolved: HashMap<Uuid, (Uuid, String, mooc::TmcExerciseSlide)> = HashMap::new();
+    let mut resolved: HashMap<Uuid, (StoredCourse, mooc::TmcExerciseSlide)> = HashMap::new();
     // Requested exercises of a chapter that has not opened yet, with why they cannot be downloaded.
-    let mut closed: HashMap<Uuid, String> = HashMap::new();
+    let mut closed: HashMap<Uuid, (String, MoocExerciseClosedChapter)> = HashMap::new();
     if !requested.is_empty() {
-        match course_id {
-            Some(course_id) => {
-                let course = auth.call(client, |c| c.course(course_id))?;
+        match source {
+            MoocExerciseSource::Course(course_id) => {
+                let course = StoredCourse::of_course(&auth.call(client, |c| c.course(course_id))?);
                 for slide in auth.call(client, |c| c.course_exercises(course_id))? {
                     if requested.contains(&slide.exercise_id) {
-                        resolved.insert(slide.exercise_id, (course.id, course.name.clone(), slide));
+                        resolved.insert(slide.exercise_id, (course.clone(), slide));
                     }
                 }
                 if resolved.len() < requested.len() {
@@ -1268,29 +1488,50 @@ pub fn download_or_update_mooc_course_exercises(
                     for chapter in progress.closed_chapters {
                         for exercise in &chapter.exercises {
                             if requested.contains(&exercise.exercise_id) {
-                                closed.insert(
+                                let reason = format!(
+                                    "Exercise {} is in chapter {} \"{}\", which opens at {}",
                                     exercise.exercise_id,
-                                    format!(
-                                        "Exercise {} is in chapter {} \"{}\", which opens at {}",
-                                        exercise.exercise_id,
-                                        chapter.chapter_number,
-                                        chapter.name,
-                                        chapter.opens_at
-                                    ),
+                                    chapter.chapter_number,
+                                    chapter.name,
+                                    chapter.opens_at
                                 );
+                                let detail = MoocExerciseClosedChapter {
+                                    exercise_id: exercise.exercise_id,
+                                    chapter_name: chapter.name.clone(),
+                                    chapter_number: chapter.chapter_number,
+                                    opens_at: chapter.opens_at,
+                                };
+                                closed.insert(exercise.exercise_id, (reason, detail));
                             }
                         }
                     }
                 }
             }
-            None => {
+            MoocExerciseSource::Exam(exam_id) => {
+                let exam = auth
+                    .call(client, |c| c.exams())?
+                    .into_iter()
+                    .find(|exam| exam.id == exam_id)
+                    .ok_or(LangsError::MoocExamNotAnswerable(exam_id))?;
+                let exam = StoredCourse {
+                    id: exam.id,
+                    name: exam.name,
+                    is_exam: true,
+                };
+                for slide in auth.call(client, |c| c.exam_exercises(exam_id))? {
+                    if requested.contains(&slide.exercise_id) {
+                        resolved.insert(slide.exercise_id, (exam.clone(), slide));
+                    }
+                }
+            }
+            MoocExerciseSource::EnrolledCourses => {
                 'courses: for course in auth.call(client, |c| c.courses())? {
+                    let stored_course = StoredCourse::of_course(&course);
                     for slide in auth.call(client, |c| c.course_exercises(course.id))? {
                         if requested.contains(&slide.exercise_id)
                             && !resolved.contains_key(&slide.exercise_id)
                         {
-                            resolved
-                                .insert(slide.exercise_id, (course.id, course.name.clone(), slide));
+                            resolved.insert(slide.exercise_id, (stored_course.clone(), slide));
                             if resolved.len() == requested.len() {
                                 break 'courses;
                             }
@@ -1303,7 +1544,8 @@ pub fn download_or_update_mooc_course_exercises(
 
     let mut downloaded = Vec::new();
     let mut skipped = Vec::new();
-    let mut failed: Vec<(MoocExerciseDownload, Vec<String>)> = Vec::new();
+    let mut failed: Vec<(MoocExerciseDownload, Vec<String>, MoocDownloadFailure)> = Vec::new();
+    let mut closed_chapters = Vec::new();
 
     let total_steps = u32::try_from(exercise_ids.len())
         .unwrap_or(u32::MAX)
@@ -1314,66 +1556,65 @@ pub fn download_or_update_mooc_course_exercises(
         None,
     );
 
+    let mut planned = Vec::new();
+    // Directories given to exercises earlier in this batch, which are not in the config yet.
+    let mut reserved_directories: HashMap<Uuid, HashSet<String>> = HashMap::new();
+    let mut seen_exercise_ids = HashSet::new();
+    let unplanned = |exercise_id, reason, failure| {
+        let download = MoocExerciseDownload {
+            exercise_id,
+            path: projects_dir.join("mooc"),
+        };
+        (download, reason, failure)
+    };
     for &exercise_id in exercise_ids {
-        let Some((course_id, course_name, slide)) = resolved.get(&exercise_id) else {
-            let reason = closed.remove(&exercise_id).unwrap_or_else(|| {
-                format!(
-                    "Exercise {exercise_id} was not found in any of the user's enrolled courses"
-                )
-            });
-            failed.push((
-                MoocExerciseDownload {
-                    exercise_id,
-                    path: projects_dir.join("mooc"),
-                },
-                vec![reason],
-            ));
+        // A repeat would be planned into a second directory and extracted in parallel.
+        if !seen_exercise_ids.insert(exercise_id) {
+            continue;
+        }
+        let Some((course, slide)) = resolved.get(&exercise_id) else {
+            let (reason, failure) = match closed.remove(&exercise_id) {
+                Some((reason, detail)) => {
+                    closed_chapters.push(detail);
+                    (reason, MoocDownloadFailure::ClosedChapter)
+                }
+                None => (
+                    format!(
+                        "Exercise {exercise_id} was not found in any of the user's enrolled \
+                         courses"
+                    ),
+                    MoocDownloadFailure::NotFound,
+                ),
+            };
+            failed.push(unplanned(exercise_id, vec![reason], failure));
             continue;
         };
 
-        let editor_task = slide.tasks.iter().find(|task| {
-            task.public_spec
-                .as_ref()
-                .and_then(|ps| ps.editor_stub_download_url())
-                .is_some()
-        });
-        let Some(task) = editor_task else {
-            failed.push((
-                MoocExerciseDownload {
+        let (task_id, download_url) = match slide.require_editor_download() {
+            Ok(editor_download) => editor_download,
+            Err(err) => {
+                let err = LangsError::from(err);
+                failed.push(unplanned(
                     exercise_id,
-                    path: projects_dir.join("mooc"),
-                },
-                vec![format!(
-                    "Exercise {exercise_id} has no downloadable editor task \
-                     (browser exercises have no project archive)"
-                )],
-            ));
-            continue;
+                    error_chain(&err),
+                    mooc_download_failure(&err),
+                ));
+                continue;
+            }
         };
-        let public_spec = task
-            .public_spec
-            .as_ref()
-            .expect("editor task guarantees a public spec");
-        let download_url = public_spec
-            .editor_stub_download_url()
-            .expect("editor task guarantees a stub download url")
-            .to_string();
-        let task_id = task.task_id;
-        let checksum = task.checksum.clone().unwrap_or_default();
+        let download_url = download_url.to_string();
+        let checksum = slide.editor_checksum().unwrap_or_default().to_string();
         let exercise_name = slide.exercise_name.clone();
 
         let course_config = projects_config.get_or_init_mooc_course_config(
-            *course_id,
-            *course_id,
-            course_name.clone(),
+            course.id,
+            course.name.clone(),
+            course.is_exam,
         );
 
-        // Reuse the directory of an already-downloaded exercise.
-        let exercise_directory = course_config
-            .exercises
-            .get(&exercise_id)
-            .map(|e| e.directory.clone())
-            .unwrap_or_else(|| config::simple_kebab_case(&exercise_name));
+        let reserved = reserved_directories.entry(course.id).or_default();
+        let exercise_directory =
+            course_config.exercise_directory(exercise_id, &exercise_name, reserved.iter());
         let target = ProjectsConfig::get_mooc_exercise_download_target(
             projects_dir,
             &course_config.directory,
@@ -1381,7 +1622,7 @@ pub fn download_or_update_mooc_course_exercises(
         );
 
         if let Some(existing) = course_config.exercises.get(&exercise_id) {
-            if existing.checksum == checksum {
+            if existing.checksum == checksum && existing.directory == exercise_directory {
                 log::info!("Skipping exercise {exercise_id} due to identical checksum");
                 skipped.push(MoocExerciseDownload {
                     exercise_id,
@@ -1391,54 +1632,79 @@ pub fn download_or_update_mooc_course_exercises(
             }
         }
 
-        progress_reporter::progress_stage::<mooc::MoocClientUpdateData>(
-            format!(
-                "Downloading exercise {exercise_id} to '{}'",
-                target.display()
-            ),
-            Some(mooc::MoocClientUpdateData::ExerciseDownload {
-                id: exercise_id,
-                path: target.clone(),
-            }),
-        );
+        reserved.insert(exercise_directory.clone());
+        planned.push(PlannedMoocDownload {
+            exercise_id,
+            course_id: course.id,
+            exercise_name,
+            task_id,
+            checksum,
+            exercise_directory,
+            download_url,
+            target,
+        });
+    }
 
-        match download_and_extract_mooc_archive(client, auth, &download_url, &target) {
+    let results = download_mooc_archives_in_parallel(client, auth, &planned);
+    let mut permanent_auth_failure = None;
+    let mut changed_courses = HashSet::new();
+    for (plan, result) in planned.into_iter().zip(results) {
+        let exercise_id = plan.exercise_id;
+        match result {
             Ok(()) => {
-                course_config.add_exercise(exercise_id, exercise_name, task_id, checksum);
-                course_config.save_to_projects_dir(projects_dir)?;
+                if let Some(course_config) = projects_config.mooc_courses.get_mut(&plan.course_id) {
+                    course_config.add_exercise(
+                        exercise_id,
+                        plan.exercise_name,
+                        plan.task_id,
+                        plan.checksum,
+                        plan.exercise_directory,
+                    );
+                    changed_courses.insert(plan.course_id);
+                }
                 downloaded.push(MoocExerciseDownload {
                     exercise_id,
-                    path: target,
+                    path: plan.target,
                 });
             }
-            // No session left, so every remaining item would fail the same way:
-            // surface the auth failure instead of a partial result. Exercises
-            // already downloaded stay on disk and are skipped on retry.
+            // No session left, so the other downloads failed the same way: surface the auth
+            // failure instead of a partial result. Finished downloads are still recorded below
+            // and skipped on retry.
             Err(DownloadArchiveError::Auth(auth_err)) if auth_err.is_permanent() => {
-                progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
-                    "Stopped downloading mooc exercises: not logged in".to_string(),
-                    None,
-                );
-                log::error!(
-                    "mooc auth permanently failed while downloading exercise {exercise_id} \
-                     ({} of {} exercises downloaded, {} skipped): {auth_err}",
-                    downloaded.len(),
-                    exercise_ids.len(),
-                    skipped.len(),
-                );
-                return Err(auth_err.into());
+                permanent_auth_failure.get_or_insert(auth_err);
             }
             Err(err) => {
                 let err: LangsError = err.into();
+                let failure = mooc_download_failure(&err);
                 failed.push((
                     MoocExerciseDownload {
                         exercise_id,
-                        path: target,
+                        path: plan.target,
                     },
                     error_chain(&err),
+                    failure,
                 ));
             }
         }
+    }
+    for course_id in changed_courses {
+        if let Some(course_config) = projects_config.mooc_courses.get(&course_id) {
+            course_config.save_to_projects_dir(projects_dir)?;
+        }
+    }
+    if let Some(auth_err) = permanent_auth_failure {
+        progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
+            "Stopped downloading mooc exercises: not logged in".to_string(),
+            None,
+        );
+        log::error!(
+            "mooc auth permanently failed while downloading exercises ({} of {} downloaded, {} \
+             skipped): {auth_err}",
+            downloaded.len(),
+            exercise_ids.len(),
+            skipped.len(),
+        );
+        return Err(auth_err.into());
     }
 
     progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
@@ -1454,6 +1720,7 @@ pub fn download_or_update_mooc_course_exercises(
         } else {
             Some(failed)
         },
+        closed_chapters,
     })
 }
 
@@ -1628,16 +1895,85 @@ pub fn reset(
     replace_dir_contents(exercise_path, staging.path())
 }
 
-/// A temporary directory beside `path`, on its filesystem, for content to move into `path`
-/// by rename.
-fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
+/// Updates the exercise at `target` to the archive's version, keeping student files (see
+/// [`extract_project`] with `clean`). Also downloads a new exercise.
+///
+/// Works on a copy of `target` that is swapped in whole, so a held file or a killed process
+/// never leaves the exercise half-updated or with truncated files.
+fn extract_update(
+    archive: impl AsRef<[u8]>,
+    target: &Path,
+    compression: Compression,
+) -> Result<(), LangsError> {
+    let staging = staging_dir_beside(target)?;
+    if target.is_dir() {
+        file_util::copy_dir_contents(target, staging.path(), || {})?;
+    }
+    extract_project(
+        Cursor::new(archive),
+        staging.path(),
+        compression,
+        true,
+        false,
+    )?;
+    replace_dir_contents(target, staging.path())
+}
+
+/// How old a leftover `.tmc-staging-*` directory must be before it is treated as abandoned
+/// rather than as another running command's.
+const STALE_STAGING_AGE: std::time::Duration = std::time::Duration::from_secs(24 * 60 * 60);
+
+/// Deletes `.tmc-staging-*` directories in `dir` that a killed command left behind.
+fn sweep_stale_staging_dirs(dir: &Path, min_age: std::time::Duration) {
+    let Ok(entries) = file_util::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        if !entry
+            .file_name()
+            .to_string_lossy()
+            .starts_with(STAGING_DIR_PREFIX)
+        {
+            continue;
+        }
+        let is_stale = entry
+            .metadata()
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|modified| modified.elapsed().ok())
+            .is_some_and(|age| age >= min_age);
+        if is_stale && entry.file_type().is_ok_and(|t| t.is_dir()) {
+            log::warn!(
+                "deleting abandoned staging directory {}",
+                entry.path().display()
+            );
+            if let Err(err) = file_util::remove_dir_all(entry.path()) {
+                log::warn!("failed to delete it: {err}");
+            }
+        }
+    }
+}
+
+const STAGING_DIR_PREFIX: &str = ".tmc-staging-";
+const REPLACED_DIR_PREFIX: &str = ".tmc-replaced-";
+
+/// The existing parent of `path`, where its staging directories go.
+fn staging_parent(path: &Path) -> Result<&Path, LangsError> {
     let parent = match path.parent() {
         Some(parent) if !parent.as_os_str().is_empty() => parent,
         _ => Path::new("."),
     };
     file_util::create_dir_all(parent)?;
+    Ok(parent)
+}
+
+/// A temporary directory beside `path`, on its filesystem, for content to move into `path`
+/// by rename. Sweeps abandoned ones from earlier runs first.
+fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
+    let parent = staging_parent(path)?;
+    sweep_stale_staging_dirs(parent, STALE_STAGING_AGE);
     let staging = tempfile::Builder::new()
-        .prefix(".tmc-staging-")
+        .prefix(STAGING_DIR_PREFIX)
         .tempdir_in(parent)
         .map_err(FileError::TempFile)?;
     Ok(staging)
@@ -1648,14 +1984,19 @@ fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
 /// track of it when the directory is replaced.
 ///
 /// Leaves `target` as it was on failure. If even that fails, the old entries are kept in a
-/// `.tmc-staging-*` directory beside `target` and the error names it.
+/// `.tmc-replaced-*` directory beside `target` and the error names it.
 fn replace_dir_contents(target: &Path, staged: &Path) -> Result<(), LangsError> {
     if !target.exists() {
         file_util::rename(staged, target)?;
         return Ok(());
     }
-    // Not a guard: dropping it would delete the student's old files when the rollback fails.
-    let replaced = staging_dir_beside(target)?.keep();
+    // Not a guard and never swept: it holds the student's only copy of the old files until
+    // they are moved back or the swap completes.
+    let replaced = tempfile::Builder::new()
+        .prefix(REPLACED_DIR_PREFIX)
+        .tempdir_in(staging_parent(target)?)
+        .map_err(FileError::TempFile)?
+        .keep();
 
     if let Err((moved_out, err)) = move_dir_entries(target, &replaced) {
         restore_dir_entries(&replaced, target, &moved_out, &err)?;
@@ -1669,7 +2010,13 @@ fn replace_dir_contents(target: &Path, staged: &Path) -> Result<(), LangsError> 
         restore_dir_entries(&replaced, target, &moved_out, &err)?;
         return Err(err.into());
     }
-    file_util::remove_dir_all(&replaced)?;
+    if let Err(err) = file_util::remove_dir_all(&replaced) {
+        log::warn!(
+            "replaced {} but could not delete the old files in {}: {err}",
+            target.display(),
+            replaced.display()
+        );
+    }
     Ok(())
 }
 
@@ -1680,14 +2027,7 @@ fn restore_dir_entries(
     names: &[OsString],
     cause: &FileError,
 ) -> Result<(), LangsError> {
-    let mut restore_failed = false;
-    for name in names {
-        if let Err(err) = file_util::rename(replaced.join(name), target.join(name)) {
-            log::error!("failed to restore {}: {err}", target.join(name).display());
-            restore_failed = true;
-        }
-    }
-    if restore_failed {
+    if !move_entries_back(replaced, target, names) {
         return Err(LangsError::ExerciseRestoreFailed {
             exercise_path: target.to_path_buf(),
             kept_at: replaced.to_path_buf(),
@@ -1696,6 +2036,18 @@ fn restore_dir_entries(
     }
     let _ = file_util::remove_dir_empty(replaced);
     Ok(())
+}
+
+/// Renames each of `names` from `from` into `to`, logging each failure; false if any failed.
+fn move_entries_back(from: &Path, to: &Path, names: &[OsString]) -> bool {
+    let mut is_complete = true;
+    for name in names {
+        if let Err(err) = file_util::rename(from.join(name), to.join(name)) {
+            log::error!("failed to move {} back: {err}", from.join(name).display());
+            is_complete = false;
+        }
+    }
+    is_complete
 }
 
 fn dir_entry_names(dir: &Path) -> Result<Vec<OsString>, FileError> {
@@ -1720,6 +2072,22 @@ fn move_dir_entries(from: &Path, to: &Path) -> Result<Vec<OsString>, (Vec<OsStri
         moved.push(name);
     }
     Ok(moved)
+}
+
+/// Moves every entry of `from` into `to` by rename, moving the ones already moved back if one
+/// cannot be.
+pub(crate) fn move_all_dir_entries(from: &Path, to: &Path) -> Result<(), LangsError> {
+    let Err((moved, err)) = move_dir_entries(from, to) else {
+        return Ok(());
+    };
+    if !move_entries_back(to, from, &moved) {
+        return Err(LangsError::DirEntriesSplit {
+            from: from.to_path_buf(),
+            to: to.to_path_buf(),
+            cause: err.to_string(),
+        });
+    }
+    Err(err.into())
 }
 
 /// Resets a mooc exercise to a fresh stub, optionally storing the current state
@@ -1818,7 +2186,8 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, L
 
     let mut paths = vec![];
     for entry in WalkDir::new(exercise_path).into_iter().filter_entry(|e| {
-        !submission_processing::is_hidden_dir(e)
+        // A checkout in a temporary directory has a hidden name.
+        (e.depth() == 0 || !submission_processing::is_hidden_dir(e))
             && e.file_name() != "private"
             && !submission_processing::contains_tmcignore(e)
     }) {
@@ -1904,12 +2273,87 @@ pub fn extract_student_files(
     Ok(())
 }
 
-fn move_dir(source: &Path, target: &Path) -> Result<(), LangsError> {
-    let mut file_count_copied = 0;
+/// Moves the directory `source` to `target`, which may exist if empty. `record_move` runs once
+/// the contents are at `target`, before the old directory is deleted, so a failure never leaves
+/// the caller's records pointing at a deleted directory.
+fn move_dir(
+    source: &Path,
+    target: &Path,
+    record_move: impl FnOnce() -> Result<(), LangsError>,
+) -> Result<(), LangsError> {
+    move_dir_with(source, target, true, record_move)
+}
+
+/// [`move_dir`], where `try_rename: false` forces the copy fallback used across volumes.
+fn move_dir_with(
+    source: &Path,
+    target: &Path,
+    try_rename: bool,
+    record_move: impl FnOnce() -> Result<(), LangsError>,
+) -> Result<(), LangsError> {
+    if try_rename {
+        let is_empty_target = target.is_dir() && dir_entry_names(target)?.is_empty();
+        if is_empty_target {
+            file_util::remove_dir_empty(target)?;
+        }
+        if let Some(parent) = target.parent() {
+            file_util::create_dir_all(parent)?;
+        }
+        match file_util::rename(source, target) {
+            Ok(()) => {
+                if let Err(err) = record_move() {
+                    if let Err(undo_err) = file_util::rename(target, source) {
+                        log::error!("failed to move {} back: {undo_err}", target.display());
+                    }
+                    return Err(err);
+                }
+                return Ok(());
+            }
+            Err(err) if file_util::is_cross_volume_error(&err) => {
+                log::debug!("moving across volumes, copying instead: {err}");
+            }
+            Err(err) => {
+                if is_empty_target {
+                    file_util::create_dir_all(target)?;
+                }
+                return Err(err.into());
+            }
+        }
+    }
+
+    file_util::create_dir_all(target)?;
+    let result = copy_contents_for_move(source, target).and_then(|()| record_move());
+    if let Err(err) = result {
+        for name in dir_entry_names(target).unwrap_or_default() {
+            if let Err(clean_err) = file_util::remove_all(target.join(name)) {
+                log::warn!("failed to clean up the partial copy: {clean_err}");
+            }
+        }
+        return Err(err);
+    }
+
+    for name in dir_entry_names(source).unwrap_or_default() {
+        if let Err(err) = file_util::remove_all(source.join(&name)) {
+            log::warn!(
+                "failed to delete {} after the move: {err}",
+                source.display()
+            );
+        }
+    }
+    if let Err(err) = file_util::remove_dir_empty(source) {
+        log::warn!(
+            "failed to delete {} after the move: {err}",
+            source.display()
+        );
+    }
+    finish_stage("Finished moving project directory");
+    Ok(())
+}
+
+fn copy_contents_for_move(source: &Path, target: &Path) -> Result<(), LangsError> {
     let mut file_count_total = 0;
     for entry in WalkDir::new(source) {
-        let entry = entry?;
-        if entry.path().is_file() {
+        if !entry?.file_type().is_dir() {
             file_count_total += 1;
         }
     }
@@ -1918,52 +2362,13 @@ fn move_dir(source: &Path, target: &Path) -> Result<(), LangsError> {
         format!("Moving dir {} -> {}", source.display(), target.display()),
     );
 
-    for entry in WalkDir::new(source).contents_first(true).min_depth(1) {
-        let entry = entry?;
-        let entry_path = entry.path();
-
-        if entry_path.file_name() == Some(OsStr::new(LOCK_FILE_NAME)) {
-            log::info!("skipping lock file");
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Skipped moving file {file_count_copied} / {file_count_total}"
-            ));
-            continue;
-        }
-
-        if entry_path.is_file() {
-            let relative = entry_path
-                .strip_prefix(source)
-                .expect("the entry is inside the source");
-            let target_path = target.join(relative);
-            log::debug!(
-                "Moving {} -> {}",
-                entry_path.display(),
-                target_path.display()
-            );
-
-            // create parent dir for target and copy it, remove source file after
-            if let Some(parent) = target_path.parent() {
-                file_util::create_dir_all(parent)?;
-            }
-            file_util::copy(entry_path, &target_path)?;
-            file_util::remove_file(entry_path)?;
-
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Moved file {file_count_copied} / {file_count_total}"
-            ));
-        } else if entry_path.is_dir() {
-            log::debug!("Deleting {}", entry_path.display());
-            file_util::remove_dir_empty(entry_path)?;
-        }
-    }
-
-    // remove lock file if any
-    file_util::remove_file(source.join(file_util::LOCK_FILE_NAME)).ok();
-    file_util::remove_dir_empty(source)?;
-
-    finish_stage("Finished moving project directory");
+    let mut file_count_copied = 0;
+    file_util::copy_dir_contents(source, target, || {
+        file_count_copied += 1;
+        progress_stage(format!(
+            "Moved file {file_count_copied} / {file_count_total}"
+        ));
+    })?;
     Ok(())
 }
 
@@ -1984,27 +2389,7 @@ fn extract_project_overwrite(
     target_location: &Path,
     compression: Compression,
 ) -> Result<(), LangsError> {
-    match compression {
-        Compression::Tar => {
-            let mut archive = tar::Archive::new(compressed_project);
-            archive
-                .unpack(target_location)
-                .map_err(|e| LangsError::TarExtract(target_location.to_path_buf(), e))?;
-        }
-        Compression::TarZstd => {
-            let decoder = zstd::Decoder::new(compressed_project).map_err(LangsError::ZstdDecode)?;
-            let mut archive = tar::Archive::new(decoder);
-            archive
-                .unpack(target_location)
-                .map_err(|e| LangsError::TarExtract(target_location.to_path_buf(), e))?;
-        }
-        Compression::Zip => {
-            let mut archive = zip::ZipArchive::new(compressed_project)?;
-            archive
-                .extract(target_location)
-                .map_err(|e| LangsError::ZipExtract(target_location.to_path_buf(), e))?;
-        }
-    }
+    Archive::new(compressed_project, compression)?.extract(target_location)?;
     Ok(())
 }
 
@@ -2110,12 +2495,11 @@ mod test {
     }
 
     /// Writes a mooc course config with one exercise and creates its directory so
-    /// the loader doesn't prune it. Returns (instance_id, exercise_id, task_id).
+    /// the loader doesn't prune it. Returns (course_id, exercise_id, task_id).
     fn write_mooc_course_config(
         projects_dir: &std::path::Path,
         local_checksum: &str,
     ) -> (Uuid, Uuid, Uuid) {
-        let instance_id = Uuid::new_v4();
         let course_id = Uuid::new_v4();
         let exercise_id = Uuid::new_v4();
         let task_id = Uuid::new_v4();
@@ -2125,7 +2509,6 @@ mod test {
             format!(
                 r#"
 course_id = "{course_id}"
-instance_id = "{instance_id}"
 course = "My Course"
 directory = "my-course"
 
@@ -2139,7 +2522,7 @@ directory = "ex-1"
         );
         // the exercise dir must exist or the loader prunes it from the config
         std::fs::create_dir_all(projects_dir.join("mooc/my-course/ex-1")).unwrap();
-        (instance_id, exercise_id, task_id)
+        (course_id, exercise_id, task_id)
     }
 
     /// JSON for a single exercise slide carrying one editor task with a public
@@ -2251,6 +2634,27 @@ directory = "ex-2"
         assert!(projects_dir.ends_with("client"));
         let parent = projects_dir.parent().unwrap();
         assert!(parent.ends_with("tmc"));
+    }
+
+    #[test]
+    fn an_exercises_folder_on_a_missing_drive_is_reported_not_recreated() {
+        init();
+        let config_dir = tempfile::tempdir().unwrap();
+        let unplugged = config_dir.path().join("unplugged-drive/exercises");
+        let _guard = crate::config::env_lock();
+        // SAFETY: serialized by `config::env_lock`.
+        unsafe { std::env::set_var(TMC_LANGS_CONFIG_DIR_VAR, config_dir.path()) };
+        let mut config = TmcConfig::load("client").unwrap();
+        config.projects_dir = unplugged.clone();
+        config.save().unwrap();
+
+        let result = get_projects_dir("client");
+        // SAFETY: serialized by `config::env_lock`.
+        unsafe { std::env::remove_var(TMC_LANGS_CONFIG_DIR_VAR) };
+        assert!(
+            matches!(result, Err(LangsError::ProjectsDirUnreachable(path)) if path == unplugged)
+        );
+        assert!(!unplugged.exists());
     }
 
     #[test]
@@ -2550,6 +2954,72 @@ checksum = 'old checksum'
         download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
         let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
         assert_eq!(s, "file contents");
+    }
+
+    #[test]
+    fn failed_tmc_downloads_say_why_they_failed() {
+        init();
+        let mut server = Server::new();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let client = mock_testmycode_client(&server);
+
+        let details = |id: u32| ExercisesDetails {
+            id,
+            checksum: "checksum".to_string(),
+            course_name: "course".to_string(),
+            exercise_name: format!("exercise{id}"),
+            hide_submission_results: false,
+        };
+        let mut body = HashMap::new();
+        body.insert("exercises", vec![details(1), details(2), details(3)]);
+        let _details = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exercises/details".to_string()),
+            )
+            .with_body(serde_json::to_string(&body).unwrap())
+            .create();
+        let _missing = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("core/exercises/1/download".to_string()),
+            )
+            .with_status(404)
+            .create();
+        let _server_error = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("core/exercises/2/download".to_string()),
+            )
+            .with_status(500)
+            .create();
+        let _broken = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("core/exercises/3/download".to_string()),
+            )
+            .with_body("not a zip")
+            .create();
+
+        let TmcDownloadResult::Failure { mut failed, .. } =
+            download_or_update_course_exercises(&client, projects_dir.path(), &[1, 2, 3], true)
+                .unwrap()
+        else {
+            panic!("the downloads should have failed");
+        };
+        failed.sort_by_key(|(download, ..)| download.id);
+        let failures = failed
+            .iter()
+            .map(|(download, _, failure)| (download.id, *failure))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            failures,
+            [
+                (1, TmcDownloadFailure::NotFound),
+                (2, TmcDownloadFailure::ServerError),
+                (3, TmcDownloadFailure::ExtractFailed),
+            ]
+        );
     }
 
     #[test]
@@ -3029,7 +3499,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
         // The check must batch via the course-exercises route; only it is mocked,
@@ -3061,6 +3531,14 @@ checksum = 'new checksum'
     }
 
     fn mooc_http_error(status: u16, obsolete_client: bool) -> Box<mooc::MoocClientError> {
+        mooc_keyed_http_error(status, obsolete_client, None)
+    }
+
+    fn mooc_keyed_http_error(
+        status: u16,
+        obsolete_client: bool,
+        message_key: Option<&str>,
+    ) -> Box<mooc::MoocClientError> {
         Box::new(mooc::MoocClientError::HttpError {
             url: "https://courses.mooc.fi/api/v0/exercise-services/client/courses/1/exercises"
                 .parse()
@@ -3068,7 +3546,8 @@ checksum = 'new checksum'
             status: oauth2::http::StatusCode::from_u16(status).unwrap(),
             error: String::new(),
             obsolete_client,
-            message_key: None,
+            message_key: message_key.map(str::to_string),
+            meta: Default::default(),
         })
     }
 
@@ -3076,6 +3555,14 @@ checksum = 'new checksum'
     fn course_refusal_kind_names_403_and_404() {
         assert_eq!(
             CourseRefusalKind::of(&MoocAuthFailure::Other(mooc_http_error(403, false))),
+            Some(CourseRefusalKind::Forbidden)
+        );
+        assert_eq!(
+            CourseRefusalKind::of(&MoocAuthFailure::Other(mooc_keyed_http_error(
+                403,
+                false,
+                Some(mooc::INSUFFICIENT_SCOPE_MESSAGE_KEY)
+            ))),
             Some(CourseRefusalKind::InsufficientScope)
         );
         assert_eq!(
@@ -3095,7 +3582,10 @@ checksum = 'new checksum'
             MoocAuthFailure::Other(mooc_http_error(403, true)),
             MoocAuthFailure::Permanent(mooc_http_error(403, false)),
             MoocAuthFailure::Permanent(mooc_http_error(404, false)),
-            MoocAuthFailure::Other(Box::new(mooc::MoocClientError::NotAuthenticated)),
+            MoocAuthFailure::Other(Box::new(mooc::MoocClientError::NotAuthenticated {
+                detail: None,
+                meta: Default::default(),
+            })),
         ] {
             assert_eq!(CourseRefusalKind::of(&failure), None, "{failure:?}");
         }
@@ -3159,7 +3649,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
         let removed_id = add_second_mooc_exercise(projects_dir.path());
 
@@ -3210,7 +3700,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "same checksum");
         let closed_id = add_second_mooc_exercise(projects_dir.path());
 
@@ -3260,7 +3750,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "same checksum");
         let closed_id = add_second_mooc_exercise(projects_dir.path());
 
@@ -3298,12 +3788,42 @@ checksum = 'new checksum'
     }
 
     #[test]
+    fn update_mooc_exercises_skips_a_course_that_is_no_longer_served() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        write_mooc_course_config(projects_dir.path(), "old checksum");
+
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_status(404)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
+
+        assert!(result.downloaded.is_empty());
+        let failed = result
+            .failed
+            .expect("the unserved course's exercise is reported");
+        assert_eq!(failed.len(), 1);
+        assert_eq!(failed[0].2, MoocDownloadFailure::NotFound);
+    }
+
+    #[test]
     fn checks_mooc_exercise_updates_no_change() {
         init();
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "same checksum");
 
         let _m = server
@@ -3339,7 +3859,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
         let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
@@ -3373,6 +3893,64 @@ checksum = 'new checksum'
         assert_eq!(contents, "print('updated')");
     }
 
+    #[test]
+    fn update_mooc_exercises_continues_past_an_exercise_whose_archive_fails() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let (_course_id, exercise_id, task_id) =
+            write_mooc_course_config(projects_dir.path(), "old checksum");
+        let broken_id = add_second_mooc_exercise(projects_dir.path());
+
+        let _slides = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_body(format!(
+                "[{}, {}]",
+                editor_slide_json(
+                    broken_id,
+                    Uuid::new_v4(),
+                    "new checksum",
+                    &format!("{}/files/broken.tar.zst", server.url()),
+                ),
+                editor_slide_json(
+                    exercise_id,
+                    task_id,
+                    "new checksum",
+                    &format!("{}/files/stub.tar.zst", server.url()),
+                ),
+            ))
+            .create();
+        let _broken = server
+            .mock("GET", "/files/broken.tar.zst")
+            .with_status(500)
+            .create();
+        let _archive = server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(make_tar_zst(&[("src/main.py", b"print('updated')")]))
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
+
+        assert_eq!(result.downloaded.len(), 1);
+        assert_eq!(result.downloaded[0].exercise_id, exercise_id);
+        let failed = result.failed.expect("the broken exercise is reported");
+        assert_eq!(failed.len(), 1);
+        assert_eq!(failed[0].0.exercise_id, broken_id);
+        assert_eq!(failed[0].2, MoocDownloadFailure::ServerError);
+        let config = ProjectsConfig::load(projects_dir.path()).unwrap();
+        let course = config.mooc_courses.values().next().unwrap();
+        assert_eq!(course.exercises[&broken_id].checksum, "old checksum");
+        assert_eq!(course.exercises[&exercise_id].checksum, "new checksum");
+    }
+
     // the Java plugin is disabled on musl
     #[cfg(not(target_env = "musl"))]
     #[test]
@@ -3381,7 +3959,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
         let exercise_dir = projects_dir.path().join("mooc/my-course/ex-1");
         file_to(&exercise_dir, "build.xml", "<project/>");
@@ -3440,7 +4018,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
         let exercise_dir = projects_dir.path().join("mooc/my-course/ex-1");
         file_to(&exercise_dir, "src/old.py", "student work");
@@ -3496,7 +4074,7 @@ checksum = 'new checksum'
         let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
-        let (_instance_id, exercise_id, task_id) =
+        let (_course_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
         let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
@@ -3682,6 +4260,220 @@ checksum = 'new checksum'
             file_util::read_file_to_string(target.join("src/main.py")).unwrap(),
             "stub"
         );
+    }
+
+    fn maven_archive(files: &[(&str, &str)]) -> Vec<u8> {
+        let mut zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        for (name, contents) in files {
+            zw.start_file(*name, SimpleFileOptions::default()).unwrap();
+            zw.write_all(contents.as_bytes()).unwrap();
+        }
+        zw.finish().unwrap().into_inner()
+    }
+
+    fn staging_dir_names(parent: &Path) -> Vec<OsString> {
+        dir_entry_names(parent)
+            .unwrap()
+            .into_iter()
+            .filter(|n| {
+                let n = n.to_string_lossy();
+                n.starts_with(STAGING_DIR_PREFIX) || n.starts_with(REPLACED_DIR_PREFIX)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn extract_update_swaps_in_the_new_version_and_keeps_student_files() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let exercise = parent.path().join("ex");
+        file_to(&exercise, "pom.xml", b"old");
+        file_to(&exercise, "src/main/java/File.java", b"student work");
+        file_to(&exercise, "src/test/java/Stale.java", b"stale");
+        file_to(&exercise, ".venv/keep", b"env");
+        let archive = maven_archive(&[
+            ("pom.xml", "new"),
+            ("src/main/java/File.java", "template"),
+            ("src/test/java/FileTest.java", "test"),
+        ]);
+
+        extract_update(archive, &exercise, Compression::Zip).unwrap();
+
+        let read = |p: &str| file_util::read_file_to_string(exercise.join(p)).unwrap();
+        assert_eq!(read("pom.xml"), "new");
+        assert_eq!(read("src/main/java/File.java"), "student work");
+        assert_eq!(read("src/test/java/FileTest.java"), "test");
+        assert_eq!(read(".venv/keep"), "env");
+        assert!(!exercise.join("src/test/java/Stale.java").exists());
+        assert!(staging_dir_names(parent.path()).is_empty());
+    }
+
+    #[test]
+    fn extract_update_leaves_the_exercise_alone_when_extraction_fails() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let exercise = parent.path().join("ex");
+        file_to(&exercise, "pom.xml", b"old");
+        file_to(&exercise, "src/main/java/File.java", b"student work");
+
+        let result = extract_update(b"not an archive".to_vec(), &exercise, Compression::Zip);
+
+        assert!(result.is_err());
+        let read = |p: &str| file_util::read_file_to_string(exercise.join(p)).unwrap();
+        assert_eq!(read("pom.xml"), "old");
+        assert_eq!(read("src/main/java/File.java"), "student work");
+        assert!(staging_dir_names(parent.path()).is_empty());
+    }
+
+    #[test]
+    fn extract_update_downloads_a_missing_exercise_whole() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let exercise = parent.path().join("course/ex");
+        let archive = maven_archive(&[("pom.xml", "new"), ("src/main/java/File.java", "t")]);
+
+        extract_update(archive, &exercise, Compression::Zip).unwrap();
+
+        assert_eq!(
+            file_util::read_file_to_string(exercise.join("pom.xml")).unwrap(),
+            "new"
+        );
+    }
+
+    #[test]
+    fn staging_sweep_removes_only_old_staging_dirs() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        file_to(parent.path(), ".tmc-staging-abc/left", b"x");
+        file_to(parent.path(), ".tmc-replaced-abc/student", b"x");
+        file_to(parent.path(), "exercise/file", b"x");
+
+        sweep_stale_staging_dirs(parent.path(), std::time::Duration::from_secs(3600));
+        assert!(parent.path().join(".tmc-staging-abc").exists());
+
+        sweep_stale_staging_dirs(parent.path(), std::time::Duration::ZERO);
+        assert!(!parent.path().join(".tmc-staging-abc").exists());
+        assert!(parent.path().join(".tmc-replaced-abc/student").exists());
+        assert!(parent.path().join("exercise/file").exists());
+    }
+
+    #[test]
+    fn download_old_submission_keeps_the_work_when_the_download_fails() {
+        init();
+        let mut server = Server::new();
+        let exercise = tempfile::tempdir().unwrap();
+        file_to(exercise.path(), "src/main/java/File.java", b"student work");
+        let template = maven_archive(&[("pom.xml", "t"), ("src/main/java/File.java", "t")]);
+        let _template = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(template)
+            .create();
+        let _submission = server
+            .mock("GET", mockito::Matcher::Regex("submission".to_string()))
+            .with_status(500)
+            .create();
+        let client = mock_testmycode_client(&server);
+
+        let result = download_old_submission(&client, 1, exercise.path(), 2, false);
+
+        assert!(result.is_err());
+        assert_eq!(
+            file_util::read_file_to_string(exercise.path().join("src/main/java/File.java"))
+                .unwrap(),
+            "student work"
+        );
+    }
+
+    fn moved_dir_fixture() -> (tempfile::TempDir, PathBuf, PathBuf) {
+        let parent = tempfile::tempdir().unwrap();
+        let source = parent.path().join("old");
+        let target = parent.path().join("new");
+        file_to(&source, "course/ex/src/main.py", b"code");
+        file_to(&source, "course/course_config.toml", b"cfg");
+        (parent, source, target)
+    }
+
+    #[test]
+    fn move_dir_renames_and_records_the_move() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        std::fs::create_dir(&target).unwrap();
+        let mut recorded = false;
+        move_dir(&source, &target, || {
+            recorded = true;
+            Ok(())
+        })
+        .unwrap();
+        assert!(recorded);
+        assert!(!source.exists());
+        assert!(target.join("course/ex/src/main.py").is_file());
+    }
+
+    #[test]
+    fn move_dir_copy_fallback_records_the_move_before_deleting_the_old_dir() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        move_dir_with(&source, &target, false, || {
+            assert!(source.join("course/ex/src/main.py").is_file());
+            assert!(target.join("course/ex/src/main.py").is_file());
+            Ok(())
+        })
+        .unwrap();
+        assert!(!source.exists());
+        assert_eq!(
+            file_util::read_file_to_string(target.join("course/course_config.toml")).unwrap(),
+            "cfg"
+        );
+    }
+
+    #[test]
+    fn move_dir_copy_fallback_keeps_the_old_dir_when_recording_fails() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        let result = move_dir_with(&source, &target, false, || {
+            Err(LangsError::NoProjectExercise)
+        });
+        assert!(result.is_err());
+        assert!(source.join("course/ex/src/main.py").is_file());
+        assert!(dir_entry_names(&target).unwrap().is_empty());
+    }
+
+    #[test]
+    fn move_dir_rename_is_undone_when_recording_fails() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        let result = move_dir(&source, &target, || Err(LangsError::NoProjectExercise));
+        assert!(result.is_err());
+        assert!(source.join("course/ex/src/main.py").is_file());
+        assert!(!target.exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn move_dir_copy_fallback_keeps_symlinks_as_symlinks() {
+        init();
+        let (_parent, source, target) = moved_dir_fixture();
+        file_to(&source, "course/ex/.venv/lib/site.py", b"x");
+        std::os::unix::fs::symlink("lib", source.join("course/ex/.venv/lib64")).unwrap();
+        std::os::unix::fs::symlink("/usr/bin/python3", source.join("course/ex/.venv/python"))
+            .unwrap();
+
+        move_dir_with(&source, &target, false, || Ok(())).unwrap();
+
+        let venv = target.join("course/ex/.venv");
+        assert!(venv.join("lib64").is_symlink());
+        assert_eq!(
+            std::fs::read_link(venv.join("lib64")).unwrap(),
+            Path::new("lib")
+        );
+        assert!(venv.join("python").is_symlink());
+        assert!(!source.exists());
     }
 
     #[test]
@@ -3890,7 +4682,7 @@ directory = "skip-me"
             &auth,
             projects_dir.path(),
             &[ex_skip, ex_new, ex_browser, ex_missing],
-            None,
+            MoocExerciseSource::EnrolledCourses,
         )
         .unwrap();
 
@@ -3901,12 +4693,12 @@ directory = "skip-me"
         assert_eq!(result.skipped[0].exercise_id, ex_skip);
         let failed = result.failed.expect("two failures");
         assert_eq!(failed.len(), 2, "browser + missing exercises fail");
-        let failed_ids = failed
+        let failures = failed
             .iter()
-            .map(|(d, _)| d.exercise_id)
-            .collect::<HashSet<_>>();
-        assert!(failed_ids.contains(&ex_browser));
-        assert!(failed_ids.contains(&ex_missing));
+            .map(|(d, _, failure)| (d.exercise_id, *failure))
+            .collect::<HashMap<_, _>>();
+        assert_eq!(failures[&ex_browser], MoocDownloadFailure::BrowserOnly);
+        assert_eq!(failures[&ex_missing], MoocDownloadFailure::NotFound);
 
         let extracted = projects_dir
             .path()
@@ -3985,7 +4777,7 @@ directory = "skip-me"
             &auth,
             projects_dir.path(),
             &[ex_new],
-            Some(course_id),
+            MoocExerciseSource::Course(course_id),
         )
         .unwrap();
 
@@ -4039,19 +4831,106 @@ directory = "skip-me"
             &auth,
             projects_dir.path(),
             &[closed_id],
-            Some(course_id),
+            MoocExerciseSource::Course(course_id),
         )
         .unwrap();
 
         let failed = result.failed.unwrap();
         assert_eq!(failed.len(), 1);
         assert_eq!(failed[0].0.exercise_id, closed_id);
+        assert_eq!(failed[0].2, MoocDownloadFailure::ClosedChapter);
+        assert_eq!(
+            result.closed_chapters,
+            vec![MoocExerciseClosedChapter {
+                exercise_id: closed_id,
+                chapter_name: "Later".to_string(),
+                chapter_number: 2,
+                opens_at: "2030-01-01T00:00:00Z".parse().unwrap(),
+            }]
+        );
         assert_eq!(
             failed[0].1,
             vec![format!(
                 "Exercise {closed_id} is in chapter 2 \"Later\", which opens at 2030-01-01 00:00:00 UTC"
             )]
         );
+    }
+
+    #[test]
+    fn a_batch_of_same_named_exercises_gets_one_folder_each() {
+        init();
+        let mut server = Server::new();
+        let course_id = Uuid::new_v4();
+        let projects_dir = tempfile::tempdir().unwrap();
+        let exercise_ids: Vec<Uuid> = (0..6).map(|_| Uuid::new_v4()).collect();
+        let stub_url = format!("{}/files/stub.tar.zst", server.url());
+
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "id": course_id, "slug": "course", "name": "../Course",
+                    "description": null, "organization_name": "org",
+                })
+                .to_string(),
+            )
+            .create();
+        let slides: Vec<_> = exercise_ids
+            .iter()
+            .enumerate()
+            .map(|(i, id)| {
+                serde_json::json!({
+                    "slide_id": Uuid::new_v4(), "exercise_id": id, "course_id": course_id,
+                    "exercise_name": if i % 2 == 0 { "U15 Dup" } else { "u15-dup" },
+                    "exercise_order_number": i,
+                    "tasks": [{
+                        "task_id": Uuid::new_v4(), "order_number": 0, "assignment": [],
+                        "public_spec": {
+                            "type": "editor", "archive_name": "s.tar.zst",
+                            "stub_download_url": stub_url,
+                            "student_file_paths": ["src/main.py"], "checksum": "sum"
+                        },
+                        "model_solution_spec": null, "exercise_service_slug": "tmc"
+                    }],
+                })
+            })
+            .collect();
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+            )
+            .with_body(serde_json::Value::Array(slides).to_string())
+            .create();
+        server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(make_tar_zst(&[("src/main.py", b"print(1)")]))
+            .expect(6)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = download_or_update_mooc_course_exercises(
+            &client,
+            &auth,
+            projects_dir.path(),
+            &exercise_ids,
+            MoocExerciseSource::Course(course_id),
+        )
+        .unwrap();
+
+        assert_eq!(result.downloaded.len(), 6, "{result:?}");
+        let folders: HashSet<_> = result.downloaded.iter().map(|d| d.path.clone()).collect();
+        assert_eq!(folders.len(), 6);
+        for folder in &folders {
+            assert!(folder.starts_with(projects_dir.path().join("mooc/course")));
+            assert!(folder.join("src/main.py").is_file());
+        }
+        let reloaded = ProjectsConfig::load(projects_dir.path()).unwrap();
+        assert_eq!(reloaded.mooc_courses[&course_id].exercises.len(), 6);
     }
 
     /// Serializes the env-dependent auth tests with the crate's other

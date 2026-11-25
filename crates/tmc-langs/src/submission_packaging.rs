@@ -1,19 +1,15 @@
 //! Submission packaging.
 
 use crate::{Compression, data::TmcParams, error::LangsError, extract_project_overwrite};
-use once_cell::sync::Lazy;
 use std::{
     io::Write,
     ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
-    sync::Mutex,
 };
 use tmc_langs_framework::{Archive, ArchiveBuilder, TmcProjectYml};
 use tmc_langs_plugins::PluginType;
 use tmc_langs_util::{FileError, file_util};
 use walkdir::WalkDir;
-
-static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
 pub struct PrepareSubmission<'a> {
     pub archive: &'a Path,
@@ -32,8 +28,6 @@ pub fn prepare_submission(
     stub_archive: Option<(&Path, Compression)>,
     output_format: Compression,
 ) -> Result<String, LangsError> {
-    // FIXME: workaround for unknown issues when prepare_submission is ran multiple times in parallel
-    let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
     log::debug!("preparing submission for {}", submission.archive.display());
 
     let plugin = PluginType::from_exercise(clone_path)?;
@@ -672,6 +666,25 @@ mod test {
                 .join("some_course/PythonExercise/__init__.py")
                 .exists()
         );
+    }
+
+    #[test]
+    fn concurrent_preparations_do_not_interfere() {
+        init();
+        let handles = (0..4)
+            .flat_map(|_| {
+                [
+                    (MAVEN_CLONE, MAVEN_ZIP),
+                    (MAKE_CLONE, MAKE_ZIP),
+                    (PYTHON_CLONE, PYTHON_ZIP),
+                ]
+            })
+            .map(|(clone, zip)| std::thread::spawn(move || generic_submission(clone, zip)))
+            .collect::<Vec<_>>();
+        for handle in handles {
+            let (_temp, output) = handle.join().unwrap();
+            assert!(output.join("some_course").is_dir());
+        }
     }
 
     #[test]

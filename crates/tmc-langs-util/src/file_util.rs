@@ -156,6 +156,105 @@ pub fn with_file_lock_timeout<T>(
     }
 }
 
+/// Waits between attempts of [`retry_transient`]; about 3 s in total.
+const TRANSIENT_RETRY_DELAYS: [Duration; 6] = [
+    Duration::from_millis(50),
+    Duration::from_millis(100),
+    Duration::from_millis(200),
+    Duration::from_millis(400),
+    Duration::from_millis(800),
+    Duration::from_millis(1500),
+];
+
+/// Whether `err` is a Windows sharing, lock or access violation that a scanner, indexer or sync
+/// client holding the file usually releases within seconds. Never true elsewhere.
+fn is_transient_sharing_error(err: &std::io::Error) -> bool {
+    // ERROR_ACCESS_DENIED, ERROR_SHARING_VIOLATION, ERROR_LOCK_VIOLATION
+    cfg!(windows) && matches!(err.raw_os_error(), Some(5 | 32 | 33))
+}
+
+/// Runs `op`, retrying after each of `delays` while `is_transient` classifies its error.
+fn retry_transient<T>(
+    mut op: impl FnMut() -> std::io::Result<T>,
+    is_transient: impl Fn(&std::io::Error) -> bool,
+    delays: &[Duration],
+) -> std::io::Result<T> {
+    let mut delays = delays.iter();
+    loop {
+        match op() {
+            Err(err) if is_transient(&err) => match delays.next() {
+                Some(delay) => {
+                    log::debug!("retrying in {delay:?} after transient error: {err}");
+                    std::thread::sleep(*delay);
+                }
+                None => return Err(err),
+            },
+            result => return result,
+        }
+    }
+}
+
+fn retry_sharing<T>(op: impl FnMut() -> std::io::Result<T>) -> std::io::Result<T> {
+    retry_transient(op, is_transient_sharing_error, &TRANSIENT_RETRY_DELAYS)
+}
+
+/// Moves `temp` to `path`, replacing it, retrying while the target is briefly held open.
+pub fn persist_temp_file(temp: NamedTempFile, path: &Path) -> Result<(), FileError> {
+    let from = temp.path().to_path_buf();
+    let mut temp = Some(temp);
+    retry_sharing(|| {
+        match temp
+            .take()
+            .expect("restored after every failed attempt")
+            .persist(path)
+        {
+            Ok(_) => Ok(()),
+            Err(tempfile::PersistError { error, file }) => {
+                temp = Some(file);
+                Err(error)
+            }
+        }
+    })
+    .map_err(|source| FileError::Rename {
+        from,
+        to: path.to_path_buf(),
+        source,
+    })
+}
+
+/// Writes `contents` to `path` through a temp file in the same directory, so a crash or full
+/// disk leaves the previous contents intact. Callers needing mutual exclusion take a lock.
+pub fn write_atomically(path: &Path, contents: impl AsRef<[u8]>) -> Result<(), FileError> {
+    write_atomically_with(path, contents.as_ref(), false)
+}
+
+/// [`write_atomically`] for secrets: on Unix the file is readable by its owner only.
+pub fn write_atomically_private(path: &Path, contents: impl AsRef<[u8]>) -> Result<(), FileError> {
+    write_atomically_with(path, contents.as_ref(), true)
+}
+
+fn write_atomically_with(path: &Path, contents: &[u8], is_private: bool) -> Result<(), FileError> {
+    let parent = match path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent,
+        _ => Path::new("."),
+    };
+    create_dir_all(parent)?;
+    let mut temp = named_temp_file_in(parent)?;
+    #[cfg(unix)]
+    if is_private {
+        use std::os::unix::fs::PermissionsExt;
+        temp.as_file()
+            .set_permissions(std::fs::Permissions::from_mode(0o600))
+            .map_err(|e| FileError::FileWrite(temp.path().to_path_buf(), e))?;
+    }
+    #[cfg(not(unix))]
+    let _ = is_private;
+    temp.write_all(contents)
+        .and_then(|()| temp.flush())
+        .map_err(|e| FileError::FileWrite(temp.path().to_path_buf(), e))?;
+    persist_temp_file(temp, path)
+}
+
 pub fn temp_file() -> Result<File, FileError> {
     tempfile::tempfile().map_err(FileError::TempFile)
 }
@@ -211,7 +310,7 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
             create_dir_all(parent)?;
         }
     }
-    File::create(path).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
+    retry_sharing(|| File::create(path)).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
 }
 
 /// Removes whatever is at the path, whether it is a directory or file. The _all suffix hopefully makes the function sound at least slightly dangerous.
@@ -228,7 +327,8 @@ pub fn remove_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
 
 pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
     let path = path.as_ref();
-    fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
+    retry_sharing(|| fs::remove_file(path))
+        .map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
 }
 
 pub fn remove_file_locked<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
@@ -281,17 +381,19 @@ pub fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
 }
 
 pub fn remove_dir_empty<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
-    fs::remove_dir(&path).map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
+    retry_sharing(|| fs::remove_dir(&path))
+        .map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
 }
 
 pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
-    fs::remove_dir_all(&path).map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
+    retry_sharing(|| fs::remove_dir_all(&path))
+        .map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
 }
 
 pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<(), FileError> {
     let from = from.as_ref();
     let to = to.as_ref();
-    fs::rename(from, to).map_err(|e| FileError::Rename {
+    retry_sharing(|| fs::rename(from, to)).map_err(|e| FileError::Rename {
         from: from.to_path_buf(),
         to: to.to_path_buf(),
         source: e,
@@ -374,6 +476,70 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
     Ok(())
 }
 
+/// Copies everything under `source` into `target`, skipping the legacy lock file and copying
+/// symlinks as symlinks. `on_copied` runs after each non-directory entry.
+pub fn copy_dir_contents(
+    source: &Path,
+    target: &Path,
+    mut on_copied: impl FnMut(),
+) -> Result<(), FileError> {
+    for entry in WalkDir::new(source).min_depth(1) {
+        let entry = entry?;
+        let entry_path = entry.path();
+        let relative = entry_path
+            .strip_prefix(source)
+            .expect("the entry is inside the source");
+        let target_path = target.join(relative);
+
+        if entry.file_type().is_dir() {
+            create_dir_all(&target_path)?;
+            continue;
+        }
+        if entry_path.file_name() == Some(std::ffi::OsStr::new(LOCK_FILE_NAME)) {
+            log::info!("skipping lock file");
+        } else if entry.file_type().is_symlink() {
+            copy_symlink(entry_path, &target_path)?;
+        } else {
+            log::debug!(
+                "copying {} -> {}",
+                entry_path.display(),
+                target_path.display()
+            );
+            copy(entry_path, &target_path)?;
+        }
+        on_copied();
+    }
+    Ok(())
+}
+
+/// Whether `err` from a rename means source and target are on different volumes.
+pub fn is_cross_volume_error(err: &FileError) -> bool {
+    let FileError::Rename { source, .. } = err else {
+        return false;
+    };
+    // EXDEV, ERROR_NOT_SAME_DEVICE
+    let code = if cfg!(windows) { 17 } else { 18 };
+    source.kind() == std::io::ErrorKind::CrossesDevices || source.raw_os_error() == Some(code)
+}
+
+/// Creates at `link` a symlink to the same target as the one at `original`, without following it.
+pub fn copy_symlink(original: &Path, link: &Path) -> Result<(), FileError> {
+    let link_target =
+        fs::read_link(original).map_err(|e| FileError::FileRead(original.to_path_buf(), e))?;
+    if let Some(parent) = link.parent() {
+        create_dir_all(parent)?;
+    }
+    #[cfg(unix)]
+    let result = std::os::unix::fs::symlink(&link_target, link);
+    #[cfg(windows)]
+    let result = if original.is_dir() {
+        std::os::windows::fs::symlink_dir(&link_target, link)
+    } else {
+        std::os::windows::fs::symlink_file(&link_target, link)
+    };
+    result.map_err(|e| FileError::FileCreate(link.to_path_buf(), e))
+}
+
 pub fn canonicalize(path: &Path) -> Result<PathBuf, FileError> {
     let canon =
         dunce::canonicalize(path).map_err(|e| FileError::Canonicalize(path.to_path_buf(), e))?;
@@ -390,6 +556,81 @@ mod test {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    fn sharing_violation() -> std::io::Error {
+        std::io::Error::from_raw_os_error(32)
+    }
+
+    #[test]
+    fn retry_transient_retries_classified_errors_until_success() {
+        let mut attempts = 0;
+        let result = retry_transient(
+            || {
+                attempts += 1;
+                if attempts < 3 {
+                    Err(sharing_violation())
+                } else {
+                    Ok(attempts)
+                }
+            },
+            |_| true,
+            &[Duration::ZERO; 5],
+        );
+        assert_eq!(result.unwrap(), 3);
+    }
+
+    #[test]
+    fn retry_transient_gives_up_after_the_last_delay() {
+        let mut attempts = 0;
+        let result: std::io::Result<()> = retry_transient(
+            || {
+                attempts += 1;
+                Err(sharing_violation())
+            },
+            |_| true,
+            &[Duration::ZERO; 2],
+        );
+        assert!(result.is_err());
+        assert_eq!(attempts, 3);
+    }
+
+    #[test]
+    fn retry_transient_does_not_retry_other_errors() {
+        let mut attempts = 0;
+        let result: std::io::Result<()> = retry_transient(
+            || {
+                attempts += 1;
+                Err(std::io::Error::from(std::io::ErrorKind::NotFound))
+            },
+            |_| false,
+            &[Duration::ZERO; 5],
+        );
+        assert!(result.is_err());
+        assert_eq!(attempts, 1);
+    }
+
+    #[test]
+    fn sharing_errors_are_transient_only_on_windows() {
+        for code in [5, 32, 33] {
+            let err = std::io::Error::from_raw_os_error(code);
+            assert_eq!(is_transient_sharing_error(&err), cfg!(windows));
+        }
+        assert!(!is_transient_sharing_error(
+            &std::io::Error::from_raw_os_error(2)
+        ));
+    }
+
+    #[test]
+    fn write_atomically_replaces_the_file_and_leaves_no_temp_files() {
+        init();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("sub/config.toml");
+        write_atomically(&path, "one").unwrap();
+        write_atomically(&path, "two").unwrap();
+        assert_eq!(read_file_to_string(&path).unwrap(), "two");
+        let names = fs::read_dir(path.parent().unwrap()).unwrap().count();
+        assert_eq!(names, 1);
     }
 
     #[test]
@@ -584,5 +825,29 @@ mod test {
         let conts = read_file_to_string(target.path().join("dir/elsewhere/f")).unwrap();
         assert_eq!(conts, "another file");
         assert!(target.path().join("dir/some dir").is_dir());
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn rename_waits_out_a_briefly_held_file() {
+        use std::os::windows::fs::OpenOptionsExt;
+
+        let dir = tempfile::tempdir().unwrap();
+        let from = dir.path().join("from");
+        let to = dir.path().join("to");
+        std::fs::write(&from, "contents").unwrap();
+        // No sharing at all, like an antivirus scan or an indexer holding the file.
+        let held = std::fs::OpenOptions::new()
+            .read(true)
+            .share_mode(0)
+            .open(&from)
+            .unwrap();
+        let releaser = std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            drop(held);
+        });
+        rename(&from, &to).unwrap();
+        releaser.join().unwrap();
+        assert_eq!(read_file_to_string(&to).unwrap(), "contents");
     }
 }

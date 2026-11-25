@@ -45,6 +45,90 @@ pub struct RefreshExercise {
     tmcproject_yml: Option<TmcProjectYml>,
 }
 
+/// An exercise found by [`prepare_exercise_repository`].
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct RepositoryExercise {
+    /// The exercise directory.
+    pub path: PathBuf,
+    /// The directories between the repository root and the exercise directory, joined with `-`.
+    /// Together with `name`, the name `refresh-course` gives the exercise.
+    pub part: String,
+    /// The exercise directory's name.
+    pub name: String,
+    /// The language plugin that recognised the exercise, as `get-exercise-packaging-configuration`
+    /// names it.
+    pub plugin: String,
+    /// How long the exercise's tests may run, with the repository's root config merged in.
+    pub tests_timeout_ms: u64,
+    /// The files this command wrote into the exercise directory, relative to it.
+    pub written_files: Vec<PathBuf>,
+}
+
+/// Finds the exercises in a course repository checkout by the rules [`refresh_course`] uses, and
+/// writes the repository's root `.tmcproject.yml` into each exercise directory, merged under
+/// the exercise's own, so the directory alone carries the exercise's configuration. The
+/// repository root itself is never an exercise.
+pub fn prepare_exercise_repository(
+    repository: &Path,
+) -> Result<Vec<RepositoryExercise>, LangsError> {
+    log::info!("preparing the exercises in {}", repository.display());
+
+    let exercise_dirs: Vec<PathBuf> = super::find_exercise_directories(repository)?
+        .into_iter()
+        .map(|dir| {
+            dir.strip_prefix(repository)
+                .expect("exercise directories are inside the repository")
+                .to_path_buf()
+        })
+        .filter(|relative| !relative.as_os_str().is_empty())
+        .collect();
+    // Without a root config there is nothing to merge in, so the exercises' own stay untouched.
+    let exercises = match TmcProjectYml::load(repository)? {
+        Some(root) => get_and_merge_tmcproject_configs(Some(root), repository, exercise_dirs)?,
+        None => exercise_dirs.into_iter().map(|dir| (dir, None)).collect(),
+    };
+    exercises
+        .into_iter()
+        .map(|(relative, merged_tmcproject_yml)| {
+            let path = repository.join(&relative);
+            let mut written_files = Vec::new();
+            if let Some(merged) = merged_tmcproject_yml {
+                merged.save_to_dir(&path)?;
+                written_files.push(PathBuf::from(TmcProjectYml::FILE_NAME));
+            }
+            let packaging = super::get_exercise_packaging_configuration(&path)?;
+            let part = match relative.parent() {
+                Some(parent) if !parent.as_os_str().is_empty() => exercise_name(parent)?,
+                _ => String::new(),
+            };
+            let name = relative
+                .file_name()
+                .expect("exercise directories have names")
+                .to_string_lossy()
+                .into_owned();
+            Ok(RepositoryExercise {
+                path,
+                part,
+                name,
+                plugin: packaging
+                    .plugin
+                    .expect("the packaging configuration names its plugin"),
+                tests_timeout_ms: packaging
+                    .tests_timeout_ms
+                    .expect("the packaging configuration has a tests timeout"),
+                written_files,
+            })
+        })
+        .collect()
+}
+
+/// The name `refresh-course` gives the exercise at `relative` in the repository: its path with
+/// the separators replaced by `-`.
+fn exercise_name(relative: &Path) -> Result<String, LangsError> {
+    Ok(entry_name(relative)?.replace('/', "-"))
+}
+
 /// Used by tmc-server. Refreshes the course.
 pub fn refresh_course(
     course_name: String,
@@ -304,7 +388,7 @@ fn get_exercises(
                 "processing points and checksum for {}",
                 exercise_dir.display()
             );
-            let name = entry_name(&exercise_dir)?.replace('/', "-");
+            let name = exercise_name(&exercise_dir)?;
             let checksum = calculate_checksum(&course_stub_path.join(&exercise_dir))?;
             let exercise_path = course_clone_path.join(&exercise_dir);
             let points = super::get_available_points(&exercise_path)?;
@@ -446,6 +530,7 @@ mod test {
     use serde_yaml::Value;
     use std::io::Read;
     use tempfile::tempdir;
+    use tmc_langs_framework::DEFAULT_TESTS_TIMEOUT;
 
     fn init() {
         use log::*;
@@ -661,6 +746,73 @@ mod test {
 
         let checksum = calculate_checksum(temp.path()).unwrap();
         assert_eq!(checksum, "6cacf02f21f9242674a876954132fb11");
+    }
+
+    #[test]
+    fn prepares_exercise_repositories() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let repository = temp.path();
+        file_to(
+            repository,
+            ".tmcproject.yml",
+            "tests_timeout_ms: 1000\nsandbox_image: root\n",
+        );
+        file_to(repository, "part01/ex1/setup.py", "");
+        file_to(
+            repository,
+            "part01/ex1/.tmcproject.yml",
+            "tests_timeout_ms: 2000\n",
+        );
+        file_to(repository, "part01/sub/ex2/setup.py", "");
+        file_to(repository, "part02/private/ex3/setup.py", "");
+        file_to(repository, "part02/ignored/setup.py", "");
+        file_to(repository, "part02/ignored/.tmcignore", "");
+        file_to(repository, ".hidden/ex4/setup.py", "");
+
+        let mut exercises = prepare_exercise_repository(repository).unwrap();
+        exercises.sort_by(|a, b| a.path.cmp(&b.path));
+        let found = exercises
+            .iter()
+            .map(|e| (e.part.as_str(), e.name.as_str()))
+            .collect::<Vec<_>>();
+        assert_eq!(found, [("part01", "ex1"), ("part01-sub", "ex2")]);
+        assert_eq!(exercises[0].path, repository.join("part01/ex1"));
+        assert_eq!(exercises[0].plugin, "python3");
+        assert_eq!(exercises[0].tests_timeout_ms, 2000);
+        assert_eq!(exercises[1].tests_timeout_ms, 1000);
+        assert_eq!(
+            exercises[0].written_files,
+            [PathBuf::from(".tmcproject.yml")]
+        );
+
+        let ex1 = TmcProjectYml::load(&exercises[0].path).unwrap().unwrap();
+        assert_eq!(ex1.tests_timeout_ms, Some(2000));
+        assert_eq!(ex1.sandbox_image.as_deref(), Some("root"));
+        let ex2 = TmcProjectYml::load(&exercises[1].path).unwrap().unwrap();
+        assert_eq!(ex2.tests_timeout_ms, Some(1000));
+    }
+
+    #[test]
+    fn a_repository_without_a_root_config_leaves_exercise_configs_alone() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "part01/ex1/setup.py", "");
+        file_to(&temp, "part01/ex1/.tmcproject.yml", "# kept as written\n");
+        file_to(&temp, "part01/ex2/setup.py", "");
+
+        let exercises = prepare_exercise_repository(temp.path()).unwrap();
+        let config = std::fs::read_to_string(temp.path().join("part01/ex1/.tmcproject.yml"));
+        assert_eq!(config.unwrap(), "# kept as written\n");
+        assert!(!temp.path().join("part01/ex2/.tmcproject.yml").exists());
+        assert!(exercises.iter().all(|e| e.written_files.is_empty()));
+        assert!(
+            exercises
+                .iter()
+                .all(|e| e.tests_timeout_ms == DEFAULT_TESTS_TIMEOUT.as_millis() as u64)
+        );
     }
 
     #[test]

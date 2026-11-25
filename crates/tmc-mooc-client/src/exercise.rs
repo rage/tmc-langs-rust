@@ -1,3 +1,4 @@
+use crate::MoocClientError;
 use chrono::{DateTime, Utc};
 use exercise_services_api as api;
 use schemars::JsonSchema;
@@ -12,8 +13,12 @@ use uuid::Uuid;
 pub struct TmcExerciseSlide {
     pub slide_id: Uuid,
     pub exercise_id: Uuid,
-    /// Lets a client locate the exercise's course without a separate lookup.
+    /// Lets a client locate the exercise's course without a separate lookup. The nil UUID for an
+    /// exam exercise, which `exam_id` names instead.
     pub course_id: Uuid,
+    /// `None` for a course exercise.
+    #[serde(default)]
+    pub exam_id: Option<Uuid>,
     pub exercise_name: String,
     pub exercise_order_number: i32,
     /// The effective deadline: the exercise's own, else its chapter's. Submissions are refused
@@ -25,6 +30,12 @@ pub struct TmcExerciseSlide {
     pub page_url: Option<String>,
     /// `None` for an exercise outside any chapter, or from a host that does not report it.
     pub chapter: Option<ExerciseChapter>,
+    /// Why the exercise cannot be downloaded to work on in an editor: `browser-only` or
+    /// `several-editor-tasks`, the failure `download-or-update-course-exercises` would report.
+    /// Absent when it can be downloaded, and from CLIs older than this field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts-rs", ts(optional))]
+    pub unsupported: Option<MoocDownloadFailure>,
 }
 
 /// The chapter an exercise belongs to, for grouping a course's exercises the way its material
@@ -81,18 +92,47 @@ impl ChapterLockingStatus {
 }
 
 impl TmcExerciseSlide {
+    /// The task id and stub archive URL an editor downloads the exercise with, or why it cannot
+    /// (`SeveralEditorTasks` or `BrowserOnly`), which [`Self::unsupported`] reports.
+    pub fn editor_download(&self) -> Result<(Uuid, &str), MoocDownloadFailure> {
+        if self.has_several_editor_tasks() {
+            return Err(MoocDownloadFailure::SeveralEditorTasks);
+        }
+        self.editor_task_id()
+            .zip(self.editor_stub_download_url())
+            .ok_or(MoocDownloadFailure::BrowserOnly)
+    }
+
+    /// [`Self::editor_download`], failing with the client error that names this exercise.
+    pub fn require_editor_download(&self) -> Result<(Uuid, &str), Box<MoocClientError>> {
+        let exercise_id = self.exercise_id;
+        self.editor_download().map_err(|failure| {
+            Box::new(match failure {
+                MoocDownloadFailure::SeveralEditorTasks => {
+                    MoocClientError::SeveralEditorTasks { exercise_id }
+                }
+                _ => MoocClientError::NoDownloadableExerciseTask { exercise_id },
+            })
+        })
+    }
+
     /// Stub archive download URL for this slide's first editor task, if any.
     /// `None` for browser exercises, which expose no downloadable archive.
     pub fn editor_stub_download_url(&self) -> Option<&str> {
-        self.tasks
-            .iter()
-            .filter_map(|task| task.public_spec.as_ref())
-            .find_map(|spec| spec.editor_stub_download_url())
+        self.editor_task()
+            .and_then(|task| task.public_spec.as_ref())
+            .and_then(PublicSpec::editor_stub_download_url)
     }
 
     /// Task id of this slide's first editor task (the submit target), if any.
     pub fn editor_task_id(&self) -> Option<Uuid> {
         self.editor_task().map(|task| task.task_id)
+    }
+
+    /// Whether the slide has more than one editor task. A submission answers one task, so such
+    /// a slide can only be answered in the course material.
+    pub fn has_several_editor_tasks(&self) -> bool {
+        self.editor_tasks().nth(1).is_some()
     }
 
     /// Checksum of this slide's first editor task, if any; compared with the
@@ -103,22 +143,24 @@ impl TmcExerciseSlide {
 
     /// This slide's first editor task, the one a native client works on. Browser tasks do not count.
     fn editor_task(&self) -> Option<&TmcExerciseTask> {
-        self.tasks.iter().find(|task| {
-            task.public_spec
-                .as_ref()
-                .and_then(|spec| spec.editor_stub_download_url())
-                .is_some()
-        })
+        self.editor_tasks().next()
+    }
+
+    fn editor_tasks(&self) -> impl Iterator<Item = &TmcExerciseTask> {
+        self.tasks
+            .iter()
+            .filter(|task| task.public_spec.as_ref().is_some_and(PublicSpec::is_editor))
     }
 }
 
 impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
     type Error = JsonError;
     fn try_from(value: api::ExerciseSlide) -> Result<Self, Self::Error> {
-        let slide = Self {
+        let mut slide = Self {
             slide_id: value.slide_id,
             exercise_id: value.exercise_id,
             course_id: value.course_id,
+            exam_id: value.exam_id,
             exercise_name: value.exercise_name,
             exercise_order_number: value.exercise_order_number,
             deadline: value.deadline,
@@ -129,9 +171,33 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
                 .collect::<Result<_, _>>()?,
             page_url: value.page_url,
             chapter: value.chapter.map(Into::into),
+            unsupported: None,
         };
+        slide.unsupported = slide.editor_download().err();
         Ok(slide)
     }
+}
+
+/// Why a mooc exercise could not be downloaded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum MoocDownloadFailure {
+    /// Not among the exercises of the course, the exam or any enrolled course.
+    NotFound,
+    /// Its chapter has not opened yet.
+    ClosedChapter,
+    /// It is answered in the browser and has no project to download.
+    BrowserOnly,
+    /// Its slide has more than one editor task; it is answered in the course material.
+    SeveralEditorTasks,
+    /// courses.mooc.fi's file store has no files for it.
+    FileMissing,
+    ServerError,
+    ConnectionError,
+    /// The download could not be unpacked or written into the exercise folder.
+    ExtractFailed,
+    Other,
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -140,30 +206,130 @@ pub struct TmcExerciseTask {
     pub task_id: Uuid,
     pub order_number: i32,
     pub assignment: serde_json::Value,
+    /// The plain text of `assignment`, one entry per block that has text, nested blocks after
+    /// their parent. Absent when it has none, and from CLIs older than this field.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "ts-rs", ts(as = "Option<Vec<String>>", optional))]
+    pub instructions_text: Vec<String>,
     pub public_spec: Option<PublicSpec>,
     pub model_solution_spec: Option<ModelSolutionSpec>,
     pub checksum: Option<String>,
+    /// The exercise service that owns the task. Specs are read only for [`TMC_SERVICE_SLUG`];
+    /// any other service's task has neither spec.
+    pub exercise_service_slug: String,
 }
+
+/// The exercise service whose tasks this client can work on.
+pub const TMC_SERVICE_SLUG: &str = "tmc";
 
 impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
     type Error = JsonError;
     fn try_from(value: api::ExerciseTask) -> Result<Self, Self::Error> {
+        // Another service's specs have another shape; failing on them would fail the whole course.
+        let is_tmc_task = value.exercise_service_slug == TMC_SERVICE_SLUG;
         let public_spec: Option<PublicSpec> = value
             .public_spec
+            .filter(|_| is_tmc_task)
             .map(deserialize::json_from_value)
             .transpose()?;
         let task = Self {
             task_id: value.task_id,
             order_number: value.order_number,
+            instructions_text: block_texts(&value.assignment),
             assignment: value.assignment,
             checksum: public_spec.as_ref().map(|ps| ps.checksum.clone()),
             public_spec,
             model_solution_spec: value
                 .model_solution_spec
+                .filter(|_| is_tmc_task)
                 .map(deserialize::json_from_value)
                 .transpose()?,
+            exercise_service_slug: value.exercise_service_slug,
         };
         Ok(task)
+    }
+}
+
+/// The text of Gutenberg blocks, as courses.mooc.fi stores an assignment: each block's
+/// `attributes.content` HTML as plain text, then its `innerBlocks`'.
+fn block_texts(blocks: &serde_json::Value) -> Vec<String> {
+    let Some(blocks) = blocks.as_array() else {
+        return vec![];
+    };
+    let mut texts = vec![];
+    for block in blocks {
+        let text = block
+            .pointer("/attributes/content")
+            .and_then(serde_json::Value::as_str)
+            .map(html_to_text)
+            .unwrap_or_default();
+        if !text.is_empty() {
+            texts.push(text);
+        }
+        if let Some(inner_blocks) = block.get("innerBlocks") {
+            texts.extend(block_texts(inner_blocks));
+        }
+    }
+    texts
+}
+
+/// Inline HTML as plain text: `<br>` becomes a line break, other tags are dropped and character
+/// references decoded.
+fn html_to_text(html: &str) -> String {
+    let mut text = String::with_capacity(html.len());
+    let mut rest = html;
+    while let Some(start) = rest.find(['<', '&']) {
+        text.push_str(&rest[..start]);
+        rest = &rest[start..];
+        if rest.starts_with('<') {
+            let Some(end) = rest.find('>') else {
+                text.push_str(rest);
+                rest = "";
+                break;
+            };
+            let tag = rest[1..end].trim().to_ascii_lowercase();
+            if tag == "br" || tag.starts_with("br ") || tag.starts_with("br/") {
+                text.push('\n');
+            }
+            rest = &rest[end + 1..];
+        } else {
+            let decoded = rest
+                .find(';')
+                .filter(|&end| end <= 10)
+                .and_then(|end| Some((decode_character_reference(&rest[1..end])?, end)));
+            match decoded {
+                Some((c, end)) => {
+                    text.push(c);
+                    rest = &rest[end + 1..];
+                }
+                None => {
+                    text.push('&');
+                    rest = &rest[1..];
+                }
+            }
+        }
+    }
+    text.push_str(rest);
+    text.trim().to_string()
+}
+
+/// The character `&name;` stands for, given `name`.
+fn decode_character_reference(name: &str) -> Option<char> {
+    if let Some(number) = name.strip_prefix('#') {
+        let code = match number.strip_prefix(['x', 'X']) {
+            Some(hex) => u32::from_str_radix(hex, 16).ok()?,
+            None => number.parse().ok()?,
+        };
+        return char::from_u32(code);
+    }
+    match name {
+        "amp" => Some('&'),
+        "lt" => Some('<'),
+        "gt" => Some('>'),
+        "quot" => Some('"'),
+        "apos" => Some('\''),
+        "nbsp" => Some('\u{a0}'),
+        _ => None,
     }
 }
 
@@ -196,6 +362,10 @@ impl PublicSpec {
 
     pub fn stub_download_url(&self) -> &str {
         &self.stub_download_url
+    }
+
+    pub fn is_editor(&self) -> bool {
+        self.exercise_type == ExerciseType::Editor
     }
 
     /// Stub archive download URL; `None` for browser exercises, which have no project archive.
@@ -354,6 +524,100 @@ mod test {
     /// impls above has to land there in the same change, or that file goes on
     /// reconciling a conversion that no longer exists.
     #[test]
+    fn another_services_task_does_not_fail_the_slide() {
+        let slide: api::ExerciseSlide = serde_json::from_value(serde_json::json!({
+            "slide_id": Uuid::new_v4(),
+            "exercise_id": Uuid::new_v4(),
+            "course_id": Uuid::nil(),
+            "exam_id": Uuid::new_v4(),
+            "exercise_name": "other",
+            "exercise_order_number": 0,
+            "deadline": null,
+            "tasks": [{
+                "task_id": Uuid::new_v4(),
+                "order_number": 0,
+                "assignment": [],
+                "public_spec": { "some": "other shape" },
+                "model_solution_spec": [1, 2],
+                "exercise_service_slug": "quizzes"
+            }]
+        }))
+        .unwrap();
+        let slide: TmcExerciseSlide = slide.try_into().unwrap();
+        assert!(slide.exam_id.is_some());
+        assert_eq!(slide.tasks[0].exercise_service_slug, "quizzes");
+        assert!(slide.tasks[0].public_spec.is_none());
+        assert!(slide.tasks[0].model_solution_spec.is_none());
+        assert_eq!(slide.editor_task_id(), None);
+        assert_eq!(slide.unsupported, Some(MoocDownloadFailure::BrowserOnly));
+    }
+
+    #[test]
+    fn instructions_text_is_the_plain_text_of_the_assignment_blocks() {
+        let assignment = serde_json::json!([
+            {
+                "name": "core/paragraph",
+                "attributes": { "content": "Write a <b>loop</b> &amp; print &lt;3 &#39;x&#x27;." },
+                "innerBlocks": []
+            },
+            {
+                "name": "core/list",
+                "attributes": {},
+                "innerBlocks": [
+                    { "name": "core/list-item", "attributes": { "content": "First<br>Second" } },
+                    { "name": "core/list-item", "attributes": { "content": "  " } }
+                ]
+            },
+            { "name": "core/paragraph", "attributes": { "content": "a & b <unclosed" } }
+        ]);
+        assert_eq!(
+            block_texts(&assignment),
+            [
+                "Write a loop & print <3 'x'.",
+                "First\nSecond",
+                "a & b <unclosed"
+            ]
+        );
+        assert!(block_texts(&serde_json::Value::Null).is_empty());
+    }
+
+    #[test]
+    fn a_slide_with_two_editor_tasks_is_flagged() {
+        let editor_task = || {
+            serde_json::json!({
+                "task_id": Uuid::new_v4(),
+                "order_number": 0,
+                "assignment": [],
+                "public_spec": {
+                    "type": "editor",
+                    "archive_name": "stub.tar.zst",
+                    "stub_download_url": "http://example.com/e.tar.zst",
+                    "student_file_paths": [],
+                    "checksum": "sum"
+                },
+                "model_solution_spec": null,
+                "exercise_service_slug": "tmc"
+            })
+        };
+        let slide: api::ExerciseSlide = serde_json::from_value(serde_json::json!({
+            "slide_id": Uuid::new_v4(),
+            "exercise_id": Uuid::new_v4(),
+            "course_id": Uuid::new_v4(),
+            "exercise_name": "two",
+            "exercise_order_number": 0,
+            "deadline": null,
+            "tasks": [editor_task(), editor_task()]
+        }))
+        .unwrap();
+        let slide: TmcExerciseSlide = slide.try_into().unwrap();
+        assert!(slide.has_several_editor_tasks());
+        assert_eq!(
+            slide.unsupported,
+            Some(MoocDownloadFailure::SeveralEditorTasks)
+        );
+    }
+
+    #[test]
     fn slide_with_mixed_tasks_round_trips() {
         let editor_task_id = Uuid::new_v4();
         let browser_task_id = Uuid::new_v4();
@@ -411,6 +675,7 @@ mod test {
             slide.editor_stub_download_url(),
             Some("http://example.com/e.tar.zst")
         );
+        assert_eq!(slide.unsupported, None);
         assert_eq!(
             slide.tasks[0]
                 .model_solution_spec

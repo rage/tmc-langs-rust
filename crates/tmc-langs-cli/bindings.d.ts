@@ -6,9 +6,21 @@ export type DataKind = { "output-data-kind": "error", "output-data": { kind: Kin
 /**
  * The HTTP status a server answered with, when the error is one.
  */
-http_status?: number, } } | { "output-data-kind": "validation", "output-data": StyleValidationResult | null } | { "output-data-kind": "available-points", "output-data": Array<string> } | { "output-data-kind": "exercises", "output-data": Array<string> } | { "output-data-kind": "exercise-packaging-configuration", "output-data": ExercisePackagingConfiguration } | { "output-data-kind": "refresh-result", "output-data": RefreshData } | { "output-data-kind": "test-result", "output-data": RunResult } | { "output-data-kind": "exercise-desc", "output-data": ExerciseDesc } | { "output-data-kind": "exercise-updates", "output-data": ExerciseUpdates } | { "output-data-kind": "mooc-exercise-download", "output-data": DownloadOrUpdateMoocCourseExercisesResult } | { "output-data-kind": "combined-course-data", "output-data": CombinedCourseData } | { "output-data-kind": "course-details", "output-data": CourseDetails } | { "output-data-kind": "course-exercises", "output-data": Array<CourseExercise> } | { "output-data-kind": "course-data", "output-data": CourseData } | { "output-data-kind": "courses", "output-data": Array<Course> } | { "output-data-kind": "exercise-details", "output-data": ExerciseDetails } | { "output-data-kind": "submissions", "output-data": Array<Submission> } | { "output-data-kind": "update-result", "output-data": UpdateResult } | { "output-data-kind": "organization", "output-data": Organization } | { "output-data-kind": "organizations", "output-data": Array<Organization> } | { "output-data-kind": "reviews", "output-data": Array<Review> } | { "output-data-kind": "token", "output-data": unknown } | { "output-data-kind": "new-submission", "output-data": NewSubmission } | { "output-data-kind": "submission-feedback-response", "output-data": SubmissionFeedbackResponse } | { "output-data-kind": "submission-finished", "output-data": SubmissionFinished } | { "output-data-kind": "config-value", "output-data": ConfigValue } | { "output-data-kind": "compressed-project-hash", "output-data": string } | { "output-data-kind": "submission-sandbox", "output-data": string } | { "output-data-kind": "local-exercises", "output-data": Array<LocalExercise> } | { "output-data-kind": "local-tmc-exercises", "output-data": Array<LocalTmcExercise> } | { "output-data-kind": "tmc-exercise-download", "output-data": DownloadOrUpdateTmcCourseExercisesResult } | { "output-data-kind": "tmc-config", "output-data": TmcConfig } | { "output-data-kind": "mooc-exercise-updates", "output-data": MoocExerciseUpdates } | { "output-data-kind": "local-mooc-exercises", "output-data": Array<LocalMoocExercise> } | { "output-data-kind": "mooc-current-user", "output-data": MoocCurrentUser } | { "output-data-kind": "mooc-course", "output-data": MoocCourse } | { "output-data-kind": "mooc-courses", "output-data": Array<MoocCourse> } | { "output-data-kind": "mooc-exercise-slides", "output-data": Array<TmcExerciseSlide> } | { "output-data-kind": "mooc-exercise-slide", "output-data": TmcExerciseSlide } | { "output-data-kind": "mooc-submission-finished", "output-data": ExerciseTaskSubmissionResult } | { "output-data-kind": "mooc-submission-status", "output-data": ExerciseTaskSubmissionStatus } | { "output-data-kind": "mooc-submissions", "output-data": Array<ExerciseSlideSubmissionListItem> } | { "output-data-kind": "mooc-paste", "output-data": PasteResult } | { "output-data-kind": "mooc-course-progress", "output-data": CourseProgress } | { "output-data-kind": "mooc-combined-course-data", "output-data": CombinedMoocCourseData } | { "output-data-kind": "mooc-old-submission-restore", "output-data": MoocOldSubmissionRestore };
+http_status?: number,
+/**
+ * The id courses.mooc.fi logged the failed request under, for support.
+ */
+request_id?: string,
+/**
+ * How long the server asked to wait before trying again, in seconds.
+ */
+retry_after_secs?: number,
+/**
+ * The file or folder a file-system error concerns.
+ */
+path?: string, } } | { "output-data-kind": "validation", "output-data": StyleValidationResult | null } | { "output-data-kind": "available-points", "output-data": Array<string> } | { "output-data-kind": "exercises", "output-data": Array<string> } | { "output-data-kind": "exercise-packaging-configuration", "output-data": ExercisePackagingConfiguration } | { "output-data-kind": "refresh-result", "output-data": RefreshData } | { "output-data-kind": "repository-exercises", "output-data": Array<RepositoryExercise> } | { "output-data-kind": "test-result", "output-data": RunResult } | { "output-data-kind": "exercise-desc", "output-data": ExerciseDesc } | { "output-data-kind": "exercise-updates", "output-data": ExerciseUpdates } | { "output-data-kind": "mooc-exercise-download", "output-data": DownloadOrUpdateMoocCourseExercisesResult } | { "output-data-kind": "combined-course-data", "output-data": CombinedCourseData } | { "output-data-kind": "course-details", "output-data": CourseDetails } | { "output-data-kind": "course-exercises", "output-data": Array<CourseExercise> } | { "output-data-kind": "course-data", "output-data": CourseData } | { "output-data-kind": "courses", "output-data": Array<Course> } | { "output-data-kind": "exercise-details", "output-data": ExerciseDetails } | { "output-data-kind": "submissions", "output-data": Array<Submission> } | { "output-data-kind": "update-result", "output-data": UpdateResult } | { "output-data-kind": "organization", "output-data": Organization } | { "output-data-kind": "organizations", "output-data": Array<Organization> } | { "output-data-kind": "reviews", "output-data": Array<Review> } | { "output-data-kind": "token", "output-data": unknown } | { "output-data-kind": "new-submission", "output-data": NewSubmission } | { "output-data-kind": "submission-feedback-response", "output-data": SubmissionFeedbackResponse } | { "output-data-kind": "submission-finished", "output-data": SubmissionFinished } | { "output-data-kind": "config-value", "output-data": ConfigValue } | { "output-data-kind": "compressed-project-hash", "output-data": string } | { "output-data-kind": "submission-sandbox", "output-data": string } | { "output-data-kind": "local-exercises", "output-data": Array<LocalExercise> } | { "output-data-kind": "local-tmc-exercises", "output-data": Array<LocalTmcExercise> } | { "output-data-kind": "tmc-exercise-download", "output-data": DownloadOrUpdateTmcCourseExercisesResult } | { "output-data-kind": "tmc-config", "output-data": TmcConfig } | { "output-data-kind": "mooc-exercise-updates", "output-data": MoocExerciseUpdates } | { "output-data-kind": "local-mooc-exercises", "output-data": Array<LocalMoocExercise> } | { "output-data-kind": "mooc-current-user", "output-data": MoocCurrentUser } | { "output-data-kind": "mooc-course", "output-data": MoocCourse } | { "output-data-kind": "mooc-courses", "output-data": Array<MoocCourse> } | { "output-data-kind": "mooc-exams", "output-data": Array<MoocExam> } | { "output-data-kind": "mooc-exercise-slides", "output-data": Array<TmcExerciseSlide> } | { "output-data-kind": "mooc-exercise-slide", "output-data": TmcExerciseSlide } | { "output-data-kind": "mooc-submission-finished", "output-data": ExerciseTaskSubmissionResult } | { "output-data-kind": "mooc-submission-status", "output-data": ExerciseTaskSubmissionStatus } | { "output-data-kind": "mooc-submissions", "output-data": Array<ExerciseSlideSubmissionListItem> } | { "output-data-kind": "mooc-paste", "output-data": PasteResult } | { "output-data-kind": "mooc-course-progress", "output-data": CourseProgress } | { "output-data-kind": "mooc-combined-course-data", "output-data": CombinedMoocCourseData } | { "output-data-kind": "mooc-old-submission-restore", "output-data": MoocOldSubmissionRestore };
 
-export type Kind = "generic" | "forbidden" | "not-logged-in" | "connection-error" | "obsolete-client" | "invalid-token" | "not-enrolled" | "upload-expired" | "unknown-upload" | "device-login-denied" | "device-login-expired" | "not-found" | "server-error" | "insufficient-scope" | "exercise-not-found" | "rate-limited" | "deadline-passed" | "out-of-tries" | "chapter-not-open-yet" | "chapter-not-unlocked-yet" | "chapter-completed-and-locked" | "exercise-locked";
+export type Kind = "generic" | "forbidden" | "not-logged-in" | "connection-error" | "obsolete-client" | "invalid-token" | "not-enrolled" | "upload-expired" | "unknown-upload" | "device-login-denied" | "device-login-expired" | "not-found" | "server-error" | "insufficient-scope" | "exercise-not-found" | "rate-limited" | "deadline-passed" | "out-of-tries" | "chapter-not-open-yet" | "chapter-not-unlocked-yet" | "chapter-completed-and-locked" | "exercise-locked" | "invalid-request" | "unexpected-response" | "connection-timeout" | "certificate-error" | "proxy-error" | "login-client-rejected" | "tmc-login-not-accepted" | "tmc-login-unconfirmed" | "local-config-corrupt" | "archive-too-large" | "unsupported-exercise" | "file-in-use" | "permission-denied" | "path-too-long" | "disk-full" | "toolchain-missing" | "executable-blocked" | "projects-dir-unreachable" | "projects-dir-move-to-itself" | "projects-dir-move-into-itself" | "projects-restore-conflict" | "projects-split";
 
 export type OutputData = { status: Status, message: string, result: OutputResult, data: DataKind | null, }
 
@@ -62,7 +74,18 @@ student_file_paths: Array<string>,
 /**
  * Exercise folders or files which are copied from exercise template or clone.
  */
-exercise_file_paths: Array<string>, }
+exercise_file_paths: Array<string>,
+/**
+ * How long the exercise's tests may run: its `.tmcproject.yml`'s `tests_timeout_ms`, else
+ * [`DEFAULT_TESTS_TIMEOUT`]. Absent only from CLIs older than this field.
+ */
+tests_timeout_ms?: number,
+/**
+ * The language plugin that recognised the exercise: `python3`, `apache-maven`,
+ * `apache-ant`, `csharp`, `make`, `r` or `No-Tests`. Absent only from CLIs older than this
+ * field.
+ */
+plugin?: string, }
 
 export type LocalExercise = { "backend": "tmc" } & LocalTmcExercise | { "backend": "mooc" } & LocalMoocExercise;
 
@@ -78,8 +101,8 @@ export type LocalTmcExercise = {
 
 export type LocalMoocExercise = { 
 /**
- * The course's on-disk directory name. Mooc courses have no server-side
- * slug; this is the kebab-cased course name, deduplicated locally.
+ * The course's on-disk directory name, derived from the course name and unique among the
+ * local courses. Not the course's server-side `slug`.
  */
 "course-slug": string, "course-id": string,
 /**
@@ -93,6 +116,34 @@ export type Compression = "tar" | "zip" | "zstd";
 export type RefreshData = { "new-cache-path": string, "course-options": object, exercises: Array<RefreshExercise>, }
 
 export type RefreshExercise = { name: string, checksum: string, points: Array<string>, "sandbox-image": string, "tmcproject-yml": TmcProjectYml | null, }
+
+export type RepositoryExercise = { 
+/**
+ * The exercise directory.
+ */
+path: string,
+/**
+ * The directories between the repository root and the exercise directory, joined with `-`.
+ * Together with `name`, the name `refresh-course` gives the exercise.
+ */
+part: string,
+/**
+ * The exercise directory's name.
+ */
+name: string,
+/**
+ * The language plugin that recognised the exercise, as `get-exercise-packaging-configuration`
+ * names it.
+ */
+plugin: string,
+/**
+ * How long the exercise's tests may run, with the repository's root config merged in.
+ */
+tests_timeout_ms: number,
+/**
+ * The files this command wrote into the exercise directory, relative to it.
+ */
+written_files: Array<string>, }
 
 export type TmcProjectYml = { 
 /**
@@ -215,11 +266,23 @@ unchecked_courses: Array<UncheckedMoocCourse>, }
 
 export type UncheckedMoocCourse = { course_id: string, kind: CourseRefusalKind, }
 
-export type CourseRefusalKind = "insufficient-scope" | "not-found";
+export type CourseRefusalKind = "insufficient-scope" | "forbidden" | "not-found";
 
-export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
+export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>,
+/**
+ * Each failure with its error chain, outermost first, and why it failed.
+ */
+failed?: Array<[TmcExerciseDownload, Array<string>, TmcDownloadFailure]>, }
 
-export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>, }
+export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>,
+/**
+ * Each failure with its error chain, outermost first, and why it failed.
+ */
+failed?: Array<[MoocExerciseDownload, Array<string>, MoocDownloadFailure]>,
+/**
+ * The chapter of each `failed` entry whose failure is `closed-chapter`.
+ */
+closed_chapters: Array<MoocExerciseClosedChapter>, }
 
 export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
 
@@ -229,6 +292,12 @@ export type MoocExerciseDownload = {
  * can match each download/skip/failure to the exercise.
  */
 "exercise-id": string, path: string, }
+
+export type MoocExerciseClosedChapter = { "exercise-id": string, "chapter-name": string,
+/**
+ * The chapter's position in the course, from 1.
+ */
+"chapter-number": number, "opens-at": string, }
 
 export type CombinedCourseData = { details: CourseDetails, exercises: Array<CourseExercise>, settings: CourseData, }
 
@@ -380,21 +449,69 @@ export type ConfigValue = unknown | null | string;
 
 export type TmcConfig = { projects_dir: string, }
 
-export type MoocCurrentUser = { id: string, }
+export type MoocCurrentUser = { id: string,
+/**
+ * For showing which account is logged in. `None` when the user gave none, and from a host
+ * that predates the field.
+ */
+name: string | null,
+/**
+ * `None` from a host that predates the field.
+ */
+email: string | null, }
 
 export type MoocCourse = { id: string, slug: string, name: string, description: string | null, organization_name: string,
 /**
  * `not_set` from a host that predates the field.
  */
-ai_policy: CourseAiPolicy, }
+ai_policy: CourseAiPolicy,
+/**
+ * The course material's front page. `None` from a host that predates the field.
+ */
+url: string | null,
+/**
+ * IETF BCP 47 tag such as `fi-FI`. `None` from a host that predates the field.
+ */
+language_code: string | null,
+/**
+ * Shared by every language version of the course; each version is a separate course with
+ * its own exercises.
+ */
+language_group_id: string | null,
+/**
+ * The language version the user moved to from this course, if they did.
+ */
+moved_to_course_id: string | null,
+/**
+ * When the course run ends or ended; it takes no new students from then on.
+ */
+closed_at: string | null,
+/**
+ * The course that continues this one after it closed, if its teacher named one.
+ */
+successor_course_id: string | null,
+/**
+ * `Some(false)` for a course the user only teaches: submits to it fail with the
+ * `not-enrolled` error kind. `None` from a host that predates the field.
+ */
+is_enrolled: boolean | null,
+/**
+ * Staff get exercises of unopened chapters and model solutions whatever their progress.
+ */
+is_staff: boolean, }
 
 export type CourseAiPolicy = "not_set" | "no_ai" | "planning_only" | "limited" | "full_use" | "required" | "unrecognized";
 
 export type TmcExerciseSlide = { slide_id: string, exercise_id: string,
 /**
- * Lets a client locate the exercise's course without a separate lookup.
+ * Lets a client locate the exercise's course without a separate lookup. The nil UUID for an
+ * exam exercise, which `exam_id` names instead.
  */
-course_id: string, exercise_name: string, exercise_order_number: number,
+course_id: string,
+/**
+ * `None` for a course exercise.
+ */
+exam_id: string | null, exercise_name: string, exercise_order_number: number,
 /**
  * The effective deadline: the exercise's own, else its chapter's. Submissions are refused
  * from this moment on.
@@ -408,7 +525,13 @@ page_url: string | null,
 /**
  * `None` for an exercise outside any chapter, or from a host that does not report it.
  */
-chapter: ExerciseChapter | null, }
+chapter: ExerciseChapter | null,
+/**
+ * Why the exercise cannot be downloaded to work on in an editor: `browser-only` or
+ * `several-editor-tasks`, the failure `download-or-update-course-exercises` would report.
+ * Absent when it can be downloaded, and from CLIs older than this field.
+ */
+unsupported?: MoocDownloadFailure, }
 
 export type ExerciseChapter = { id: string, name: string,
 /**
@@ -423,7 +546,17 @@ locking_status: ChapterLockingStatus | null, }
 
 export type ChapterLockingStatus = "Unlocked" | "CompletedAndLocked" | "NotUnlockedYet";
 
-export type TmcExerciseTask = { task_id: string, order_number: number, assignment: unknown, public_spec: PublicSpec | null, model_solution_spec: ModelSolutionSpec | null, checksum: string | null, }
+export type TmcExerciseTask = { task_id: string, order_number: number, assignment: unknown,
+/**
+ * The plain text of `assignment`, one entry per block that has text, nested blocks after
+ * their parent. Absent when it has none, and from CLIs older than this field.
+ */
+instructions_text?: Array<string>, public_spec: PublicSpec | null, model_solution_spec: ModelSolutionSpec | null, checksum: string | null,
+/**
+ * The exercise service that owns the task. Specs are read only for [`TMC_SERVICE_SLUG`];
+ * any other service's task has neither spec.
+ */
+exercise_service_slug: string, }
 
 export type PublicSpec = { type: ExerciseType, archive_name: string, stub_download_url: string, student_file_paths: Array<string>, checksum: string,
 /**
@@ -456,7 +589,7 @@ slide_submission_id: string,
  */
 exercise_page_url: string | null, }
 
-export type ExerciseTaskSubmissionStatus = { "status": "no-grading-yet" } | { "status": "grading", grading: Grading, };
+export type ExerciseTaskSubmissionStatus = { "status": "no-grading-yet" } | { "status": "grading", grading: Grading, } | { "status": "grading-hidden" } | { "status": "unrecognized" };
 
 export type Grading = { grading_progress: GradingProgress,
 /**
@@ -478,9 +611,14 @@ exercise_progress: ExerciseProgress | null,
  * The test run the grading was based on. `None` until grading has produced one, or when the
  * exercise service reported something else.
  */
-test_results: GradingTestRun | null, }
+test_results: GradingTestRun | null,
+/**
+ * The exercise in the course material, where the latest submission and its grading show.
+ * `None` for an exam exercise, and from a host that predates the field.
+ */
+submission_page_url: string | null, }
 
-export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded";
+export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded" | "Unrecognized";
 
 export type GradingTestRun = { status: GradingTestRunStatus,
 /**
@@ -524,7 +662,7 @@ kind: SubmissionKind,
  */
 is_shared: boolean, }
 
-export type SubmissionKind = "submission" | "paste" | "backup";
+export type SubmissionKind = "submission" | "paste" | "backup" | "unrecognized";
 
 export type PasteResult = { paste_url: string, }
 
@@ -581,15 +719,46 @@ pending_teacher_review: PendingTeacherReview | null,
  * locking status says. A submit fails with the `chapter-completed-and-locked` error kind
  * while the chapter is locked for the user, and with `exercise-locked` otherwise.
  */
-exercise_locked: boolean, }
+exercise_locked: boolean,
+/**
+ * Where the answer is in the exercise's peer, self or teacher review, which happens in the
+ * course material. `None` while the user can still answer, and from a host that predates
+ * the field.
+ */
+reviewing_stage: ReviewingStage | null,
+/**
+ * A teacher's grading that overrides the automatic score. `None` when there is none to show.
+ */
+teacher_review: TeacherReview | null, }
 
-export type ExerciseStanding = "NotAttempted" | "Attempted" | "Passed" | "OutOfTries";
+export type ExerciseStanding = "NotAttempted" | "Attempted" | "Passed" | "OutOfTries" | "Unrecognized";
 
 export type PendingTeacherReview = "awaits_chapter_lock" | "awaits_teacher" | "unrecognized";
+
+export type ReviewingStage = "peer_review" | "self_review" | "waiting_for_peer_reviews" | "waiting_for_teacher" | "reviewed_and_locked" | "locked" | "not_answered_and_locked" | "unrecognized";
+
+export type TeacherReview = { decision: TeacherDecision,
+/**
+ * Replaces the automatic score.
+ */
+score_given: number, justification: string | null, created_at: string, }
+
+export type TeacherDecision = "zero_points" | "custom_points" | "suspected_plagiarism" | "reject_and_reset" | "unauthorized_ai_use" | "bad_answer" | "other" | "unrecognized";
+
+export type MoocExam = { id: string, name: string, started_at: string,
+/**
+ * Answers are accepted until then: the end of the user's time or of the exam, whichever
+ * comes first.
+ */
+answerable_until: string, }
 
 export type MoocClientUpdateData = { "client-update-data-kind": "exercise-download", id: string, path: string, };
 
 export type MoocOldSubmissionRestore = "restored" | "nothing-to-download";
+
+export type MoocDownloadFailure = "not-found" | "closed-chapter" | "browser-only" | "several-editor-tasks" | "file-missing" | "server-error" | "connection-error" | "extract-failed" | "other";
+
+export type TmcDownloadFailure = "not-found" | "server-error" | "connection-error" | "extract-failed" | "other";
 
 export type CombinedMoocCourseData = { course: MoocCourse, slides: Array<TmcExerciseSlide>, progress: CourseProgress, }
 

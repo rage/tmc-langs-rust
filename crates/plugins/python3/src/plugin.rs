@@ -18,9 +18,10 @@ use std::{
 };
 use tmc_langs_framework::{
     Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PythonVer, RunResult, RunStatus,
-    TestDesc, TestResult, TmcCommand, TmcError, TmcProjectYml,
+    TestDesc, TestResult, TmcCommand, TmcError, TmcProjectYml, absolute_tool_path,
     nom::{IResult, Parser, bytes, character, combinator, sequence},
     nom_language::error::VerboseError,
+    resolve_tool,
 };
 use tmc_langs_util::{
     deserialize, file_util,
@@ -30,6 +31,12 @@ use tmc_langs_util::{
 use walkdir::WalkDir;
 
 pub struct Python3Plugin;
+
+/// Makes Python encode its piped stdout/stderr and read source files as UTF-8, as it does on
+/// Linux, instead of the Windows ANSI code page.
+fn with_utf8_output(command: TmcCommand) -> TmcCommand {
+    command.with(|e| e.env("PYTHONUTF8", "1").env("PYTHONIOENCODING", "utf-8"))
+}
 
 impl Python3Plugin {
     pub const fn new() -> Self {
@@ -70,12 +77,18 @@ impl Python3Plugin {
             Custom { python_exec: String },
         }
 
-        match &*LOCAL_PY {
+        let command = match &*LOCAL_PY {
             LocalPy::Unix => TmcCommand::piped("python3"),
-            LocalPy::Windows => TmcCommand::piped("py").with(|e| e.arg("-3")),
+            // Not every Windows install has the `py` launcher (Store Python, some
+            // Anaconda setups); `python3` also tries `python` and Python's usual install dirs.
+            LocalPy::Windows if resolve_tool(OsStr::new("py")).is_some() => {
+                TmcCommand::piped("py").with(|e| e.arg("-3"))
+            }
+            LocalPy::Windows => TmcCommand::piped("python3"),
             LocalPy::WindowsConda { conda_path } => TmcCommand::piped(conda_path),
             LocalPy::Custom { python_exec } => TmcCommand::piped(python_exec),
-        }
+        };
+        with_utf8_output(command)
     }
 
     fn get_local_python_ver() -> Result<(u32, u32, u32), PythonError> {
@@ -133,7 +146,7 @@ impl Python3Plugin {
             });
         }
 
-        let path = dunce::canonicalize(path)
+        let path = absolute_tool_path(path)
             .map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
         log::debug!("running tmc command at {}", path.display());
         let common_args = ["-m", "tmc"];
@@ -503,6 +516,17 @@ mod test {
     };
     use tmc_langs_framework::{LanguagePlugin, RunStatus};
     use zip::write::SimpleFileOptions;
+
+    #[cfg(unix)]
+    #[test]
+    fn python_runs_with_utf8_environment() {
+        let command = with_utf8_output(TmcCommand::piped("sh")).with(|e| {
+            e.arg("-c")
+                .arg(r#"printf '%s %s' "$PYTHONUTF8" "$PYTHONIOENCODING""#)
+        });
+        let output = command.output().unwrap();
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "1 utf-8");
+    }
 
     fn init() {
         use log::*;

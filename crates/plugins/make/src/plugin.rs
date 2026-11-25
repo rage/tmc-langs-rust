@@ -13,12 +13,16 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc,
-    TmcCommand, TmcError, TmcProjectYml,
+    Archive, BUILD_TIMEOUT, CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult,
+    RunStatus, TestDesc, TmcCommand, TmcError, TmcProjectYml,
     nom::{IResult, Parser, bytes, character, combinator, sequence},
     nom_language::error::VerboseError,
+    output_shows_blocked_executable,
 };
 use tmc_langs_util::{FileError, file_util, path_util};
+
+/// `ERROR_VIRUS_INFECTED`
+const WINDOWS_ERROR_VIRUS_INFECTED: i32 = 225;
 
 #[derive(Default)]
 pub struct MakePlugin {}
@@ -86,6 +90,13 @@ impl MakePlugin {
         log::debug!("stderr: {stderr}");
 
         if !output.status.success() {
+            if output_shows_blocked_executable(&stderr) {
+                return Err(TmcError::Command(CommandError::ExecutableBlocked {
+                    command: format!("make {arg}"),
+                    source: io::Error::from_raw_os_error(WINDOWS_ERROR_VIRUS_INFECTED),
+                })
+                .into());
+            }
             if run_valgrind {
                 return Err(MakeError::RunningTestsWithValgrind(
                     output.status,
@@ -105,7 +116,7 @@ impl MakePlugin {
         log::debug!("building {}", dir.display());
         let output = TmcCommand::piped("make")
             .with(|e| e.cwd(dir).arg("test"))
-            .output()?;
+            .output_with_timeout(BUILD_TIMEOUT)?;
 
         log::trace!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
@@ -128,7 +139,7 @@ impl LanguagePlugin for MakePlugin {
             return MakeError::NoExerciseFound(path.to_path_buf()).into();
         }
 
-        self.run_tests_with_valgrind(path, false, None)?;
+        self.run_tests_with_valgrind(path, false, Some(BUILD_TIMEOUT))?;
 
         let available_points_path = path.join("test/tmc_available_points.txt");
 
@@ -187,6 +198,10 @@ impl LanguagePlugin for MakePlugin {
                             // Without valgrind the tests would only time out again.
                             timed_out @ CommandError::TimeOut { .. } => {
                                 return Err(TmcError::Command(timed_out));
+                            }
+                            // The same program would be blocked again.
+                            blocked @ CommandError::ExecutableBlocked { .. } => {
+                                return Err(TmcError::Command(blocked));
                             }
                             CommandError::Popen(_, io_error)
                             | CommandError::FailedToRun(_, io_error)
@@ -344,7 +359,7 @@ impl LanguagePlugin for MakePlugin {
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         let output = TmcCommand::piped("make")
             .with(|e| e.cwd(path).arg("clean"))
-            .output()?;
+            .output_with_timeout(BUILD_TIMEOUT)?;
 
         if output.status.success() {
             log::info!("Cleaned make project");

@@ -54,6 +54,15 @@ impl CliOutput {
             data: None,
         }))
     }
+
+    pub fn logged_out() -> Self {
+        Self::OutputData(Box::new(OutputData {
+            status: Status::Finished,
+            message: "logged out".to_string(),
+            result: OutputResult::LoggedOut,
+            data: None,
+        }))
+    }
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
@@ -77,6 +86,15 @@ pub enum DataKind {
         /// The HTTP status a server answered with, when the error is one.
         #[serde(skip_serializing_if = "Option::is_none")]
         http_status: Option<u16>,
+        /// The id courses.mooc.fi logged the failed request under, for support.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        request_id: Option<String>,
+        /// How long the server asked to wait before trying again, in seconds.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        retry_after_secs: Option<u64>,
+        /// The file or folder a file-system error concerns.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        path: Option<PathBuf>,
     },
     Validation(Option<StyleValidationResult>),
     /// megabytes
@@ -85,6 +103,7 @@ pub enum DataKind {
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
     RefreshResult(tmc_langs::RefreshData),
+    RepositoryExercises(Vec<tmc_langs::RepositoryExercise>),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     ExerciseUpdates(ExerciseUpdates),
@@ -124,6 +143,7 @@ pub enum DataKind {
     MoocCurrentUser(mooc::CurrentUser),
     MoocCourse(mooc::Course),
     MoocCourses(Vec<mooc::Course>),
+    MoocExams(Vec<mooc::Exam>),
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
     MoocExerciseSlide(mooc::TmcExerciseSlide),
     MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),
@@ -193,7 +213,8 @@ pub enum OutputResult {
 pub enum Kind {
     /// For all other errors
     Generic,
-    /// tmc.mooc.fi answered 403: the user may not see what was asked for.
+    /// The server answered 403: the user may not see what was asked for, such as a draft
+    /// course (courses.mooc.fi's `no_access`, or a 403 without a more specific key).
     Forbidden,
     /// Not logged in, detected either by no token or 401 from server
     NotLoggedIn,
@@ -223,8 +244,8 @@ pub enum Kind {
     NotFound,
     /// The server answered with a 5xx status. Transient, so stored credentials are kept.
     ServerError,
-    /// courses.mooc.fi answered 403, typically because the access token lacks the
-    /// `exercise-services` scope. Unlike tmc.mooc.fi's `Forbidden`, says nothing about the course.
+    /// courses.mooc.fi answered 403 `insufficient_scope`: the access token lacks the
+    /// `exercise-services` scope. Says nothing about the course.
     InsufficientScope,
     /// The server answered 404 to a request addressing one exercise: the exercise does not
     /// exist, or not for this user.
@@ -250,6 +271,62 @@ pub enum Kind {
     /// The exercise takes no more submissions from the user, whatever its chapter's locking
     /// status says (backend `message_key: "exercise_locked"`, HTTP 403).
     ExerciseLocked,
+    /// The server refused the request as invalid (a 4xx with no more specific kind); retrying
+    /// the same request cannot help.
+    InvalidRequest,
+    /// The server answered with something this version cannot read, e.g. a captive portal's
+    /// login page.
+    UnexpectedResponse,
+    /// No answer before the timeout; the server may be slow rather than unreachable.
+    ConnectionTimeout,
+    /// TLS failed, typically an untrusted certificate from a network security product or a
+    /// wrong system clock.
+    CertificateError,
+    /// A proxy refused the connection or asked for credentials.
+    ProxyError,
+    /// courses.mooc.fi's login service refused this client itself (e.g. `invalid_client`); the
+    /// user logging in again cannot fix it.
+    LoginClientRejected,
+    /// tmc.mooc.fi answered 401 to the courses.mooc.fi login, which courses.mooc.fi still
+    /// accepts.
+    TmcLoginNotAccepted,
+    /// tmc.mooc.fi could not confirm the courses.mooc.fi login with courses.mooc.fi right now.
+    TmcLoginUnconfirmed,
+    /// A local settings, course or credentials file could not be read.
+    LocalConfigCorrupt,
+    /// An archive is over a size or entry limit.
+    ArchiveTooLarge,
+    /// The exercise cannot be worked on in the editor: it has no editor task, several, or one of
+    /// another exercise service.
+    UnsupportedExercise,
+    /// Another program holds a file the command needs (`path`).
+    FileInUse,
+    /// The OS denied access to `path`.
+    PermissionDenied,
+    /// `path` is longer than the file system allows.
+    PathTooLong,
+    /// The disk or the user's quota is full, or the file system is read-only.
+    DiskFull,
+    /// A program needed to build or test the exercise is not installed or not found.
+    ToolchainMissing,
+    /// A freshly built program was blocked or removed, typically by antivirus software.
+    ExecutableBlocked,
+    /// The exercises folder (`path`) is missing, e.g. on a drive that is not connected; it was
+    /// not recreated.
+    ProjectsDirUnreachable,
+    /// The folder given to move the exercises folder, or its contents, to or from is the
+    /// exercises folder itself.
+    ProjectsDirMoveToItself,
+    /// The folder given to move the exercises folder, or its contents, to or from is inside the
+    /// exercises folder, or contains it.
+    ProjectsDirMoveIntoItself,
+    /// `settings restore-projects` found the exercises folder holding something other than OS
+    /// metadata files, such as `path`; nothing was moved.
+    ProjectsRestoreConflict,
+    /// Setting the projects aside or restoring them failed part way and could not be undone:
+    /// some entries are still in the folder they were being moved to (`path`), the rest where
+    /// they were.
+    ProjectsSplit,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
@@ -313,6 +390,9 @@ mod test {
                 kind: Kind::Generic,
                 trace: vec!["trace 1".to_string(), "trace 2".to_string()],
                 http_status: None,
+                request_id: None,
+                retry_after_secs: None,
+                path: None,
             }),
         }));
         let actual = serde_json::to_string_pretty(&output_data).unwrap();

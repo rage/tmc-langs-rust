@@ -16,48 +16,26 @@ env:
 jobs:
   linux:
     runs-on: ubuntu-latest
-    container:
-      # due to the dynamically linked glibc,
-      # changes to the image should be communicated in the changelog
-      # as a change to the minimum OS version requirement
-      image: ubuntu:20.04
-      options: --user root
     strategy:
       fail-fast: false # we don't want to cancel building binaries for other targets just because one fails
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            # aws-lc-sys refuses to build with focal's default gcc 9,
-            # see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95189
-            cc: gcc-10
-            cxx: g++-10
-            packages: gcc-10 g++-10
           - target: i686-unknown-linux-gnu
-            cc: gcc-10
-            cxx: g++-10
-            packages: gcc-10 g++-10 gcc-10-multilib g++-10-multilib
             cflags: -msse2 # boringssl's x86 assembly requires SSE2
           - target: aarch64-unknown-linux-gnu
-            cc: aarch64-linux-gnu-gcc
-            cxx: aarch64-linux-gnu-g++
-            packages: g++-aarch64-linux-gnu
-            # without the target's headers clang reads the host's and gets the type sizes wrong
-            clang_args: --sysroot=/usr/aarch64-linux-gnu
           - target: armv7-unknown-linux-gnueabihf
-            cc: arm-linux-gnueabihf-gcc
-            cxx: arm-linux-gnueabihf-g++
-            packages: g++-arm-linux-gnueabihf
-            clang_args: --sysroot=/usr/arm-linux-gnueabihf
+    env:
+      # VS Code's oldest supported Linux hosts (RHEL 8, Debian 10) have glibc 2.28. Raising this
+      # drops users, so it belongs in the changelog as a minimum OS version change.
+      GLIBC_VERSION: "2.28"
     steps:
       - name: Install dependencies
         run: |
-          apt update
-          apt install -y curl                   # required for Rust installation
-          apt install -y gcc                    # rustc links through cc
-          apt install -y git make libclang-dev  # boring-sys patches, builds and binds boringssl
-          apt install -y ${{ matrix.packages }}
-          # boringssl requires cmake 3.22, focal ships 3.16
-          curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz | tar xz --strip-components=1 -C /usr/local
+          sudo apt-get update
+          sudo apt-get install -y cmake libclang-dev # boring-sys builds and binds boringssl
+          # zig links against the requested glibc version whatever the runner has
+          pip install ziglang==0.13.0 cargo-zigbuild==0.20.1
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -75,26 +53,21 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Build
-        env:
-          BINDGEN_EXTRA_CLANG_ARGS: ${{ matrix.clang_args }}
         run: |
           rustup target add ${{ matrix.target }}
-          # boring-sys reads the compiler from the target suffixed variables only
           suffix=$(echo ${{ matrix.target }} | tr - _)
-          export CC_$suffix='${{ matrix.cc }}' CXX_$suffix='${{ matrix.cxx }}'
           export CFLAGS_$suffix='${{ matrix.cflags }}' CXXFLAGS_$suffix='${{ matrix.cflags }}'
-          # boringssl pulls in libstdc++, which only resolves through its own compiler's driver
-          export CARGO_TARGET_$(echo $suffix | tr a-z A-Z)_LINKER='${{ matrix.cc }}'
-          cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
+          cargo zigbuild -p tmc-langs-cli --release --target ${{ matrix.target }}.$GLIBC_VERSION
+
+      - name: Smoke test
+        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'i686-unknown-linux-gnu'
+        run: ./target/${{ matrix.target }}/release/tmc-langs-cli --version
 
       - name: Check the glibc requirement
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          # raising this drops users, so it belongs in the changelog as a minimum OS version change
-          MAX_GLIBC=2.30
-          NEEDED_GLIBC=$(objdump -T ./target/${{ matrix.target }}/release/tmc-langs-cli | sed -n 's/.*GLIBC_\([0-9.]*\).*/\1/p' | sort -V | tail -1)
-          if [ "$(printf '%s\n%s\n' "$MAX_GLIBC" "$NEEDED_GLIBC" | sort -V | tail -1)" != "$MAX_GLIBC" ]; then
-            echo "::error title=glibc-requirement-raised::the binary needs glibc $NEEDED_GLIBC, up from $MAX_GLIBC"
+          NEEDED_GLIBC=$(readelf -W --dyn-syms ./target/${{ matrix.target }}/release/tmc-langs-cli | sed -n 's/.*@GLIBC_\([0-9.]*\).*/\1/p' | sort -V | tail -1)
+          if [ "$(printf '%s\n%s\n' "$GLIBC_VERSION" "$NEEDED_GLIBC" | sort -V | tail -1)" != "$GLIBC_VERSION" ]; then
+            echo "::error title=glibc-requirement-raised::the binary needs glibc $NEEDED_GLIBC, up from $GLIBC_VERSION"
             exit 1
           fi
 
@@ -148,6 +121,9 @@ jobs:
           rustup target add x86_64-unknown-linux-musl
           cargo build -p tmc-langs-cli --release --target x86_64-unknown-linux-musl
 
+      - name: Smoke test
+        run: ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli --version
+
       - name: Generate checksums
         run: |
           # canonical "<lowercase-hash>  <deployed-filename>" (sha256sum already lowercases)
@@ -159,6 +135,18 @@ jobs:
         run: |
           gsutil cp ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG
           gsutil cp ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG.sha256
+
+      - name: Deploy the third-party notices
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          cargo install --locked cargo-about@0.9.0
+          cargo about generate -m crates/tmc-langs-cli/Cargo.toml about.hbs -o "tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html"
+          gsutil cp "tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html" gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html
+          if [ "$EVENT_NAME" = release ]; then
+            gh release upload "$TAG" "tmc-langs-cli-THIRD-PARTY-NOTICES-$TAG.html" --clobber
+          fi
 
       - name: Deploy the CLI output schema
         # Platform-independent, so exactly one leg publishes it; it lets a client
@@ -179,7 +167,8 @@ jobs:
     strategy:
       fail-fast: false # we don't want to cancel building binaries for other targets just because one fails
       matrix:
-        target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc]
+        # aarch64: Java exercises need a CLI of the JVM's own architecture
+        target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -205,6 +194,10 @@ jobs:
           rustup target add ${{ matrix.target }}
           $env:RUSTFLAGS="-C target-feature=+crt-static"  # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
+
+      - name: Smoke test
+        if: matrix.target != 'aarch64-pc-windows-msvc'
+        run: ./target/${{ matrix.target }}/release/tmc-langs-cli.exe --version
 
       - name: Generate checksums
         run: |
@@ -260,6 +253,9 @@ jobs:
 
       - name: Sign
         run: codesign --force -s - target/${{ matrix.target }}/release/tmc-langs-cli
+
+      - name: Smoke test
+        run: ./target/${{ matrix.target }}/release/tmc-langs-cli --version
 
       - name: Generate checksums
         run: |

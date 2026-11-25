@@ -21,7 +21,7 @@ pub struct Credentials {
 
 impl Credentials {
     // path to the credentials file
-    fn get_credentials_path(client_name: &str) -> Result<PathBuf, LangsError> {
+    pub(super) fn get_credentials_path(client_name: &str) -> Result<PathBuf, LangsError> {
         super::get_tmc_dir(client_name).map(|dir| dir.join("credentials.json"))
     }
 

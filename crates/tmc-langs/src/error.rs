@@ -4,7 +4,6 @@
 use crate::course_refresher::ModeBits;
 use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
-use tmc_langs_plugins::compression::ZipError;
 use tmc_langs_util::{JsonError, TomlError, YamlError};
 use uuid::Uuid;
 
@@ -17,16 +16,10 @@ pub enum LangsError {
     TempDir(#[source] std::io::Error),
     #[error("Invalid parameter key/value: {0}")]
     InvalidParam(String, #[source] ParamError),
-    #[error("Error decoding data with zstd")]
-    ZstdDecode(#[source] std::io::Error),
-    #[error("Error extracting tar to {0}")]
-    TarExtract(PathBuf, #[source] std::io::Error),
     #[error("Failed to aquire mutex")]
     MutexError,
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip(PathBuf),
-    #[error("Error extracting zip to {0}")]
-    ZipExtract(PathBuf, #[source] ZipError),
     #[error("Failed to parse file {0}")]
     SubmissionParse(PathBuf, #[source] Box<Self>),
     #[error(
@@ -49,8 +42,26 @@ pub enum LangsError {
     ProjectsDirNotString,
     #[error("Attempted to move the projects-dir to the directory it's already in")]
     MovingProjectsDirToItself,
+    #[error("Attempted to move the projects-dir into a directory inside itself")]
+    MovingProjectsDirIntoItself,
     #[error("No projects-dir found")]
     NoProjectsDir,
+    #[error("The exercises folder {0} cannot be reached; is its drive connected?")]
+    ProjectsDirUnreachable(PathBuf),
+    #[error("The exercises folder is not empty ({0} is there), so nothing was brought back")]
+    RestoreConflict(PathBuf),
+    #[error(
+        "Failed to move the contents of {} to {} ({cause}), and could not move all of them back",
+        from.display(),
+        to.display()
+    )]
+    DirEntriesSplit {
+        from: PathBuf,
+        to: PathBuf,
+        cause: String,
+    },
+    #[error("Cannot read the course config {0}, so it was left unchanged")]
+    UnreadableCourseConfig(PathBuf, #[source] Box<Self>),
     #[error("Exercise in project-config not found")]
     NoProjectExercise,
     #[error("Decoded password was not valid UTF-8")]
@@ -137,6 +148,8 @@ pub enum LangsError {
         kept_at: PathBuf,
         cause: String,
     },
+    #[error("Exam {0} is not among the exams the user has started and can still answer")]
+    MoocExamNotAnswerable(Uuid),
     #[error(transparent)]
     PersistTempFile(#[from] tempfile::PersistError),
     #[error(transparent)]

@@ -528,7 +528,7 @@ fn assert_error_kind(error: tmc_langs_cli::CliError, expected: &str) {
 }
 
 #[test]
-fn mooc_403_maps_to_insufficient_scope_kind() {
+fn mooc_403_without_a_key_maps_to_forbidden_kind() {
     // Mooc errors travel the anyhow chain as `Box<MoocClientError>`; a bare-type
     // downcast misses them and collapses every HTTP error to `generic`.
     let mut server = mockito::Server::new();
@@ -549,7 +549,7 @@ fn mooc_403_maps_to_insufficient_scope_kind() {
         config_dir.path(),
         projects_dir.path(),
     );
-    assert_error_kind(error, "insufficient-scope");
+    assert_error_kind(error, "forbidden");
 }
 
 #[test]
@@ -629,7 +629,9 @@ fn mooc_refusals_map_to_their_own_kinds() {
             "chapter-completed-and-locked",
         ),
         (403, "exercise_locked", "exercise-locked"),
-        (403, "forbidden", "insufficient-scope"),
+        (403, "forbidden", "forbidden"),
+        (403, "no_access", "forbidden"),
+        (403, "insufficient_scope", "insufficient-scope"),
     ];
     for (status, message_key, kind) in cases {
         let mut server = mockito::Server::new();
@@ -715,11 +717,10 @@ fn mooc_422_unknown_upload_maps_to_unknown_upload_kind() {
 }
 
 #[test]
-fn mooc_422_duplicate_upload_maps_to_generic_without_a_retry() {
-    // `duplicate_upload` stays unmapped on purpose: it means a submit named one upload
-    // id twice, which no retry or user action can fix, so there is no answer a dedicated
-    // kind could give the user. It must also not trip the upload retry, which keys on
-    // `upload_expired` alone -- re-uploading would just produce the same duplicate.
+fn mooc_422_duplicate_upload_maps_to_invalid_request_without_a_retry() {
+    // `duplicate_upload` gets no kind of its own: it means a submit named one upload id
+    // twice, which no retry or user action can fix. It must also not trip the upload retry,
+    // which keys on `upload_expired` alone -- re-uploading would produce the same duplicate.
     let mut server = mockito::Server::new();
     let _exercise = mock_exercise_for_submit(&mut server);
     let upload = mock_upload_for_submit(&mut server).expect(1);
@@ -763,7 +764,7 @@ fn mooc_422_duplicate_upload_maps_to_generic_without_a_retry() {
 
     upload.assert();
     submit.assert();
-    assert_error_kind(error, "generic");
+    assert_error_kind(error, "invalid-request");
 }
 
 #[test]
@@ -1398,16 +1399,13 @@ fn check_exercise_updates_reports_refused_courses_and_checks_the_rest() {
     assert_eq!(
         unchecked,
         vec![
-            serde_json::json!({ "course_id": hidden_course, "kind": "insufficient-scope" }),
+            serde_json::json!({ "course_id": hidden_course, "kind": "forbidden" }),
             serde_json::json!({ "course_id": deleted_course, "kind": "not-found" }),
         ]
     );
 
     // Clients handle a refused course like a failed single-course command with the same kind.
-    for (course_id, kind) in [
-        (hidden_course, "insufficient-scope"),
-        (deleted_course, "not-found"),
-    ] {
+    for (course_id, kind) in [(hidden_course, "forbidden"), (deleted_course, "not-found")] {
         let error = run_mooc_in_expect_error(
             &server,
             &["course-exercises", "--course-id", &course_id.to_string()],
@@ -1558,6 +1556,8 @@ directory = "skip-me"
             &ex_new.to_string(),
             &ex_browser.to_string(),
             &ex_missing.to_string(),
+            // a repeat must not be downloaded into a second directory
+            &ex_new.to_string(),
         ],
         config_dir.path(),
         projects_root.path(),
@@ -1569,6 +1569,9 @@ directory = "skip-me"
             assert_eq!(result.downloaded.len(), 1, "one downloaded");
             // results are keyed by the requested exercise id, not the editor task id
             assert_eq!(result.downloaded[0].exercise_id, ex_new);
+            let downloaded = &result.downloaded[0].path;
+            assert!(downloaded.ends_with("new-exercise"), "{downloaded:?}");
+            assert!(!downloaded.with_file_name("new-exercise-1").exists());
             assert_eq!(result.skipped.len(), 1, "one skipped");
             assert_eq!(result.skipped[0].exercise_id, ex_skip);
             assert_eq!(
@@ -3884,6 +3887,62 @@ fn mooc_logout_removes_credentials() {
     );
 }
 
+#[test]
+fn mooc_logout_revokes_the_refresh_token_and_still_logs_out_when_that_fails() {
+    for revoke_status in [200, 503] {
+        let mut server = mockito::Server::new();
+        let revoke = server
+            .mock("POST", "/api/v0/main-frontend/oauth/revoke")
+            .match_body(mockito::Matcher::UrlEncoded(
+                "token_type_hint".into(),
+                "refresh_token".into(),
+            ))
+            .with_status(revoke_status)
+            .expect(1)
+            .create();
+        let config_dir = tempfile::tempdir().unwrap();
+        let creds_path = write_credentials_with_refresh_token(config_dir.path());
+
+        let output = run_mooc_auth(&server, &["logout"], config_dir.path()).unwrap();
+        assert!(matches!(
+            output_data(output).result,
+            OutputResult::LoggedOut
+        ));
+        assert!(!creds_path.exists());
+        revoke.assert();
+    }
+}
+
+#[test]
+fn mooc_login_drops_a_legacy_tmc_login() {
+    let mut server = mockito::Server::new();
+    let _device = mock_device_authorization(&mut server);
+    let _authorized = server
+        .mock("POST", token_endpoint())
+        .with_body(
+            serde_json::json!({
+                "access_token": "at", "refresh_token": "rt",
+                "token_type": "bearer", "expires_in": 3600
+            })
+            .to_string(),
+        )
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let legacy = config_dir.path().join("tmc-test").join("credentials.json");
+    std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
+    std::fs::write(
+        &legacy,
+        r#"{"access_token":"legacy","token_type":"bearer","scope":"public"}"#,
+    )
+    .unwrap();
+
+    run_mooc_auth(&server, &["login"], config_dir.path()).unwrap();
+    assert!(
+        !legacy.exists(),
+        "the legacy login must not outrank the new one"
+    );
+}
+
 /// Builds a `.tar.zst` archive from (relative path, contents) pairs.
 fn make_tar_zst(files: &[(&str, &[u8])]) -> Vec<u8> {
     let mut tar_buf = Vec::new();
@@ -3899,4 +3958,265 @@ fn make_tar_zst(files: &[(&str, &[u8])]) -> Vec<u8> {
         builder.finish().unwrap();
     }
     zstd::encode_all(std::io::Cursor::new(tar_buf), 0).unwrap()
+}
+
+#[test]
+fn exam_exercises_download_under_the_exam_and_are_checked_against_it() {
+    let mut server = mockito::Server::new();
+    let exam_id = Uuid::new_v4();
+    let exercise_id = Uuid::new_v4();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_root = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let stub_url = format!("{}/files/exam.tar.zst", server.url());
+    let _exams = server
+        .mock("GET", "/api/v0/exercise-services/client/exams")
+        .with_body(
+            serde_json::json!([{
+                "id": exam_id, "name": "Final exam",
+                "started_at": "2026-11-24T10:00:00Z",
+                "answerable_until": "2026-11-24T13:00:00Z",
+            }])
+            .to_string(),
+        )
+        .create();
+    let exam_exercises = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exams/{exam_id}/exercises").as_str(),
+        )
+        .with_body(
+            serde_json::json!([{
+                "slide_id": Uuid::new_v4(), "exercise_id": exercise_id, "course_id": Uuid::nil(),
+                "exam_id": exam_id, "exercise_name": "Exam task", "exercise_order_number": 0,
+                "tasks": [{
+                    "task_id": Uuid::new_v4(), "order_number": 0, "assignment": [],
+                    "public_spec": {
+                        "type": "editor", "archive_name": "e.tar.zst",
+                        "stub_download_url": stub_url,
+                        "student_file_paths": ["src/main.py"], "checksum": "exam checksum"
+                    },
+                    "model_solution_spec": null, "exercise_service_slug": "tmc"
+                }],
+            }])
+            .to_string(),
+        )
+        .expect(2)
+        .create();
+    server
+        .mock("GET", "/files/exam.tar.zst")
+        .with_body(make_tar_zst(&[("src/main.py", b"print('exam')")]))
+        .create();
+
+    match data_of(
+        run_mooc_in(&server, &["exams"], config_dir.path(), projects_root.path()).unwrap(),
+    ) {
+        DataKind::MoocExams(exams) => assert_eq!(exams[0].id, exam_id),
+        other => panic!("expected MoocExams, got {other:?}"),
+    }
+
+    let output = run_mooc_in(
+        &server,
+        &[
+            "download-or-update-course-exercises",
+            "--exam-id",
+            &exam_id.to_string(),
+            "--exercise-id",
+            &exercise_id.to_string(),
+        ],
+        config_dir.path(),
+        projects_root.path(),
+    )
+    .unwrap();
+    match data_of(output) {
+        DataKind::MoocExerciseDownload(result) => {
+            assert_eq!(result.downloaded.len(), 1, "{result:?}");
+        }
+        other => panic!("expected MoocExerciseDownload, got {other:?}"),
+    }
+
+    let output = run_mooc_in(
+        &server,
+        &["check-exercise-updates"],
+        config_dir.path(),
+        projects_root.path(),
+    )
+    .unwrap();
+    let output = serde_json::to_value(output_data(output)).unwrap();
+    assert_eq!(
+        output["data"]["output-data"]["updated"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        output["data"]["output-data"]["removed"],
+        serde_json::json!([])
+    );
+    exam_exercises.assert();
+}
+
+#[test]
+fn wait_for_grading_stops_at_a_hidden_exam_grading() {
+    let mut server = mockito::Server::new();
+    let submission_id = "55555555-5555-5555-5555-555555555555";
+    let _hidden = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(r#""GradingHidden""#)
+        .expect(1)
+        .create();
+
+    let output = run_mooc(
+        &server,
+        &["wait-for-grading", "--submission-id", submission_id],
+    )
+    .unwrap();
+    assert_eq!(submission_status_json(output)["status"], "grading-hidden");
+}
+
+fn error_data(error: &tmc_langs_cli::CliError) -> serde_json::Value {
+    match &*error.output {
+        CliOutput::OutputData(data) => {
+            serde_json::to_value(&data.data).unwrap()["output-data"].clone()
+        }
+        other => panic!("expected OutputData, got {other:?}"),
+    }
+}
+
+#[test]
+fn a_refusal_carries_the_request_id_and_retry_after() {
+    let mut server = mockito::Server::new();
+    let _limited = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_status(429)
+        .with_header("request-id", "7f1c0a2e-0000-4000-8000-000000000001")
+        .with_header("retry-after", "42")
+        .with_body(r#"{"message_key":"rate_limited","message":"slow down"}"#)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    let data = error_data(&error);
+    assert_eq!(data["kind"], "rate-limited");
+    assert_eq!(data["request_id"], "7f1c0a2e-0000-4000-8000-000000000001");
+    assert_eq!(data["retry_after_secs"], 42);
+}
+
+#[test]
+fn a_get_is_retried_once_after_a_gateway_error() {
+    let mut server = mockito::Server::new();
+    let _failing = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_status(502)
+        .expect(1)
+        .create();
+    let _working = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_body("[]")
+        .expect(1)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let output = run_mooc_in(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    assert!(matches!(data_of(output.unwrap()), DataKind::MoocCourses(_)));
+}
+
+#[test]
+fn a_4xx_without_a_key_is_an_invalid_request_and_a_bad_body_unexpected() {
+    let mut server = mockito::Server::new();
+    let _bad = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .with_status(400)
+        .create();
+    let _portal = server
+        .mock("GET", "/api/v0/exercise-services/client/exams")
+        .with_body("<html>log in to the wifi</html>")
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    assert_error_kind(error, "invalid-request");
+    let error =
+        run_mooc_in_expect_error(&server, &["exams"], config_dir.path(), projects_dir.path());
+    assert_error_kind(error, "unexpected-response");
+}
+
+#[test]
+fn a_login_service_refusing_the_client_is_not_a_logout() {
+    let mut server = mockito::Server::new();
+    let _refused = server
+        .mock("POST", "/api/v0/main-frontend/oauth/device_authorization")
+        .with_status(401)
+        .with_body(r#"{"error":"invalid_client"}"#)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let error = run_mooc_auth(&server, &["login"], config_dir.path()).unwrap_err();
+    assert_error_kind(error, "login-client-rejected");
+}
+
+#[test]
+fn wait_for_grading_stops_at_a_definitive_refusal() {
+    let mut server = mockito::Server::new();
+    let submission_id = "66666666-6666-6666-6666-666666666666";
+    let _gone = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_status(404)
+        .expect(1)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["wait-for-grading", "--submission-id", submission_id],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+    assert_error_kind(error, "not-found");
+}
+
+#[test]
+fn requests_name_the_frontend_and_its_version() {
+    let mut server = mockito::Server::new();
+    let courses = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .match_header(
+            "user-agent",
+            mockito::Matcher::Regex(r"^test/4\.0\.0 tmc-langs/\S+$".to_string()),
+        )
+        .with_body("[]")
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    run_mooc_in(
+        &server,
+        &["--client-version", "4.0.0", "courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    )
+    .unwrap();
+    courses.assert();
 }

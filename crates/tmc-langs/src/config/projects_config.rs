@@ -3,9 +3,10 @@
 use crate::LangsError;
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{BTreeMap, HashMap, btree_map, hash_map::Entry},
+    collections::{BTreeMap, HashMap, HashSet, btree_map, hash_map::Entry},
     path::{Path, PathBuf},
 };
+use tmc_langs_framework::{is_valid_windows_file_name, is_windows_device_name};
 use tmc_langs_util::{
     FileError, deserialize,
     file_util::{self, Lock, LockOptions},
@@ -27,7 +28,7 @@ pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
     // slug => course
     pub tmc_courses: HashMap<String, TmcCourseConfig>,
-    // instance_id => course
+    // course_id => course
     pub mooc_courses: HashMap<Uuid, MoocCourseConfig>,
 }
 
@@ -56,16 +57,31 @@ impl ProjectsConfig {
         let mut unexpected_entries = Vec::new();
         let mooc_projects_dir = projects_dir.join(MOOC_DIR_NAME);
         if mooc_projects_dir.exists() {
-            for entry in WalkDir::new(mooc_projects_dir).min_depth(1).max_depth(1) {
+            for entry in WalkDir::new(&mooc_projects_dir).min_depth(1).max_depth(1) {
                 let entry = entry?;
-
-                let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
-                if course_config_path.exists() {
-                    let file = file_util::read_file_to_string(&course_config_path)?;
-                    let course_config = deserialize::toml_from_str::<MoocCourseConfig>(&file)?;
-                    mooc_course_configs.insert(course_config.instance_id, course_config);
-                } else {
+                if let Some(course_config) =
+                    Self::read_mooc_course_config(&mooc_projects_dir, entry.path())?
+                {
+                    mooc_course_configs.insert(course_config.course_id, course_config);
+                    continue;
+                }
+                // Versions that kept a '/' in course names wrote the config one level deeper.
+                let mut nested_configs = Vec::new();
+                if entry.file_type().is_dir() {
+                    for nested in WalkDir::new(entry.path()).min_depth(1).max_depth(1) {
+                        let nested = nested?;
+                        if let Some(course_config) =
+                            Self::read_mooc_course_config(&mooc_projects_dir, nested.path())?
+                        {
+                            nested_configs.push(course_config);
+                        }
+                    }
+                }
+                if nested_configs.is_empty() {
                     unexpected_entries.push(entry);
+                }
+                for course_config in nested_configs {
+                    mooc_course_configs.insert(course_config.course_id, course_config);
                 }
             }
         }
@@ -143,7 +159,19 @@ impl ProjectsConfig {
         }
         for course_config in mooc_course_configs.values_mut() {
             let mut deleted_exercises = vec![];
+            // Compared as files, so that names differing only in case match exactly where the
+            // file system ignores case.
+            let mut claimed_directories = HashSet::new();
             for (exercise_id, exercise) in course_config.exercises.iter() {
+                if !is_safe_directory_name(&exercise.directory) {
+                    log::warn!(
+                        "forgetting local exercise {exercise_id}: its directory {:?} is not a \
+                         plain directory name",
+                        exercise.directory
+                    );
+                    deleted_exercises.push(*exercise_id);
+                    continue;
+                }
                 let expected_dir = Self::get_mooc_exercise_download_target(
                     projects_dir,
                     &course_config.directory,
@@ -153,6 +181,17 @@ impl ProjectsConfig {
                     log::debug!(
                         "local exercise {} not found, deleting from config",
                         expected_dir.display()
+                    );
+                    deleted_exercises.push(*exercise_id);
+                    continue;
+                }
+                if let Ok(directory) = same_file::Handle::from_path(&expected_dir)
+                    && !claimed_directories.insert(directory)
+                {
+                    log::warn!(
+                        "forgetting local exercise {exercise_id}: another exercise of the \
+                         course is stored in its directory {:?}",
+                        exercise.directory
                     );
                     deleted_exercises.push(*exercise_id);
                 }
@@ -174,6 +213,16 @@ impl ProjectsConfig {
         })
     }
 
+    /// Exclusive lock for a download or update that reads, modifies and saves course configs.
+    /// Keyed apart from the projects directory itself, which [`ProjectsConfig::load`] read-locks.
+    /// Take it before any lock on the projects directory, or two commands can deadlock.
+    pub fn lock_course_config_updates(projects_dir: &Path) -> Result<Lock, LangsError> {
+        Ok(Lock::dir(
+            projects_dir.join(".course-config-updates"),
+            LockOptions::Write,
+        )?)
+    }
+
     /// Reads the TMC course config in a course directory, keyed by the directory's name.
     /// `None` if the entry has no config.
     fn read_tmc_course_config(
@@ -186,9 +235,8 @@ impl ProjectsConfig {
         let course_dir_name = entry.file_name().to_str().ok_or_else(|| {
             LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
         })?;
-        let file = file_util::read_file_to_string(&course_config_path)?;
-        let course_config = deserialize::toml_from_str(&file)?;
-        Ok(Some((course_dir_name.to_string(), course_config)))
+        Ok(read_course_config(&course_config_path)
+            .map(|course_config| (course_dir_name.to_string(), course_config)))
     }
 
     fn is_reserved_dir_name(name: &str) -> bool {
@@ -247,6 +295,31 @@ impl ProjectsConfig {
         Self::resolve_tmc_exercise_path(projects_dir, course_name, exercise_name).exists()
     }
 
+    /// The mooc course config in `course_dir`, if it has one. Its `directory` is taken from where
+    /// it was found, never from the file, so it stays under `mooc_projects_dir`.
+    fn read_mooc_course_config(
+        mooc_projects_dir: &Path,
+        course_dir: &Path,
+    ) -> Result<Option<MoocCourseConfig>, LangsError> {
+        let course_config_path = course_dir.join(COURSE_CONFIG_FILE_NAME);
+        if !course_config_path.is_file() {
+            return Ok(None);
+        }
+        let Some(mut course_config) = read_course_config::<MoocCourseConfig>(&course_config_path)
+        else {
+            return Ok(None);
+        };
+        let relative_dir = course_dir
+            .strip_prefix(mooc_projects_dir)
+            .expect("course dirs are walked from the mooc projects dir");
+        course_config.directory = relative_dir
+            .components()
+            .map(|component| component.as_os_str().to_string_lossy())
+            .collect::<Vec<_>>()
+            .join("/");
+        Ok(Some(course_config))
+    }
+
     pub fn get_mooc_exercise_download_target(
         projects_dir: &Path,
         instance_directory: &str,
@@ -270,11 +343,11 @@ impl ProjectsConfig {
 
     pub fn get_mooc_exercise(
         &self,
-        instance_id: Uuid,
+        course_id: Uuid,
         exercise_id: Uuid,
     ) -> Option<&ProjectsDirMoocExercise> {
         self.mooc_courses
-            .get(&instance_id)
+            .get(&course_id)
             .and_then(|c| c.exercises.get(&exercise_id))
     }
 
@@ -299,44 +372,114 @@ impl ProjectsConfig {
     /// Note: does not save the config on initialization.
     pub fn get_or_init_mooc_course_config(
         &mut self,
-        instance_id: Uuid,
         course_id: Uuid,
         course_name: String,
+        is_exam: bool,
     ) -> &mut MoocCourseConfig {
-        let existing_dirs = self
-            .mooc_courses
-            .values()
-            .map(|mc| &mc.directory)
-            .collect::<Vec<_>>();
-        let kebab_name = simple_kebab_case(&course_name);
-        let directory = if existing_dirs.contains(&&kebab_name) {
-            // need to use another course name to avoid conflicts
-            let mut dir = None;
-            for i in 1.. {
-                let proposal = format!("{kebab_name}-{i}");
-                if !existing_dirs.contains(&&proposal) {
-                    dir = Some(proposal);
-                    break;
-                }
-            }
-            dir.expect("unreachable")
-        } else {
-            kebab_name
-        };
+        let directory = unique_directory_name(
+            &course_name,
+            self.mooc_courses.values().map(|mc| mc.directory.as_str()),
+        );
         self.mooc_courses
-            .entry(instance_id)
+            .entry(course_id)
             .or_insert(MoocCourseConfig {
                 course: course_name,
                 exercises: BTreeMap::new(),
                 course_id,
-                instance_id,
                 directory,
+                is_exam,
             })
     }
 }
 
-pub(crate) fn simple_kebab_case(s: &str) -> String {
-    s.to_lowercase().replace(" ", "-")
+/// Longest directory name derived from a server-supplied name, in characters; keeps exercise
+/// paths well under Windows' 260-character limit.
+const MAX_DIRECTORY_NAME_CHARS: usize = 64;
+
+/// A directory name for a course or exercise name chosen on courses.mooc.fi: lower-cased letters,
+/// digits, `-` and `_` only, so no name can escape the projects directory or be invalid on
+/// Windows.
+pub(crate) fn directory_name(name: &str) -> String {
+    let mut directory = String::new();
+    for c in name.to_lowercase().chars() {
+        if c.is_alphanumeric() || c == '_' {
+            directory.push(c);
+        } else if !directory.is_empty() && !directory.ends_with('-') {
+            directory.push('-');
+        }
+    }
+    let mut directory: String = directory
+        .trim_end_matches('-')
+        .chars()
+        .take(MAX_DIRECTORY_NAME_CHARS)
+        .collect();
+    if directory.is_empty() {
+        directory.push_str("unnamed");
+    }
+    if is_windows_device_name(&directory) {
+        directory.push('_');
+    }
+    directory
+}
+
+/// Whether a stored directory name is a single, harmless path component. Names stored by
+/// versions before [`directory_name`] may not be.
+pub(crate) fn is_safe_directory_name(directory: &str) -> bool {
+    if directory == directory_name(directory) {
+        return true;
+    }
+    let is_one_component = !directory.is_empty()
+        && directory != "."
+        && directory != ".."
+        && !directory.contains(['/', '\\', '\0']);
+    // Older versions kept characters such as ':' that only Windows rejects, and those
+    // directories exist and hold work everywhere else.
+    is_one_component && (!cfg!(windows) || is_valid_windows_file_name(directory))
+}
+
+/// [`directory_name`] of `name`, suffixed to differ from every `taken` name. Compared without
+/// case, as Windows and macOS file systems do.
+pub(crate) fn unique_directory_name<'a>(
+    name: &str,
+    taken: impl IntoIterator<Item = &'a str>,
+) -> String {
+    let taken: HashSet<String> = taken.into_iter().map(str::to_lowercase).collect();
+    let base = directory_name(name);
+    if !taken.contains(&base) {
+        return base;
+    }
+    (1..)
+        .map(|i| format!("{base}-{i}"))
+        .find(|proposal| !taken.contains(proposal))
+        .expect("an unbounded range always yields a free suffix")
+}
+
+/// The course config at `path`, or `None` with a warning when it is unreadable, so one broken
+/// file does not hide every other course.
+fn read_course_config<T: serde::de::DeserializeOwned>(path: &Path) -> Option<T> {
+    parse_course_config::<T>(path)
+        .inspect_err(|err| log::warn!("Skipping {}: {err}", path.display()))
+        .ok()
+}
+
+fn parse_course_config<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T, LangsError> {
+    let file = file_util::read_file_to_string(path)?;
+    Ok(deserialize::toml_from_str(&file)?)
+}
+
+/// Writes a course config, refusing to replace one that cannot be read: [`ProjectsConfig::load`]
+/// skipped it, so the config being written lacks the exercises it lists.
+fn write_course_config<T: serde::de::DeserializeOwned>(
+    target: &Path,
+    contents: &str,
+) -> Result<(), LangsError> {
+    if target.exists() {
+        parse_course_config::<T>(target).map_err(|err| {
+            LangsError::UnreadableCourseConfig(target.to_path_buf(), Box::new(err))
+        })?;
+    }
+    file_util::write_atomically(target, contents)?;
+    Ok(())
 }
 
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
@@ -365,14 +508,14 @@ impl TmcCourseConfig {
         }
         let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
         let s = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(s.as_bytes(), &target)?;
+        write_course_config::<Self>(&target, &s)?;
 
         // `load` merges a `tmc/` copy back in, so a stale one would revert this save.
         let split_layout_target =
             ProjectsConfig::split_layout_tmc_course_dir(projects_dir, &self.course)
                 .join(COURSE_CONFIG_FILE_NAME);
         if split_layout_target != target && split_layout_target.exists() {
-            file_util::write_to_file(s.as_bytes(), split_layout_target)?;
+            write_course_config::<Self>(&split_layout_target, &s)?;
         }
         Ok(())
     }
@@ -411,42 +554,64 @@ impl TmcCourseConfig {
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MoocCourseConfig {
+    /// The exam's id when `is_exam`.
+    /// The file also has an `instance_id`, always equal to this, for older CLIs; it is ignored.
     pub course_id: Uuid,
-    pub instance_id: Uuid,
     /// The course's name.
     pub course: String,
     pub directory: String,
+    /// Whether this holds an exam's exercises rather than a course's.
+    #[serde(default)]
+    pub is_exam: bool,
     /// The course's exercises in a map with the exercise's id as the key.
     #[serde(default)]
     pub exercises: BTreeMap<Uuid, ProjectsDirMoocExercise>,
 }
 
 impl MoocCourseConfig {
-    /// Inserts or replaces an exercise entry, returning its on-disk directory.
-    /// Existing entries keep their directory; new ones use the kebab-cased
-    /// exercise name (unique within a course, mirroring the TMC layout).
+    /// The directory an exercise is or will be stored in: the stored one when it is safe, else
+    /// one derived from `name` that no other exercise of the course, and none of `reserved`,
+    /// uses.
+    pub fn exercise_directory<'a>(
+        &'a self,
+        exercise_id: Uuid,
+        name: &str,
+        reserved: impl IntoIterator<Item = &'a String>,
+    ) -> String {
+        if let Some(existing) = self.exercises.get(&exercise_id)
+            && is_safe_directory_name(&existing.directory)
+        {
+            return existing.directory.clone();
+        }
+        unique_directory_name(
+            name,
+            self.exercises
+                .iter()
+                .filter(|(id, _)| **id != exercise_id)
+                .map(|(_, exercise)| exercise.directory.as_str())
+                .chain(reserved.into_iter().map(String::as_str)),
+        )
+    }
+
+    /// Inserts or replaces an exercise entry stored in `directory`, from
+    /// [`Self::exercise_directory`].
     pub fn add_exercise(
         &mut self,
         exercise_id: Uuid,
         name: String,
         task_id: Uuid,
         checksum: String,
-    ) -> String {
-        let directory = self
-            .exercises
-            .get(&exercise_id)
-            .map(|e| e.directory.clone())
-            .unwrap_or_else(|| simple_kebab_case(&name));
+        directory: String,
+    ) {
         self.exercises.insert(
             exercise_id,
             ProjectsDirMoocExercise {
                 name,
                 task_id,
                 checksum,
-                directory: directory.clone(),
+                directory,
             },
         );
-        directory
     }
 
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
@@ -457,8 +622,11 @@ impl MoocCourseConfig {
             file_util::create_dir_all(&course_dir)?;
         }
         let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
-        let s = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(s.as_bytes(), target)?;
+        let mut table = toml::Table::try_from(self)?;
+        // Earlier releases require it and fail to load the whole projects directory without it.
+        table.insert("instance_id".into(), self.course_id.to_string().into());
+        let s = toml::to_string_pretty(&table)?;
+        write_course_config::<Self>(&target, &s)?;
         Ok(())
     }
 }
@@ -862,6 +1030,119 @@ checksum = "defg4567"
     }
 
     #[test]
+    fn directory_names_cannot_escape_or_break_on_windows() {
+        for (name, expected) in [
+            ("Part 1: Hello world", "part-1-hello-world"),
+            ("../../../..", "unnamed"),
+            ("/etc/passwd", "etc-passwd"),
+            ("C:\\Windows", "c-windows"),
+            ("Ohjelmointi: osa 1/2", "ohjelmointi-osa-1-2"),
+            ("what? *now* <a|b> \"q\"", "what-now-a-b-q"),
+            ("trailing dot.", "trailing-dot"),
+            ("Con", "con_"),
+            ("com1", "com1_"),
+            ("Äidinkieli", "äidinkieli"),
+            ("snake_case", "snake_case"),
+        ] {
+            assert_eq!(directory_name(name), expected, "{name}");
+            assert!(is_safe_directory_name(&directory_name(name)));
+        }
+        assert_eq!(directory_name(&"x".repeat(200)).chars().count(), 64);
+    }
+
+    #[test]
+    fn stored_directory_names_with_path_syntax_are_unsafe() {
+        for unsafe_name in ["..", ".", "", "a/b", "a\\b"] {
+            assert!(!is_safe_directory_name(unsafe_name), "{unsafe_name}");
+        }
+        for safe_name in ["exercise-1", "My Exercise", "ex.1"] {
+            assert!(is_safe_directory_name(safe_name), "{safe_name}");
+        }
+        for windows_invalid_name in ["c:", "nul", "aux.txt", "dot.", "part-1:-hello-world"] {
+            assert_eq!(
+                is_safe_directory_name(windows_invalid_name),
+                !cfg!(windows),
+                "{windows_invalid_name}"
+            );
+        }
+    }
+
+    #[test]
+    fn names_equal_up_to_case_or_spacing_get_distinct_directories() {
+        let mut course = MoocCourseConfig {
+            course_id: Uuid::new_v4(),
+            course: "c".to_string(),
+            directory: "c".to_string(),
+            is_exam: false,
+            exercises: BTreeMap::new(),
+        };
+        let mut directories = Vec::new();
+        for name in ["U15 Dup", "u15 dup", "u15-dup"] {
+            let id = Uuid::new_v4();
+            let directory = course.exercise_directory(id, name, []);
+            course.add_exercise(id, name.to_string(), id, String::new(), directory.clone());
+            directories.push(directory);
+        }
+        assert_eq!(directories, ["u15-dup", "u15-dup-1", "u15-dup-2"]);
+    }
+
+    #[test]
+    fn course_directory_comes_from_where_the_config_is() {
+        let temp = tempfile::tempdir().unwrap();
+        let id = Uuid::new_v4();
+        file_to(
+            &temp,
+            "mooc/Ohjelmointi osa 1/2/course_config.toml",
+            format!(
+                "course_id = \"{id}\"\ninstance_id = \"{id}\"\ncourse = \"c\"\n\
+                 directory = \"../../elsewhere\"\n"
+            ),
+        );
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+        assert_eq!(pc.mooc_courses[&id].directory, "Ohjelmointi osa 1/2");
+    }
+
+    #[test]
+    fn exercises_sharing_a_directory_keep_only_one_entry() {
+        init_logging();
+        let temp = tempfile::TempDir::new().unwrap();
+        let course_id = Uuid::new_v4();
+        let exercise = |directory: &str| ProjectsDirMoocExercise {
+            name: directory.to_string(),
+            task_id: Uuid::new_v4(),
+            checksum: "abcd".to_string(),
+            directory: directory.to_string(),
+        };
+        let exercises = BTreeMap::from([
+            (Uuid::new_v4(), exercise("ex")),
+            (Uuid::new_v4(), exercise("ex")),
+            (Uuid::new_v4(), exercise("missing")),
+            (Uuid::new_v4(), exercise("other")),
+        ]);
+        MoocCourseConfig {
+            course_id,
+            course: "course".to_string(),
+            directory: "course".to_string(),
+            is_exam: false,
+            exercises,
+        }
+        .save_to_projects_dir(temp.path())
+        .unwrap();
+        for directory in ["ex", "other"] {
+            dir_to(&temp, format!("mooc/course/{directory}"));
+        }
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+        let mut directories = pc.mooc_courses[&course_id]
+            .exercises
+            .values()
+            .map(|exercise| exercise.directory.clone())
+            .collect::<Vec<_>>();
+        directories.sort();
+        assert_eq!(directories, ["ex", "other"]);
+    }
+
+    #[test]
     fn mooc_config_save_load_round_trip() {
         // Save and load must agree on the `mooc/<directory>/` layout.
         init_logging();
@@ -869,7 +1150,6 @@ checksum = "defg4567"
         let temp = tempfile::TempDir::new().unwrap();
 
         let course_id = Uuid::new_v4();
-        let instance_id = Uuid::new_v4();
         let task_id = Uuid::new_v4();
         let exercise_id = Uuid::new_v4();
 
@@ -885,9 +1165,9 @@ checksum = "defg4567"
         );
         let course_config = MoocCourseConfig {
             course_id,
-            instance_id,
             course: "My MOOC Course".to_string(),
             directory: "my-mooc-course".to_string(),
+            is_exam: false,
             exercises,
         };
         course_config.save_to_projects_dir(temp.path()).unwrap();
@@ -902,13 +1182,16 @@ checksum = "defg4567"
             "config should be saved under mooc/<directory>/, was not found at {}",
             expected_config_path.display()
         );
+        let saved: toml::Table =
+            toml::from_str(&std::fs::read_to_string(&expected_config_path).unwrap()).unwrap();
+        assert_eq!(saved["instance_id"].as_str(), Some(&*course_id.to_string()));
 
         // create the exercise dir so the load maintenance pass doesn't prune it
         dir_to(&temp, "mooc/my-mooc-course/exercise-1");
 
         let pc = ProjectsConfig::load(temp.path()).unwrap();
         assert_eq!(pc.mooc_courses.len(), 1);
-        let cc = pc.mooc_courses.get(&instance_id).unwrap();
+        let cc = pc.mooc_courses.get(&course_id).unwrap();
         assert_eq!(cc.course, "My MOOC Course");
         assert_eq!(cc.directory, "my-mooc-course");
         assert_eq!(cc.course_id, course_id);
@@ -917,5 +1200,100 @@ checksum = "defg4567"
         assert_eq!(ex.task_id, task_id);
         assert_eq!(ex.checksum, "abcd1234");
         assert_eq!(ex.directory, "exercise-1");
+    }
+
+    #[test]
+    fn an_unparsable_course_config_is_skipped_not_fatal() {
+        init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        file_to(
+            &temp,
+            "broken/course_config.toml",
+            "course = \"unterminated",
+        );
+        file_to(&temp, "mooc/broken/course_config.toml", "not = [valid");
+        file_to(
+            &temp,
+            "python/course_config.toml",
+            "course = \"python\"\n[exercises.ex1]\nid = 1\nchecksum = \"a\"\n",
+        );
+        dir_to(&temp, "python/ex1");
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+        assert_eq!(pc.tmc_courses.len(), 1);
+        assert!(pc.tmc_courses.contains_key("python"));
+        assert!(pc.mooc_courses.is_empty());
+    }
+
+    #[test]
+    fn saving_a_course_config_replaces_it_whole_and_leaves_no_temp_files() {
+        init_logging();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        let mut course_config = TmcCourseConfig {
+            course: "python".to_string(),
+            course_id: None,
+            exercises: BTreeMap::new(),
+        };
+        course_config.save_to_projects_dir(temp.path()).unwrap();
+        course_config.add_exercise("ex1".to_string(), 1, "a".to_string());
+        course_config.save_to_projects_dir(temp.path()).unwrap();
+
+        let course_dir = temp.path().join("python");
+        let names = std::fs::read_dir(&course_dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect::<Vec<_>>();
+        assert_eq!(names, [std::ffi::OsString::from(COURSE_CONFIG_FILE_NAME)]);
+        let saved: TmcCourseConfig = deserialize::toml_from_str(
+            &std::fs::read_to_string(course_dir.join(COURSE_CONFIG_FILE_NAME)).unwrap(),
+        )
+        .unwrap();
+        assert!(saved.exercises.contains_key("ex1"));
+    }
+
+    #[test]
+    fn saving_does_not_replace_an_unreadable_course_config() {
+        init_logging();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        let broken = "course = \"unterminated";
+        file_to(&temp, "python/course_config.toml", broken);
+        file_to(&temp, "mooc/my-course/course_config.toml", broken);
+
+        let tmc_config = TmcCourseConfig {
+            course: "python".to_string(),
+            course_id: None,
+            exercises: BTreeMap::new(),
+        };
+        let tmc_result = tmc_config.save_to_projects_dir(temp.path());
+        assert!(
+            matches!(tmc_result, Err(LangsError::UnreadableCourseConfig(..))),
+            "{tmc_result:?}"
+        );
+        let mooc_config = MoocCourseConfig {
+            course: "My Course".to_string(),
+            course_id: Uuid::new_v4(),
+            directory: "my-course".to_string(),
+            is_exam: false,
+            exercises: BTreeMap::new(),
+        };
+        let mooc_result = mooc_config.save_to_projects_dir(temp.path());
+        assert!(
+            matches!(mooc_result, Err(LangsError::UnreadableCourseConfig(..))),
+            "{mooc_result:?}"
+        );
+
+        for path in [
+            "python/course_config.toml",
+            "mooc/my-course/course_config.toml",
+        ] {
+            assert_eq!(
+                std::fs::read_to_string(temp.path().join(path)).unwrap(),
+                broken
+            );
+        }
     }
 }

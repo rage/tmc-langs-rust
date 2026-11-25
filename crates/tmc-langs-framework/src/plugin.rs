@@ -3,6 +3,7 @@
 use crate::{
     Archive, Compression,
     archive::ArchiveIterator,
+    archive_safety::{ExtractionBudget, ExtractionLimits},
     domain::{
         DEFAULT_TESTS_TIMEOUT, ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus,
         StyleValidationResult, TestResult,
@@ -160,15 +161,17 @@ pub trait LanguagePlugin {
         // extract config file first, as the policy depends on it
         let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
         let target_tmc_project_yml = target_location.join(".tmcproject.yml");
+        let mut budget = ExtractionBudget::new(ExtractionLimits::default());
         if let Some(mut file) = archive.by_path(&tmc_project_yml_path)? {
-            file_util::read_to_file(&mut file, &target_tmc_project_yml)?;
+            budget.admit_entry(&file.raw_name(), file.size())?;
+            file.write_to_file(&target_tmc_project_yml, &mut budget)?;
         } else if clean && target_tmc_project_yml.is_file() {
             file_util::remove_file(&target_tmc_project_yml)?;
         }
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
         // used to clean non-student files not in the zip later
-        let mut files_from_archive = HashSet::new();
+        let mut files_from_archive = ArchivePaths::new(IS_FILESYSTEM_CASE_INSENSITIVE);
         files_from_archive.insert(target_tmc_project_yml);
 
         let mut iter = archive.iter()?;
@@ -180,12 +183,10 @@ pub trait LanguagePlugin {
                     return Ok(Continue(()));
                 }
 
-                let relative = match file_path.strip_prefix(&project_dir) {
-                    Ok(relative) => relative,
-                    _ => {
-                        log::trace!("skip {}, not in project dir", file_path.display());
-                        return Ok(Continue(()));
-                    }
+                budget.admit_entry(&file.raw_name(), file.size())?;
+                let Some(relative) = relative_in_project(&file_path, &project_dir, file.is_dir())
+                else {
+                    return Ok(Continue(()));
                 };
                 let path_in_target = target_location.join(relative);
                 log::trace!("processing {file_path:?} -> {path_in_target:?}");
@@ -196,8 +197,10 @@ pub trait LanguagePlugin {
                     // just extract
                     if file.is_dir() {
                         file_util::create_dir_all(path_in_target)?;
+                    } else if file.is_file() {
+                        file.write_to_file(&path_in_target, &mut budget)?;
                     } else {
-                        file_util::read_to_file(&mut file, path_in_target)?;
+                        log::warn!("not extracting special archive entry {}", file.raw_name());
                     }
                 } else if !policy.is_student_file(relative)
                     || policy.is_updating_forced(relative)?
@@ -208,7 +211,7 @@ pub trait LanguagePlugin {
                         if path_in_target.is_dir() {
                             file_util::remove_dir_all(&path_in_target)?;
                         }
-                        file_util::read_to_file(&mut file, path_in_target)?;
+                        file.write_to_file(&path_in_target, &mut budget)?;
                     }
                 }
                 Ok(Continue(()))
@@ -283,17 +286,16 @@ pub trait LanguagePlugin {
 
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
+        let mut budget = ExtractionBudget::new(ExtractionLimits::default());
         let mut iter: ArchiveIterator<_> = archive.iter()?;
         loop {
             let next = iter.with_next::<(), _>(|mut file| {
                 // get the path where the file should be extracted
                 let file_path = file.path()?;
-                let relative = match file_path.strip_prefix(&project_dir) {
-                    Ok(relative) => relative,
-                    _ => {
-                        log::trace!("skip {}, not in project dir", file_path.display());
-                        return Ok(Continue(()));
-                    }
+                budget.admit_entry(&file.raw_name(), file.size())?;
+                let Some(relative) = relative_in_project(&file_path, &project_dir, file.is_dir())
+                else {
+                    return Ok(Continue(()));
                 };
                 let path_in_target = target_location.join(relative);
                 log::trace!("processing {file_path:?} -> {path_in_target:?}");
@@ -302,8 +304,8 @@ pub trait LanguagePlugin {
                     if file.is_file() {
                         // for files, everything should be removed out of the way
                         file_util::remove_all(&path_in_target)?;
-                        file_util::read_to_file(&mut file, &path_in_target)?;
-                    } else {
+                        file.write_to_file(&path_in_target, &mut budget)?;
+                    } else if file.is_dir() {
                         // for directories, we should keep existing directories but delete files at the same path
                         if path_in_target.is_file() {
                             file_util::remove_file(&path_in_target)?;
@@ -424,6 +426,13 @@ pub trait LanguagePlugin {
         let mut config = ExercisePackagingConfiguration {
             student_file_paths: HashSet::new(),
             exercise_file_paths: HashSet::new(),
+            tests_timeout_ms: Some(
+                policy
+                    .get_project_config()
+                    .tests_timeout_ms
+                    .map_or(DEFAULT_TESTS_TIMEOUT.as_secs() * 1000, u64::from),
+            ),
+            plugin: Some(Self::PLUGIN_NAME.to_string()),
         };
         for entry in WalkDir::new(path).min_depth(1) {
             let entry = entry?;
@@ -555,6 +564,60 @@ pub trait LanguagePlugin {
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>>;
 }
 
+/// Whether the target filesystems tmc-langs runs on usually treat paths differing only by case as one.
+const IS_FILESYSTEM_CASE_INSENSITIVE: bool = cfg!(any(windows, target_os = "macos"));
+
+/// `file_path` relative to the archive's `project_dir`, or `None` for an entry to skip: one
+/// outside the project, or a non-directory at its root, which would replace the whole target.
+fn relative_in_project<'a>(
+    file_path: &'a Path,
+    project_dir: &Path,
+    is_dir: bool,
+) -> Option<&'a Path> {
+    let Ok(relative) = file_path.strip_prefix(project_dir) else {
+        log::trace!("skip {}, not in project dir", file_path.display());
+        return None;
+    };
+    if relative.as_os_str().is_empty() && !is_dir {
+        log::warn!("skip {}, a file at the project root", file_path.display());
+        return None;
+    }
+    Some(relative)
+}
+
+/// The paths an archive extracted. On a case-insensitive filesystem a path matches an extracted
+/// one that differs only by case, since writing the one overwrote the other's file.
+struct ArchivePaths {
+    paths: HashSet<PathBuf>,
+    is_case_insensitive: bool,
+}
+
+impl ArchivePaths {
+    fn new(is_case_insensitive: bool) -> Self {
+        Self {
+            paths: HashSet::new(),
+            is_case_insensitive,
+        }
+    }
+
+    fn key(&self, path: &Path) -> PathBuf {
+        if self.is_case_insensitive {
+            PathBuf::from(path.to_string_lossy().to_lowercase())
+        } else {
+            path.to_path_buf()
+        }
+    }
+
+    fn insert(&mut self, path: PathBuf) {
+        let key = self.key(&path);
+        self.paths.insert(key);
+    }
+
+    fn contains(&self, path: &Path) -> bool {
+        self.paths.contains(&self.key(path))
+    }
+}
+
 fn is_in_hidden_top_level_entry(relative: &Path) -> bool {
     relative
         .components()
@@ -576,6 +639,20 @@ enum Parse {
 mod test {
     use super::*;
     use crate::test_helpers::{MockPlugin, MockPolicy, SimpleMockPlugin};
+
+    #[test]
+    fn archive_paths_ignore_case_only_when_the_filesystem_does() {
+        let mut sensitive = ArchivePaths::new(false);
+        let mut insensitive = ArchivePaths::new(true);
+        for paths in [&mut sensitive, &mut insensitive] {
+            paths.insert(PathBuf::from("/ex/test/MainTest.java"));
+        }
+        let renamed = Path::new("/ex/test/mainTest.java");
+        assert!(!sensitive.contains(renamed));
+        assert!(insensitive.contains(renamed));
+        assert!(sensitive.contains(Path::new("/ex/test/MainTest.java")));
+        assert!(!insensitive.contains(Path::new("/ex/test/Other.java")));
+    }
     use std::io::Write;
     use zip::{ZipWriter, write::SimpleFileOptions};
 
@@ -736,6 +813,24 @@ extra_exercise_files:
                 .exercise_file_paths
                 .contains(Path::new("InBothLists.java"))
         );
+    }
+
+    #[test]
+    fn packaging_configuration_names_the_plugin_and_the_effective_tests_timeout() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "src/main.c", "");
+        let conf = MockPlugin::get_exercise_packaging_configuration(temp.path()).unwrap();
+        assert_eq!(conf.plugin.as_deref(), Some(MockPlugin::PLUGIN_NAME));
+        assert_eq!(
+            conf.tests_timeout_ms.map(u128::from),
+            Some(DEFAULT_TESTS_TIMEOUT.as_millis())
+        );
+
+        file_to(&temp, ".tmcproject.yml", "tests_timeout_ms: 1234\n");
+        let conf = MockPlugin::get_exercise_packaging_configuration(temp.path()).unwrap();
+        assert_eq!(conf.tests_timeout_ms, Some(1234));
     }
 
     #[test]

@@ -192,6 +192,9 @@ fn process_file(
                 file_util::copy(entry.path(), dest_path)?;
             }
         }
+    } else {
+        // extensionless files such as Makefiles
+        file_util::copy(entry.path(), dest_path)?;
     }
     Ok(())
 }
@@ -348,6 +351,25 @@ mod test {
 
         assert!(temp_target.path().join("inner/binary.bin").exists());
         assert!(temp_target.path().join("File.java").exists());
+    }
+
+    #[test]
+    fn extensionless_files_are_kept() {
+        init();
+
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(&temp_source, "Makefile", "all:");
+        file_to(&temp_source, "src/Makefile", "all:");
+        file_to(&temp_source, "test/Makefile", "all:");
+
+        for prepare in [prepare_solution, prepare_stub] {
+            let temp_target = tempfile::tempdir().unwrap();
+            prepare(temp_source.path(), temp_target.path()).unwrap();
+            for name in ["Makefile", "src/Makefile", "test/Makefile"] {
+                let copied = std::fs::read_to_string(temp_target.path().join(name)).unwrap();
+                assert_eq!(copied, "all:", "{name}");
+            }
+        }
     }
 
     #[test]

@@ -1,6 +1,6 @@
 //! Contains the FileError error type for file operations.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 /// A wrapper for std::io::Error that provides more context for the failed operations.
@@ -59,4 +59,28 @@ pub enum FileError {
 
     #[error("Directory walk error")]
     Walkdir(#[from] walkdir::Error),
+}
+
+impl FileError {
+    /// The file or folder the failed operation was on; the destination of a copy or rename,
+    /// which is usually the one held or denied.
+    pub fn path(&self) -> Option<&Path> {
+        match self {
+            Self::FileOpen(path, _)
+            | Self::FileRead(path, _)
+            | Self::FileWrite(path, _)
+            | Self::FileCreate(path, _)
+            | Self::FileRemove(path, _)
+            | Self::DirRead(path, _)
+            | Self::DirCreate(path, _)
+            | Self::DirRemove(path, _)
+            | Self::NoFileName(path)
+            | Self::UnexpectedFile(path)
+            | Self::Canonicalize(path, _)
+            | Self::InvalidLockPath(path)
+            | Self::LockTimeout { path, .. } => Some(path),
+            Self::FileCopy { to, .. } | Self::Rename { to, .. } => Some(to),
+            Self::TempFile(_) | Self::ReadError(_) | Self::WriteError(_) | Self::Walkdir(_) => None,
+        }
+    }
 }

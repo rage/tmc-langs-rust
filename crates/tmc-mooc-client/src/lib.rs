@@ -12,12 +12,13 @@ pub use self::{
     auth::{
         AUTH_REQUEST_TIMEOUT, DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE,
         DEVICE_SCOPE, DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization,
-        poll_device_token, refresh_token,
+        poll_device_token, refresh_token, revoke_refresh_token,
     },
-    error::{MoocClientError, MoocClientResult},
+    error::{ConnectionFailure, MoocClientError, MoocClientResult, ResponseMeta},
     exercise::{
         BrowserTestRuntime, BrowserTestSpec, ChapterLockingStatus, ExerciseChapter, ExerciseType,
-        ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask,
+        ModelSolutionSpec, MoocDownloadFailure, PublicSpec, TMC_SERVICE_SLUG, TmcExerciseSlide,
+        TmcExerciseTask,
     },
     grading::{GradingTestResult, GradingTestRun, GradingTestRunStatus},
 };
@@ -49,9 +50,35 @@ use uuid::Uuid;
 /// obsolete clients with `426 Upgrade Required`.
 const CLIENT_VERSION_HEADER: &str = "X-Client-Version";
 
-/// Env knob (`=1`) that also trusts `localhost`/`127.0.0.1` as bearer-token
-/// destinations. Off by default so production never sends the token to a local
-/// host; tests and local development opt in.
+static USER_AGENT: RwLock<Option<String>> = RwLock::new(None);
+
+/// Names the program driving this client (e.g. `vscode_plugin` and its version) in the
+/// `User-Agent` of requests made after this, so courses.mooc.fi can tell frontend releases
+/// apart, as the langs version in [`CLIENT_VERSION_HEADER`] cannot.
+pub fn set_frontend(name: &str, version: Option<&str>) {
+    let frontend = match version {
+        Some(version) => format!("{name}/{version}"),
+        None => name.to_string(),
+    };
+    *USER_AGENT
+        .write()
+        .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(format!(
+        "{frontend} tmc-langs/{}",
+        env!("CARGO_PKG_VERSION")
+    ));
+}
+
+pub(crate) fn user_agent() -> String {
+    USER_AGENT
+        .read()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .clone()
+        .unwrap_or_else(|| format!("tmc-langs/{}", env!("CARGO_PKG_VERSION")))
+}
+
+/// Env knob (`=1`) that also trusts `localhost`, `127.0.0.1` and the local development host
+/// `project-331.local` as bearer-token destinations, over any scheme. Off by default so
+/// production never sends the token to a local host; tests and local development opt in.
 pub const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
 
 /// Public because the same access token is also accepted by tmc-server, so the
@@ -86,7 +113,11 @@ pub const RATE_LIMITED_MESSAGE_KEY: &str = "rate_limited";
 pub const DEADLINE_PASSED_MESSAGE_KEY: &str = "deadline_passed";
 pub const OUT_OF_TRIES_MESSAGE_KEY: &str = "out_of_tries";
 pub const NOT_ENROLLED_MESSAGE_KEY: &str = "not_enrolled";
-/// 403s from a closed chapter, unlike a plain 403 for a missing scope.
+/// 403 for a token that lacks the `exercise-services` scope.
+pub const INSUFFICIENT_SCOPE_MESSAGE_KEY: &str = "insufficient_scope";
+/// 403 for a course or exercise the user may not view.
+pub const NO_ACCESS_MESSAGE_KEY: &str = "no_access";
+/// 403s from a closed chapter.
 pub const CHAPTER_NOT_OPEN_YET_MESSAGE_KEY: &str = "chapter_not_open_yet";
 pub const CHAPTER_NOT_UNLOCKED_YET_MESSAGE_KEY: &str = "chapter_not_unlocked_yet";
 pub const CHAPTER_COMPLETED_AND_LOCKED_MESSAGE_KEY: &str = "chapter_completed_and_locked";
@@ -138,6 +169,7 @@ impl MoocClient {
         }
 
         let client = Client::builder()
+            .user_agent(user_agent())
             .timeout(REQUEST_TIMEOUT)
             .connect_timeout(REQUEST_TIMEOUT)
             .build()
@@ -153,16 +185,7 @@ impl MoocClient {
     fn request(&self, method: Method, url: Url) -> MoocRequest {
         log::debug!("building a request to {}", redact_query(url.as_str()));
 
-        // Attach the bearer only to trusted hosts, so a (possibly attacker-controlled)
-        // URL never receives it. `host_str` rather than `domain` so IP literals count.
-        let trusted_domains = &["courses.mooc.fi", "project-331.local"];
-        let is_trusted_domain = url
-            .host_str()
-            .map(|h| {
-                trusted_domains.contains(&h)
-                    || (trust_localhost() && (h == "localhost" || h == "127.0.0.1"))
-            })
-            .unwrap_or_default();
+        let is_trusted_domain = may_carry_bearer(&url);
         let mut builder = self
             .0
             .client
@@ -271,6 +294,32 @@ impl MoocClient {
         Ok(res.into())
     }
 
+    /// The exams the user has started and can still answer.
+    pub fn exams(&self) -> MoocClientResult<Vec<Exam>> {
+        let url = make_client_api_url(self, "exams")?;
+        let res = self
+            .request(Method::GET, url)
+            .send_expect_json::<Vec<api::Exam>>()?;
+        Ok(res.into_iter().map(Into::into).collect())
+    }
+
+    /// The exercises of an exam from [`Self::exams`]. Their gradings read as
+    /// [`ExerciseTaskSubmissionStatus::GradingHidden`] while the exam can be answered.
+    pub fn exam_exercises(&self, exam: Uuid) -> MoocClientResult<Vec<TmcExerciseSlide>> {
+        let url = make_client_api_url(self, format!("exams/{exam}/exercises"))?;
+        let res = self
+            .request(Method::GET, url.clone())
+            .send_expect_json::<Vec<api::ExerciseSlide>>()?
+            .into_iter()
+            .map(TryFrom::try_from)
+            .collect::<Result<_, JsonError>>()
+            .map_err(|err| MoocClientError::DeserializingResponse {
+                url,
+                error: err.into(),
+            })?;
+        Ok(res)
+    }
+
     pub fn exercise(&self, exercise: Uuid) -> MoocClientResult<TmcExerciseSlide> {
         let url = make_client_api_url(self, format!("exercises/{exercise}"))?;
         let res = self
@@ -308,11 +357,7 @@ impl MoocClient {
     /// with no editor task.
     pub fn download_exercise(&self, exercise: Uuid) -> MoocClientResult<Bytes> {
         let slide = self.exercise(exercise)?;
-        let download_url = slide.editor_stub_download_url().ok_or_else(|| {
-            Box::new(MoocClientError::NoDownloadableExerciseTask {
-                exercise_id: exercise,
-            })
-        })?;
+        let (_, download_url) = slide.require_editor_download()?;
         let url = Url::parse(download_url)
             .map_err(|err| MoocClientError::UrlParse(download_url.to_string(), err))
             .map_err(Box::new)?;
@@ -330,9 +375,7 @@ impl MoocClient {
         archive: &Path,
     ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
         let slide = self.exercise(exercise_id)?;
-        let task_id = slide
-            .editor_task_id()
-            .ok_or_else(|| Box::new(MoocClientError::NoSubmittableExerciseTask { exercise_id }))?;
+        let task_id = submittable_task_id(&slide)?;
         let mut result = self.submit(exercise_id, slide.slide_id, task_id, archive)?;
         result.exercise_page_url = slide.page_url;
         Ok(result)
@@ -433,9 +476,7 @@ impl MoocClient {
         purpose: api::SnapshotPurpose,
     ) -> MoocClientResult<Uuid> {
         let slide = self.exercise(exercise_id)?;
-        let task_id = slide
-            .editor_task_id()
-            .ok_or_else(|| Box::new(MoocClientError::NoSubmittableExerciseTask { exercise_id }))?;
+        let task_id = submittable_task_id(&slide)?;
         let files = [(SUBMISSION_ARCHIVE_FILE_NAME, archive)];
         let store = |uploaded: &[api::AnswerFile]| {
             self.store_uploaded_snapshot(exercise_id, slide.slide_id, task_id, uploaded, purpose)
@@ -522,17 +563,6 @@ impl MoocClient {
         Ok(res.into())
     }
 
-    /// Fetches each exercise by its exercise id, one slide per id. Each slide
-    /// carries `exercise_id` so callers can correlate results back to requests.
-    pub fn get_exercises(&self, exercise_ids: &[Uuid]) -> MoocClientResult<Vec<TmcExerciseSlide>> {
-        // todo: implement in a single request...
-        let mut slides = Vec::new();
-        for exercise_id in exercise_ids {
-            slides.push(self.exercise(*exercise_id)?);
-        }
-        Ok(slides)
-    }
-
     /// Returns the current user's past submissions and snapshots of an exercise, newest first.
     /// Each item's `id` is the value passed to [`MoocClient::download_submission_files`] and
     /// [`MoocClient::share_submission`].
@@ -577,6 +607,17 @@ impl MoocClient {
     }
 }
 
+/// Whether a request to `url` may carry the bearer token. Server-supplied URLs (file downloads)
+/// may point anywhere, so only courses.mooc.fi over https qualifies, plus local development
+/// hosts under [`TRUST_LOCALHOST_VAR`]. `host_str` rather than `domain` so IP literals count.
+fn may_carry_bearer(url: &Url) -> bool {
+    match url.host_str() {
+        Some("courses.mooc.fi") => url.scheme() == "https",
+        Some("localhost" | "127.0.0.1" | "project-331.local") => trust_localhost(),
+        _ => false,
+    }
+}
+
 /// Which request will name an upload; a snapshot's upload skips the deadline and try checks.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum UploadFor {
@@ -614,46 +655,75 @@ impl MoocRequest {
     }
 
     fn send(self) -> MoocClientResult<Response> {
-        match self.builder.send() {
-            Ok(res) => {
-                let status = res.status();
-                match status {
-                    _success if status.is_success() => Ok(res),
-                    StatusCode::UNAUTHORIZED => Err(Box::new(MoocClientError::NotAuthenticated)),
-                    _other => {
-                        let status = res.status();
-                        // 426 Upgrade Required signals the client is too old; the
-                        // backend enforces a minimum `X-Client-Version`.
-                        let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
-                        let body =
-                            res.text()
-                                .map_err(|err| MoocClientError::ReadingResponseBody {
-                                    method: self.method,
-                                    url: self.url.clone(),
-                                    error: Box::new(err.without_url()),
-                                })?;
-                        // Controlled errors carry an `ApiErrorResponse` `message_key`
-                        // (e.g. `not_enrolled`); lift it so the CLI can map it to a typed
-                        // error kind.
-                        let message_key = serde_json::from_str::<ApiErrorBody>(&body)
-                            .ok()
-                            .and_then(|parsed| parsed.message_key);
-                        Err(Box::new(MoocClientError::HttpError {
-                            url: self.url,
-                            status,
-                            error: body,
-                            obsolete_client,
-                            message_key,
-                        }))
-                    }
-                }
+        // Only a GET is safe to repeat: a POST may have been applied before its answer was lost.
+        let retry = if self.method == Method::GET {
+            self.builder.try_clone()
+        } else {
+            None
+        };
+        match (
+            Self::send_once(&self.method, &self.url, self.builder),
+            retry,
+        ) {
+            (Err(err), Some(retry)) if is_worth_retrying(&err) => {
+                log::warn!(
+                    "retrying {} once after: {err}",
+                    redact_query(self.url.as_str())
+                );
+                std::thread::sleep(RETRY_DELAY);
+                Self::send_once(&self.method, &self.url, retry)
             }
-            Err(error) => Err(Box::new(MoocClientError::ConnectionError(
-                self.method,
-                self.url,
-                error.without_url(),
-            ))),
+            (result, _) => result,
         }
+    }
+
+    fn send_once(
+        method: &Method,
+        url: &Url,
+        builder: RequestBuilder,
+    ) -> MoocClientResult<Response> {
+        let res = match builder.send() {
+            Ok(res) => res,
+            Err(error) => {
+                return Err(Box::new(MoocClientError::ConnectionError(
+                    method.clone(),
+                    url.clone(),
+                    error.without_url(),
+                )));
+            }
+        };
+        let status = res.status();
+        if status.is_success() {
+            return Ok(res);
+        }
+        let meta = ResponseMeta::of(res.headers());
+        let body = res
+            .text()
+            .map_err(|err| MoocClientError::ReadingResponseBody {
+                method: method.clone(),
+                url: url.clone(),
+                error: Box::new(err.without_url()),
+            })?;
+        if status == StatusCode::UNAUTHORIZED {
+            return Err(Box::new(MoocClientError::NotAuthenticated {
+                detail: error::response_detail(&body),
+                meta,
+            }));
+        }
+        // Controlled errors carry an `ApiErrorResponse` `message_key` (e.g. `not_enrolled`);
+        // lift it so the CLI can map it to a typed error kind.
+        let message_key = serde_json::from_str::<ApiErrorBody>(&body)
+            .ok()
+            .and_then(|parsed| parsed.message_key);
+        Err(Box::new(MoocClientError::HttpError {
+            url: url.clone(),
+            status,
+            error: body,
+            // The backend enforces a minimum `X-Client-Version` with 426 Upgrade Required.
+            obsolete_client: status == StatusCode::UPGRADE_REQUIRED,
+            message_key,
+            meta,
+        }))
     }
 
     fn send_expect_bytes(self) -> MoocClientResult<Bytes> {
@@ -695,6 +765,33 @@ struct ApiErrorBody {
     message_key: Option<String>,
 }
 
+/// The task a native client answers on the slide.
+fn submittable_task_id(slide: &TmcExerciseSlide) -> MoocClientResult<Uuid> {
+    let exercise_id = slide.exercise_id;
+    if slide.has_several_editor_tasks() {
+        return Err(Box::new(MoocClientError::SeveralEditorTasks {
+            exercise_id,
+        }));
+    }
+    slide
+        .editor_task_id()
+        .ok_or_else(|| Box::new(MoocClientError::NoSubmittableExerciseTask { exercise_id }))
+}
+
+/// Wait before the one retry of a GET; long enough for a restarting pod, short enough not to
+/// stall the editor.
+const RETRY_DELAY: Duration = Duration::from_millis(500);
+
+/// Failures a second try a moment later may not repeat: no answer, or a gateway or overloaded
+/// server. A timeout is not among them, as a second one would double an already long wait.
+fn is_worth_retrying(error: &MoocClientError) -> bool {
+    match error {
+        MoocClientError::ConnectionError(_, _, error) => !error.is_timeout(),
+        MoocClientError::HttpError { status, .. } => matches!(status.as_u16(), 502..=504),
+        _ => false,
+    }
+}
+
 fn is_upload_expired(error: &MoocClientError) -> bool {
     matches!(
         error,
@@ -724,11 +821,22 @@ fn make_client_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClient
 #[schemars(rename = "MoocCurrentUser")]
 pub struct CurrentUser {
     pub id: Uuid,
+    /// For showing which account is logged in. `None` when the user gave none, and from a host
+    /// that predates the field.
+    #[serde(default)]
+    pub name: Option<String>,
+    /// `None` from a host that predates the field.
+    #[serde(default)]
+    pub email: Option<String>,
 }
 
 impl From<api::CurrentUser> for CurrentUser {
     fn from(value: api::CurrentUser) -> Self {
-        Self { id: value.id }
+        Self {
+            id: value.id,
+            name: value.name,
+            email: value.email,
+        }
     }
 }
 
@@ -748,6 +856,32 @@ pub struct Course {
     /// `not_set` from a host that predates the field.
     #[serde(default)]
     pub ai_policy: CourseAiPolicy,
+    /// The course material's front page. `None` from a host that predates the field.
+    #[serde(default)]
+    pub url: Option<String>,
+    /// IETF BCP 47 tag such as `fi-FI`. `None` from a host that predates the field.
+    #[serde(default)]
+    pub language_code: Option<String>,
+    /// Shared by every language version of the course; each version is a separate course with
+    /// its own exercises.
+    #[serde(default)]
+    pub language_group_id: Option<Uuid>,
+    /// The language version the user moved to from this course, if they did.
+    #[serde(default)]
+    pub moved_to_course_id: Option<Uuid>,
+    /// When the course run ends or ended; it takes no new students from then on.
+    #[serde(default)]
+    pub closed_at: Option<DateTime<Utc>>,
+    /// The course that continues this one after it closed, if its teacher named one.
+    #[serde(default)]
+    pub successor_course_id: Option<Uuid>,
+    /// `Some(false)` for a course the user only teaches: submits to it fail with the
+    /// `not-enrolled` error kind. `None` from a host that predates the field.
+    #[serde(default)]
+    pub is_enrolled: Option<bool>,
+    /// Staff get exercises of unopened chapters and model solutions whatever their progress.
+    #[serde(default)]
+    pub is_staff: bool,
 }
 
 impl From<api::Course> for Course {
@@ -759,6 +893,14 @@ impl From<api::Course> for Course {
             description: value.description,
             organization_name: value.organization_name,
             ai_policy: value.ai_policy.into(),
+            url: value.url,
+            language_code: value.language_code,
+            language_group_id: value.language_group_id,
+            moved_to_course_id: value.moved_to_course_id,
+            closed_at: value.closed_at,
+            successor_course_id: value.successor_course_id,
+            is_enrolled: value.is_enrolled,
+            is_staff: value.is_staff,
         }
     }
 }
@@ -896,6 +1038,136 @@ pub struct ExerciseProgress {
     /// while the chapter is locked for the user, and with `exercise-locked` otherwise.
     #[serde(default)]
     pub exercise_locked: bool,
+    /// Where the answer is in the exercise's peer, self or teacher review, which happens in the
+    /// course material. `None` while the user can still answer, and from a host that predates
+    /// the field.
+    #[serde(default)]
+    pub reviewing_stage: Option<ReviewingStage>,
+    /// A teacher's grading that overrides the automatic score. `None` when there is none to show.
+    #[serde(default)]
+    pub teacher_review: Option<TeacherReview>,
+}
+
+/// Where an answer is in an exercise's review process. No stage takes new answers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+#[serde(rename_all = "snake_case")]
+pub enum ReviewingStage {
+    /// The user must give peer reviews in the course material.
+    PeerReview,
+    /// The user must review their own answer in the course material.
+    SelfReview,
+    /// The user has given their reviews and waits for others to review their answer.
+    WaitingForPeerReviews,
+    WaitingForTeacher,
+    /// Reviews are done and points awarded; the answer is final.
+    ReviewedAndLocked,
+    /// The answer was locked with its chapter before any review.
+    Locked,
+    /// The chapter was locked before the user answered.
+    NotAnsweredAndLocked,
+    /// A value newer than this client.
+    Unrecognized,
+}
+
+// Hand-written rather than `#[serde(other)]`, which ts-rs cannot parse.
+impl<'de> Deserialize<'de> for ReviewingStage {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(match String::deserialize(deserializer)?.as_str() {
+            "peer_review" => Self::PeerReview,
+            "self_review" => Self::SelfReview,
+            "waiting_for_peer_reviews" => Self::WaitingForPeerReviews,
+            "waiting_for_teacher" => Self::WaitingForTeacher,
+            "reviewed_and_locked" => Self::ReviewedAndLocked,
+            "locked" => Self::Locked,
+            "not_answered_and_locked" => Self::NotAnsweredAndLocked,
+            _ => Self::Unrecognized,
+        })
+    }
+}
+
+impl From<api::ReviewingStage> for ReviewingStage {
+    fn from(value: api::ReviewingStage) -> Self {
+        match value {
+            api::ReviewingStage::PeerReview => Self::PeerReview,
+            api::ReviewingStage::SelfReview => Self::SelfReview,
+            api::ReviewingStage::WaitingForPeerReviews => Self::WaitingForPeerReviews,
+            api::ReviewingStage::WaitingForTeacher => Self::WaitingForTeacher,
+            api::ReviewingStage::ReviewedAndLocked => Self::ReviewedAndLocked,
+            api::ReviewingStage::Locked => Self::Locked,
+            api::ReviewingStage::NotAnsweredAndLocked => Self::NotAnsweredAndLocked,
+            api::ReviewingStage::Unrecognized => Self::Unrecognized,
+        }
+    }
+}
+
+/// A teacher's grading of the user's answer.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct TeacherReview {
+    pub decision: TeacherDecision,
+    /// Replaces the automatic score.
+    pub score_given: f32,
+    pub justification: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+impl From<api::TeacherReview> for TeacherReview {
+    fn from(value: api::TeacherReview) -> Self {
+        Self {
+            decision: value.decision.into(),
+            score_given: value.score_given,
+            justification: value.justification,
+            created_at: value.created_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+#[serde(rename_all = "snake_case")]
+pub enum TeacherDecision {
+    ZeroPoints,
+    CustomPoints,
+    SuspectedPlagiarism,
+    /// The answer was rejected and the exercise reset, so the user can answer again.
+    RejectAndReset,
+    UnauthorizedAiUse,
+    BadAnswer,
+    Other,
+    /// A value newer than this client.
+    Unrecognized,
+}
+
+// Hand-written rather than `#[serde(other)]`, which ts-rs cannot parse.
+impl<'de> Deserialize<'de> for TeacherDecision {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(match String::deserialize(deserializer)?.as_str() {
+            "zero_points" => Self::ZeroPoints,
+            "custom_points" => Self::CustomPoints,
+            "suspected_plagiarism" => Self::SuspectedPlagiarism,
+            "reject_and_reset" => Self::RejectAndReset,
+            "unauthorized_ai_use" => Self::UnauthorizedAiUse,
+            "bad_answer" => Self::BadAnswer,
+            "other" => Self::Other,
+            _ => Self::Unrecognized,
+        })
+    }
+}
+
+impl From<api::TeacherDecision> for TeacherDecision {
+    fn from(value: api::TeacherDecision) -> Self {
+        match value {
+            api::TeacherDecision::ZeroPoints => Self::ZeroPoints,
+            api::TeacherDecision::CustomPoints => Self::CustomPoints,
+            api::TeacherDecision::SuspectedPlagiarism => Self::SuspectedPlagiarism,
+            api::TeacherDecision::RejectAndReset => Self::RejectAndReset,
+            api::TeacherDecision::UnauthorizedAiUse => Self::UnauthorizedAiUse,
+            api::TeacherDecision::BadAnswer => Self::BadAnswer,
+            api::TeacherDecision::Other => Self::Other,
+            api::TeacherDecision::Unrecognized => Self::Unrecognized,
+        }
+    }
 }
 
 /// What a user's points on an exercise wait for when a teacher reviews answers before awarding
@@ -935,7 +1207,7 @@ impl From<api::PendingTeacherReview> for PendingTeacherReview {
 }
 
 /// Where the user stands on an exercise, as the host decides it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum ExerciseStanding {
     /// No graded submission and no try used.
@@ -948,6 +1220,21 @@ pub enum ExerciseStanding {
     /// Below full points (0 included), the try limit used up and no review pending, so the score
     /// is final.
     OutOfTries,
+    /// A value newer than this client.
+    Unrecognized,
+}
+
+// Hand-written rather than `#[serde(other)]`, which ts-rs cannot parse.
+impl<'de> Deserialize<'de> for ExerciseStanding {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(match String::deserialize(deserializer)?.as_str() {
+            "NotAttempted" => Self::NotAttempted,
+            "Attempted" => Self::Attempted,
+            "Passed" => Self::Passed,
+            "OutOfTries" => Self::OutOfTries,
+            _ => Self::Unrecognized,
+        })
+    }
 }
 
 impl From<api::ExerciseStanding> for ExerciseStanding {
@@ -957,6 +1244,7 @@ impl From<api::ExerciseStanding> for ExerciseStanding {
             api::ExerciseStanding::Attempted => Self::Attempted,
             api::ExerciseStanding::Passed => Self::Passed,
             api::ExerciseStanding::OutOfTries => Self::OutOfTries,
+            api::ExerciseStanding::Unrecognized => Self::Unrecognized,
         }
     }
 }
@@ -974,17 +1262,35 @@ impl From<api::ExerciseProgress> for ExerciseProgress {
             tries_left: value.tries_left,
             pending_teacher_review: value.pending_teacher_review.map(Into::into),
             exercise_locked: value.exercise_locked,
+            reviewing_stage: value.reviewing_stage.map(Into::into),
+            teacher_review: value.teacher_review.map(Into::into),
         }
     }
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
+/// An exam the user has started and can still answer.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
-pub struct CourseInfo {
+#[cfg_attr(feature = "ts-rs", ts(rename = "MoocExam"))]
+#[schemars(rename = "MoocExam")]
+pub struct Exam {
     pub id: Uuid,
-    pub slug: String,
     pub name: String,
-    pub description: Option<String>,
+    pub started_at: DateTime<Utc>,
+    /// Answers are accepted until then: the end of the user's time or of the exam, whichever
+    /// comes first.
+    pub answerable_until: DateTime<Utc>,
+}
+
+impl From<api::Exam> for Exam {
+    fn from(value: api::Exam) -> Self {
+        Self {
+            id: value.id,
+            name: value.name,
+            started_at: value.started_at,
+            answerable_until: value.answerable_until,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
@@ -1019,7 +1325,12 @@ pub enum ExerciseTaskSubmissionStatus {
     NoGradingYet,
     /// A grading record exists. It may still be in progress; `grading_progress`
     /// says how far it has got.
-    Grading { grading: Grading },
+    Grading { grading: Box<Grading> },
+    /// The submission belongs to an exam the user can still answer; its grading shows only
+    /// after that.
+    GradingHidden,
+    /// A status newer than this client.
+    Unrecognized,
 }
 
 /// A task submission's grading record.
@@ -1041,6 +1352,9 @@ pub struct Grading {
     /// The test run the grading was based on. `None` until grading has produced one, or when the
     /// exercise service reported something else.
     pub test_results: Option<GradingTestRun>,
+    /// The exercise in the course material, where the latest submission and its grading show.
+    /// `None` for an exam exercise, and from a host that predates the field.
+    pub submission_page_url: Option<String>,
 }
 
 impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
@@ -1055,17 +1369,21 @@ impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
                 feedback_json,
                 feedback_text,
                 exercise_progress,
+                submission_page_url,
             } => Self::Grading {
-                grading: Grading {
+                grading: Box::new(Grading {
                     grading_progress: grading_progress.into(),
                     score_given,
                     grading_started_at,
                     grading_completed_at,
                     feedback_text,
-                    exercise_progress: exercise_progress.map(Into::into),
+                    exercise_progress: exercise_progress.map(|progress| (*progress).into()),
                     test_results: feedback_json.and_then(GradingTestRun::from_feedback_json),
-                },
+                    submission_page_url,
+                }),
             },
+            api::ExerciseTaskSubmissionStatus::GradingHidden => Self::GradingHidden,
+            api::ExerciseTaskSubmissionStatus::Unrecognized => Self::Unrecognized,
         }
     }
 }
@@ -1083,6 +1401,8 @@ pub enum GradingProgress {
     Pending,
     /// The grading process is completed; the score value, if any, represents the current Final Grade;
     FullyGraded,
+    /// A value newer than this client.
+    Unrecognized,
 }
 
 impl From<api::GradingProgress> for GradingProgress {
@@ -1093,6 +1413,7 @@ impl From<api::GradingProgress> for GradingProgress {
             api::GradingProgress::PendingManual => Self::PendingManual,
             api::GradingProgress::Pending => Self::Pending,
             api::GradingProgress::FullyGraded => Self::FullyGraded,
+            api::GradingProgress::Unrecognized => Self::Unrecognized,
         }
     }
 }
@@ -1127,6 +1448,8 @@ pub enum SubmissionKind {
     Paste,
     /// An ungraded snapshot stored before local changes were discarded, by `--save-old-state`.
     Backup,
+    /// A value newer than this client.
+    Unrecognized,
 }
 
 impl From<api::SubmissionKind> for SubmissionKind {
@@ -1135,6 +1458,7 @@ impl From<api::SubmissionKind> for SubmissionKind {
             api::SubmissionKind::Submission => Self::Submission,
             api::SubmissionKind::Paste => Self::Paste,
             api::SubmissionKind::Backup => Self::Backup,
+            api::SubmissionKind::Unrecognized => Self::Unrecognized,
         }
     }
 }
@@ -1214,7 +1538,7 @@ mod test {
                 grading_completed_at: None,
                 feedback_json: Some(serde_json::json!({ "plugin_private": "sentinel" })),
                 feedback_text: Some("All tests passed".to_string()),
-                exercise_progress: Some(api::ExerciseProgress {
+                exercise_progress: Some(Box::new(api::ExerciseProgress {
                     exercise_id: Uuid::nil(),
                     score_given: 1.0,
                     score_maximum: 1,
@@ -1225,7 +1549,10 @@ mod test {
                     tries_left: Some(2),
                     pending_teacher_review: Some(api::PendingTeacherReview::AwaitsChapterLock),
                     exercise_locked: false,
-                }),
+                    reviewing_stage: Some(api::ReviewingStage::PeerReview),
+                    teacher_review: None,
+                })),
+                submission_page_url: Some("https://example.com/page#ex".to_string()),
             });
         let grading = serde_json::to_value(&grading).unwrap();
 
@@ -1247,6 +1574,14 @@ mod test {
         assert_eq!(
             grading["grading"]["exercise_progress"]["exercise_locked"],
             false
+        );
+        assert_eq!(
+            grading["grading"]["exercise_progress"]["reviewing_stage"],
+            "peer_review"
+        );
+        assert_eq!(
+            grading["grading"]["submission_page_url"],
+            "https://example.com/page#ex"
         );
         assert!(
             !grading.to_string().contains("sentinel"),
@@ -1276,6 +1611,7 @@ mod test {
                 })),
                 feedback_text: Some("Tests failed".to_string()),
                 exercise_progress: None,
+                submission_page_url: None,
             });
         let grading = serde_json::to_value(&grading).unwrap();
 
@@ -1873,7 +2209,7 @@ mod test {
     }
 
     #[test]
-    fn gets_exercises_batched() {
+    fn gets_an_exercise_with_its_editor_task() {
         // Exercises the typed editor PublicSpec path and checksum derivation.
         init();
         let mut server = Server::new();
@@ -1910,10 +2246,9 @@ mod test {
                 .to_string(),
             )
             .create();
-        let slides = client
-            .get_exercises(&[Uuid::parse_str(exercise_id).unwrap()])
-            .unwrap();
-        assert_eq!(slides.len(), 1);
+        let slides = [client
+            .exercise(Uuid::parse_str(exercise_id).unwrap())
+            .unwrap()];
         assert_eq!(slides[0].exercise_id, Uuid::parse_str(exercise_id).unwrap());
         assert_eq!(slides[0].tasks.len(), 1);
         assert_eq!(
@@ -2808,6 +3143,24 @@ mod test {
         unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
         res.unwrap();
         with_auth.assert();
+    }
+
+    #[test]
+    fn the_bearer_needs_https_and_dev_hosts_need_the_trust_knob() {
+        let _guard = env_lock();
+        let url = |s: &str| -> Url { s.parse().unwrap() };
+        // SAFETY: serialized by ENV_LOCK.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+        assert!(may_carry_bearer(&url("https://courses.mooc.fi/f")));
+        assert!(!may_carry_bearer(&url("http://courses.mooc.fi/f")));
+        assert!(!may_carry_bearer(&url("http://project-331.local/f")));
+        assert!(!may_carry_bearer(&url("https://evil.example/f")));
+        // SAFETY: serialized by ENV_LOCK.
+        unsafe { std::env::set_var(TRUST_LOCALHOST_VAR, "1") };
+        let is_trusted = may_carry_bearer(&url("http://project-331.local/f"));
+        // SAFETY: serialized by ENV_LOCK.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+        assert!(is_trusted);
     }
 
     #[test]

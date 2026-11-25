@@ -22,6 +22,7 @@ use std::{
     ffi::OsString,
     fmt::Display,
     path::{Path, PathBuf},
+    sync::Mutex,
     time::Duration,
 };
 use tempfile::TempPath;
@@ -61,6 +62,18 @@ fn java_executable_in(java_home: Option<OsString>) -> PathBuf {
     PathBuf::from("java")
 }
 
+/// System properties that make a test JVM read and write UTF-8 in an English locale, as in the
+/// Linux sandbox, instead of the Windows code page and regional settings. Placed before the
+/// user's `JVM_OPTIONS` so those still win.
+const TEST_JVM_LOCALE_ARGS: [&str; 6] = [
+    "-Dfile.encoding=UTF-8",
+    "-Dstdout.encoding=UTF-8",
+    "-Dstderr.encoding=UTF-8",
+    "-Dsun.stdout.encoding=UTF-8",
+    "-Duser.language=en",
+    "-Duser.country=US",
+];
+
 struct JvmWrapper {
     jvm: Jvm,
     stdout_path: TempPath,
@@ -88,61 +101,108 @@ impl JvmWrapper {
     }
 }
 
+/// Directory for the plugin's cached jars and the bundled Maven.
+///
+/// On Windows it must be pure ASCII: j4rs hands the class path to `JNI_CreateJavaVM`, which reads
+/// it in the ANSI code page, so a non-ASCII profile name (`C:\Users\Mäkelä`) breaks every JVM
+/// start. Such profiles get a directory under `ProgramData` instead.
 fn tmc_dir() -> Result<PathBuf, JavaError> {
-    let home_dir = dirs::cache_dir().ok_or(JavaError::HomeDir)?;
-    Ok(home_dir.join("tmc"))
+    let cache_dir = dirs::cache_dir().ok_or(JavaError::HomeDir)?;
+    let ascii_fallback_root = if cfg!(windows) {
+        std::env::var_os("ProgramData").map(PathBuf::from)
+    } else {
+        None
+    };
+    tmc_dir_in(&cache_dir, ascii_fallback_root.as_deref())
+}
+
+fn tmc_dir_in(cache_dir: &Path, ascii_fallback_root: Option<&Path>) -> Result<PathBuf, JavaError> {
+    let dir = cache_dir.join("tmc");
+    let Some(root) = ascii_fallback_root.filter(|_| !dir.to_string_lossy().is_ascii()) else {
+        return Ok(dir);
+    };
+    // The fallback is shared by every user of the machine. A random name, created here and
+    // recorded in the user's own profile, stops another user from creating it first and
+    // planting a Maven in it; ProgramData lets only its creator write to a subdirectory.
+    let record = dir.join("ascii-cache-dir");
+    if let Ok(recorded) = file_util::read_file_to_string(&record) {
+        let recorded = PathBuf::from(recorded.trim());
+        if recorded.starts_with(root) && recorded.is_dir() {
+            return Ok(recorded);
+        }
+    }
+    let created = tempfile::Builder::new()
+        .prefix("tmc-")
+        .tempdir_in(root)
+        .map_err(JavaError::TempDir)?
+        .keep();
+    file_util::write_atomically(&record, created.to_string_lossy().as_bytes())?;
+    Ok(created)
+}
+
+/// Serializes cache writes between threads; the file lock alone is per process on Unix.
+static CACHE_WRITE_MUTEX: Mutex<()> = Mutex::new(());
+
+/// Makes the file at `path` contain `bytes`, leaving it untouched when it already does.
+///
+/// Safe against concurrent CLI runs: the write goes to a temporary file that is renamed into
+/// place under a cache-wide lock, so no process sees or truncates a half-written jar. If the
+/// rename is refused because a running JVM has the old file open (Windows), the old file stays.
+fn ensure_cached_file(path: &Path, bytes: &[u8]) -> Result<(), JavaError> {
+    let is_current =
+        |path: &Path| file_util::read_file(path).is_ok_and(|existing| existing == bytes);
+    if is_current(path) {
+        return Ok(());
+    }
+    let dir = path
+        .parent()
+        .ok_or_else(|| JavaError::InvalidExercise(path.to_path_buf()))?;
+    file_util::create_dir_all(dir)?;
+
+    let _thread_guard = CACHE_WRITE_MUTEX
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    let mut lock = file_util::Lock::file(
+        dir.join("cache-files.lock"),
+        file_util::LockOptions::WriteCreate,
+    )?;
+    let _guard = lock.lock()?;
+    if is_current(path) {
+        return Ok(());
+    }
+
+    log::debug!("writing {}", path.display());
+    match file_util::write_atomically(path, bytes) {
+        Ok(()) => Ok(()),
+        Err(err) if path.exists() => {
+            log::warn!(
+                "could not replace {}, keeping the existing file: {err}",
+                path.display(),
+            );
+            Ok(())
+        }
+        Err(err) => Err(err.into()),
+    }
 }
 
 /// Returns the tmc-junit-runner path, creating it if it doesn't exist yet.
 fn get_junit_runner_path() -> Result<PathBuf, JavaError> {
-    let jar_dir = tmc_dir()?;
-
-    let junit_path = jar_dir.join("tmc-junit-runner.jar");
-    if let Ok(bytes) = file_util::read_file(&junit_path) {
-        if TMC_CHECKSTYLE_RUNNER_BYTES != bytes.as_slice() {
-            log::debug!("updating tmc junit runner jar");
-            file_util::write_to_file(TMC_JUNIT_RUNNER_BYTES, &junit_path)?;
-        }
-    } else {
-        log::debug!("failed to read tmc junit runner jar, writing");
-        file_util::write_to_file(TMC_JUNIT_RUNNER_BYTES, &junit_path)?;
-    }
+    let junit_path = tmc_dir()?.join("tmc-junit-runner.jar");
+    ensure_cached_file(&junit_path, TMC_JUNIT_RUNNER_BYTES)?;
     Ok(junit_path)
 }
 
 /// Returns the tmc-checkstyle-runner path, creating it if it doesn't exist yet.
 fn get_checkstyle_runner_path() -> Result<PathBuf, JavaError> {
-    let jar_dir = tmc_dir()?;
-
-    let checkstyle_path = jar_dir.join("tmc-checkstyle-runner.jar");
-    if let Ok(bytes) = file_util::read_file(&checkstyle_path) {
-        if TMC_CHECKSTYLE_RUNNER_BYTES != bytes.as_slice() {
-            log::debug!("updating checkstyle runner jar");
-            file_util::write_to_file(TMC_CHECKSTYLE_RUNNER_BYTES, &checkstyle_path)?;
-        }
-    } else {
-        log::debug!("failed to read checkstyle runner jar, writing");
-        file_util::write_to_file(TMC_CHECKSTYLE_RUNNER_BYTES, &checkstyle_path)?;
-    }
+    let checkstyle_path = tmc_dir()?.join("tmc-checkstyle-runner.jar");
+    ensure_cached_file(&checkstyle_path, TMC_CHECKSTYLE_RUNNER_BYTES)?;
     Ok(checkstyle_path)
 }
 
 /// Returns the j4rs path, creating it if it doesn't exist yet.
 fn initialize_jassets() -> Result<PathBuf, JavaError> {
-    let jar_dir = tmc_dir()?;
-    let jassets_dir = jar_dir.join("jassets");
-
-    let j4rs_path = jassets_dir.join("j4rs.jar");
-
-    if let Ok(bytes) = file_util::read_file(&j4rs_path) {
-        if J4RS_BYTES != bytes.as_slice() {
-            log::debug!("updating j4rs jar");
-            file_util::write_to_file(J4RS_BYTES, &j4rs_path)?;
-        }
-    } else {
-        log::debug!("failed to read j4rs jar, writing");
-        file_util::write_to_file(J4RS_BYTES, &j4rs_path)?;
-    }
+    let j4rs_path = tmc_dir()?.join("jassets").join("j4rs.jar");
+    ensure_cached_file(&j4rs_path, J4RS_BYTES)?;
     Ok(j4rs_path)
 }
 
@@ -362,6 +422,91 @@ impl Display for StackTrace {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
+
+    #[test]
+    fn tmc_dir_stays_in_cache_dir_when_ascii() {
+        let fallback = Path::new("C:\\ProgramData");
+        assert_eq!(
+            tmc_dir_in(Path::new("/home/ada/.cache"), Some(fallback)).unwrap(),
+            PathBuf::from("/home/ada/.cache/tmc")
+        );
+    }
+
+    #[test]
+    fn tmc_dir_moves_to_a_recorded_ascii_dir_for_non_ascii_profiles() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("public");
+        std::fs::create_dir(&root).unwrap();
+        let cache = temp.path().join("Mäkelä");
+
+        let dir = tmc_dir_in(&cache, Some(&root)).unwrap();
+        assert!(dir.starts_with(&root) && dir.is_dir());
+        assert!(
+            dir.strip_prefix(&root)
+                .unwrap()
+                .to_string_lossy()
+                .is_ascii()
+        );
+        assert_eq!(dir, tmc_dir_in(&cache, Some(&root)).unwrap());
+        assert_ne!(
+            dir,
+            tmc_dir_in(&temp.path().join("Väisänen"), Some(&root)).unwrap()
+        );
+        assert_eq!(tmc_dir_in(&cache, None).unwrap(), cache.join("tmc"));
+    }
+
+    #[test]
+    fn cached_file_is_created_replaced_and_left_alone_when_current() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("nested").join("runner.jar");
+        ensure_cached_file(&path, b"one").unwrap();
+        assert_eq!(std::fs::read(&path).unwrap(), b"one");
+
+        let modified = std::fs::metadata(&path).unwrap().modified().unwrap();
+        ensure_cached_file(&path, b"one").unwrap();
+        assert_eq!(
+            std::fs::metadata(&path).unwrap().modified().unwrap(),
+            modified
+        );
+
+        ensure_cached_file(&path, b"two").unwrap();
+        assert_eq!(std::fs::read(&path).unwrap(), b"two");
+    }
+
+    #[test]
+    fn concurrent_cache_writes_never_expose_partial_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("runner.jar");
+        let bytes = vec![7u8; 1 << 20];
+        let readers_saw_partial = std::sync::atomic::AtomicBool::new(false);
+        std::thread::scope(|scope| {
+            for _ in 0..4 {
+                scope.spawn(|| ensure_cached_file(&path, &bytes).unwrap());
+            }
+            scope.spawn(|| {
+                for _ in 0..200 {
+                    if let Ok(read) = std::fs::read(&path) {
+                        if read != bytes {
+                            readers_saw_partial.store(true, std::sync::atomic::Ordering::Relaxed);
+                        }
+                    }
+                }
+            });
+        });
+        assert!(!readers_saw_partial.load(std::sync::atomic::Ordering::Relaxed));
+        assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    }
+
+    #[test]
+    fn test_jvm_gets_utf8_and_fixed_locale() {
+        assert!(TEST_JVM_LOCALE_ARGS.contains(&"-Dfile.encoding=UTF-8"));
+        assert!(TEST_JVM_LOCALE_ARGS.contains(&"-Duser.language=en"));
+    }
+
+    #[test]
+    fn junit_runner_is_not_compared_with_the_checkstyle_runner() {
+        assert_ne!(TMC_JUNIT_RUNNER_BYTES, TMC_CHECKSTYLE_RUNNER_BYTES);
+    }
 
     #[test]
     fn java_executable_prefers_the_java_home_launcher() {

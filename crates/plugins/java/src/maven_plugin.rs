@@ -15,8 +15,9 @@ use std::{
 };
 use tar::Archive as Tar;
 use tmc_langs_framework::{
-    Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
-    TmcError, nom::IResult, nom_language::error::VerboseError,
+    Archive, BUILD_TIMEOUT, ExerciseDesc, Language, LanguagePlugin, RunResult,
+    StyleValidationResult, TmcCommand, TmcError, absolute_tool_path, nom::IResult,
+    nom_language::error::VerboseError,
 };
 use tmc_langs_util::file_util;
 
@@ -27,6 +28,20 @@ const MVN_VERSION: &str = "3.8.1";
 /// cannot do this on its own: the unix backend is `fcntl`, whose locks are
 /// per-process, so two threads never contend for it.
 static MVN_EXTRACT_MUTEX: Mutex<()> = Mutex::new(());
+
+/// `MAVEN_OPTS` that make Maven's JVM read and write UTF-8 in an English locale, appended to
+/// whatever the user already set, which comes last so it wins.
+fn maven_opts(existing: Option<&str>) -> String {
+    let locale_opts = crate::TEST_JVM_LOCALE_ARGS.join(" ");
+    match existing.filter(|opts| !opts.trim().is_empty()) {
+        Some(existing) => format!("{locale_opts} {existing}"),
+        None => locale_opts,
+    }
+}
+
+fn maven_opts_from_env() -> String {
+    maven_opts(std::env::var("MAVEN_OPTS").ok().as_deref())
+}
 
 pub struct MavenPlugin {
     jvm: JvmWrapper,
@@ -42,7 +57,7 @@ impl MavenPlugin {
     /// any `mvn` on PATH: the bundled one is the only version reproducible across machines and
     /// known to work with the exercises' plugins.
     fn get_mvn_command() -> Result<OsString, JavaError> {
-        let tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)?.join("tmc");
+        let tmc_path = crate::tmc_dir()?;
 
         #[cfg(windows)]
         let mvn_exec = "mvn.cmd";
@@ -242,9 +257,9 @@ impl LanguagePlugin for MavenPlugin {
         log::info!("Cleaning maven project at {}", path.display());
 
         let mvn_command = Self::get_mvn_command()?;
-        let _output = TmcCommand::piped(mvn_command)
-            .with(|e| e.cwd(path).arg("--batch-mode").arg("clean"))
-            .output_checked()?;
+        let _output = TmcCommand::piped_batch_file(mvn_command, ["--batch-mode", "clean"])
+            .with(|e| e.cwd(path))
+            .output_with_timeout_checked(BUILD_TIMEOUT)?;
 
         Ok(())
     }
@@ -270,8 +285,10 @@ impl JavaPlugin for MavenPlugin {
     }
 
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
-        // canonicalize root path to avoid issues where the cwd and project root are different directories
-        let path = file_util::canonicalize(path)?;
+        // Absolute but not canonicalized: canonicalizing a mapped drive yields a UNC path,
+        // which cmd.exe cannot use as the working directory.
+        let path =
+            absolute_tool_path(path).map_err(|e| JavaError::AbsolutePath(path.to_path_buf(), e))?;
         log::info!("Building classpath for maven project at {}", path.display());
 
         let temp = tempfile::tempdir().map_err(JavaError::TempDir)?;
@@ -279,14 +296,12 @@ impl JavaPlugin for MavenPlugin {
 
         let output_arg = format!("-Dmdep.outputFile={}", class_path_file.display());
         let mvn_path = Self::get_mvn_command()?;
-        let _output = TmcCommand::piped(mvn_path)
-            .with(|e| {
-                e.cwd(&path)
-                    .arg("--batch-mode")
-                    .arg("dependency:build-classpath")
-                    .arg(output_arg)
-            })
-            .output_checked()?;
+        let _output = TmcCommand::piped_batch_file(
+            mvn_path,
+            ["--batch-mode", "dependency:build-classpath", &output_arg],
+        )
+        .with(|e| e.cwd(&path))
+        .output_with_timeout_checked(BUILD_TIMEOUT)?;
 
         let class_path = file_util::read_file_to_string(&class_path_file)?;
         if class_path.is_empty() {
@@ -308,15 +323,15 @@ impl JavaPlugin for MavenPlugin {
         log::info!("Building maven project at {}", project_root_path.display());
 
         let mvn_path = Self::get_mvn_command()?;
-        let output = TmcCommand::piped(mvn_path)
-            .with(|e| {
-                e.cwd(project_root_path)
-                    .arg("--batch-mode")
-                    .arg("clean")
-                    .arg("compile")
-                    .arg("test-compile")
-            })
-            .output()?;
+        let output = TmcCommand::piped_batch_file(
+            mvn_path,
+            ["--batch-mode", "clean", "compile", "test-compile"],
+        )
+        .with(|e| {
+            e.cwd(project_root_path)
+                .env("MAVEN_OPTS", maven_opts_from_env())
+        })
+        .output_with_timeout(BUILD_TIMEOUT)?;
 
         Ok(CompileResult {
             status_code: output.status,
@@ -335,11 +350,14 @@ impl JavaPlugin for MavenPlugin {
         log::info!("Running tests for maven project at {}", path.display());
 
         let mvn_path = Self::get_mvn_command()?;
-        let command = TmcCommand::piped(mvn_path).with(|e| {
-            e.cwd(path)
-                .arg("--batch-mode")
-                .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
-        });
+        let command = TmcCommand::piped_batch_file(
+            mvn_path,
+            [
+                "--batch-mode",
+                "fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test",
+            ],
+        )
+        .with(|e| e.cwd(path).env("MAVEN_OPTS", maven_opts_from_env()));
         let output = if let Some(timeout) = timeout {
             command.output_with_timeout_checked(timeout)?
         } else {
@@ -358,6 +376,13 @@ impl JavaPlugin for MavenPlugin {
 #[cfg(not(target_os = "macos"))] // issues with maven dependencies
 #[allow(clippy::unwrap_used)]
 mod test {
+
+    #[test]
+    fn maven_opts_put_the_users_options_last_so_they_win() {
+        assert!(maven_opts(None).contains("-Dfile.encoding=UTF-8"));
+        assert!(maven_opts(Some("")).ends_with("-Duser.country=US"));
+        assert!(maven_opts(Some("-Xmx2g")).ends_with(" -Xmx2g"));
+    }
 
     use super::{
         super::{TestCase, TestCaseStatus},
